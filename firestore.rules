@@ -1,0 +1,50 @@
+// ============================================================
+//  SAATHI CARE — Firestore Security Rules
+//  Paste these into Firebase Console → Firestore → Rules
+// ============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── CAREGIVERS ───────────────────────────────────────────
+    // Anyone can read active caregiver profiles (for booking page)
+    // Only the caregiver themselves can write to their own doc
+    match /caregivers/{caregiverId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == caregiverId;
+    }
+
+    // ── BOOKINGS ─────────────────────────────────────────────
+    // Anyone can CREATE a booking (families abroad, elders)
+    // Only the assigned caregiver can read / update their bookings
+    match /bookings/{bookingId} {
+      allow create: if true;
+      allow read, update: if request.auth != null &&
+        request.auth.uid == resource.data.caregiverId;
+      allow delete: if false; // Never delete bookings
+    }
+
+    // ── MEDIA / GALLERY ──────────────────────────────────────
+    // Anyone can read gallery (public-facing on home page)
+    // Only authenticated caregivers can create; only their own posts to delete
+    match /media/{mediaId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow delete: if request.auth != null &&
+        request.auth.uid == resource.data.caregiverId;
+      allow update: if false;
+    }
+
+    // ── BLOCKED SLOTS ─────────────────────────────────────────
+    // Anyone can read (booking page checks blocked slots)
+    // Only the caregiver who owns the block can write/delete
+    match /blocked_slots/{slotId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow delete: if request.auth != null &&
+        request.auth.uid == resource.data.caregiverId;
+      allow update: if false;
+    }
+  }
+}

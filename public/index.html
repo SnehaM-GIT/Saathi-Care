@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="description" content="Saathi Care — Trusted companion care for elderly parents when family is far away.">
+  <meta name="theme-color" content="#E8722A">
+  <title>Saathi Care</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Firebase SDKs (compat v9 — works without bundler) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════
+     GLOBAL TOAST
+═════════════════════════════════════════════════════════ -->
+<div class="toast toast-info" id="toast"></div>
+
+<!-- Hidden file input for gallery uploads -->
+<input type="file" id="media-upload-input" accept="image/*" style="display:none"
+  onchange="handleMediaUpload(this)">
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN 1: HOME / LANDING PAGE
+═════════════════════════════════════════════════════════ -->
+<div class="screen active" id="screen-home">
+  <nav class="nav">
+    <a class="logo" href="#" onclick="showScreen('screen-home');return false">
+      <div class="logo-icon">S</div>Saathi
+    </a>
+    <div class="nav-actions">
+      <button class="btn btn-ghost" style="padding:12px 24px;font-size:16px;font-weight:700" onclick="showScreen('screen-caregiver-login')">👨‍⚕️ Caregiver Login</button>
+      <button class="btn btn-primary" style="padding:12px 24px;font-size:16px;font-weight:700" onclick="startBooking()">📅 Book a Visit</button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-badge">Trusted Companion Care · Bengaluru</div>
+      <h1>A <span>helping hand</span><br>when family is far away</h1>
+      <p>We connect caring volunteers with elderly parents so no wish goes unfulfilled — temple visits, hospital check-ups, breakfast outings & more.</p>
+      <div class="hero-btns">
+        <button class="btn btn-primary btn-lg" onclick="startBooking()">Book a Visit</button>
+        <button class="btn btn-outline btn-lg" onclick="scrollToHow()">How It Works ↓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- How It Works -->
+  <div class="section" id="how-it-works" style="background:var(--white)">
+    <div class="section-title">How Saathi Works</div>
+    <div class="section-sub">Three simple steps to get care for your loved one</div>
+    <div class="hiw-grid">
+      <div class="hiw-step">
+        <div class="hiw-icon">📋</div>
+        <div class="hiw-title">1. Choose a Service</div>
+        <div class="hiw-desc">Select what kind of help your parent needs — from temple visits to hospital appointments. You can describe any other wish too.</div>
+      </div>
+      <div class="hiw-step">
+        <div class="hiw-icon">🗓️</div>
+        <div class="hiw-title">2. Pick a Saathi</div>
+        <div class="hiw-desc">View available caregivers and their free time slots. Book with who you trust — or let us auto-assign the best match.</div>
+      </div>
+      <div class="hiw-step">
+        <div class="hiw-icon">🤝</div>
+        <div class="hiw-title">3. We Show Up</div>
+        <div class="hiw-desc">Your Saathi arrives, spends quality time, and makes sure every need is met with warmth. Families pay for products/treatments. The visit is free.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Services Preview -->
+  <div style="background:var(--warm);padding:50px 24px">
+    <div style="max-width:980px;margin:0 auto">
+      <div class="section-title">Our Services</div>
+      <div class="section-sub">What your Saathi can help with</div>
+      <div class="services-grid">
+        <div class="service-card"><div class="service-icon">🛕</div><div class="service-name">Temple Visit</div><div class="service-desc">Accompany for darshan &amp; prayer</div></div>
+        <div class="service-card"><div class="service-icon">🍽️</div><div class="service-name">Outing &amp; Meal</div><div class="service-desc">Breakfast, lunch or evening out</div></div>
+        <div class="service-card"><div class="service-icon">🏥</div><div class="service-name">Hospital Visit</div><div class="service-desc">Checkups, tests &amp; consultations</div></div>
+        <div class="service-card"><div class="service-icon">🛍️</div><div class="service-name">Shopping Help</div><div class="service-desc">Groceries, medicines &amp; more</div></div>
+        <div class="service-card"><div class="service-icon">💬</div><div class="service-name">Companionship</div><div class="service-desc">Conversation, games &amp; company</div></div>
+        <div class="service-card"><div class="service-icon">✨</div><div class="service-name">Any Other Wish</div><div class="service-desc">Describe any specific need</div></div>
+      </div>
+      <div style="text-align:center;margin-top:32px">
+        <button class="btn btn-primary btn-lg" onclick="startBooking()">Book a Visit Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gallery preview -->
+  <div style="background:var(--teal);padding:54px 24px;text-align:center">
+    <div style="font-family:var(--font-serif);font-size:30px;color:white;font-weight:600;margin-bottom:12px">Moments of Care</div>
+    <div style="color:rgba(255,255,255,0.8);margin-bottom:32px;font-size:16px">Real visits. Real smiles. Real connections.</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;max-width:680px;margin:0 auto 28px" id="home-gallery-preview">
+      <!-- Gallery items loaded from Firestore. Fallback: -->
+      <div style="background:rgba(255,255,255,0.14);border-radius:12px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><div style="font-size:34px">🛕</div><div style="color:rgba(255,255,255,0.8);font-size:11px;font-weight:600">Temple visit</div></div>
+      <div style="background:rgba(255,255,255,0.14);border-radius:12px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><div style="font-size:34px">☕</div><div style="color:rgba(255,255,255,0.8);font-size:11px;font-weight:600">Morning chai</div></div>
+      <div style="background:rgba(255,255,255,0.14);border-radius:12px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><div style="font-size:34px">🏥</div><div style="color:rgba(255,255,255,0.8);font-size:11px;font-weight:600">Hospital support</div></div>
+      <div style="background:rgba(255,255,255,0.14);border-radius:12px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><div style="font-size:34px">🛍️</div><div style="color:rgba(255,255,255,0.8);font-size:11px;font-weight:600">Shopping trip</div></div>
+    </div>
+    <button class="btn" style="background:white;color:var(--teal);font-weight:700;font-size:16px;padding:12px 28px" onclick="showScreen('screen-home');setDashTab('gallery')">View All Photos</button>
+  </div>
+
+  <!-- Reassurance section -->
+  <div class="section" style="max-width:780px">
+    <div class="section-title" style="text-align:center">Why families trust Saathi</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;margin-top:28px">
+      <div style="text-align:center">
+        <div style="font-size:36px;margin-bottom:10px">🔒</div>
+        <div style="font-weight:700;font-size:16px;margin-bottom:6px">Verified Saathis</div>
+        <div style="color:var(--text2);font-size:14px">Every caregiver is personally known and background-checked.</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:36px;margin-bottom:10px">📸</div>
+        <div style="font-weight:700;font-size:16px;margin-bottom:6px">Photo Updates</div>
+        <div style="color:var(--text2);font-size:14px">Caregivers share pictures so families abroad can see their parents happy.</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:36px;margin-bottom:10px">💙</div>
+        <div style="font-weight:700;font-size:16px;margin-bottom:6px">No hidden costs</div>
+        <div style="color:var(--text2);font-size:14px">The visit is free. You only pay for products or treatments needed.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer"><p>© 2025 Saathi Care · Made with love for our elders · Bengaluru, India</p></div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN 2: BOOKING FLOW
+═════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-book">
+  <nav class="nav">
+    <a class="logo" href="#" onclick="showScreen('screen-home');return false">
+      <div class="logo-icon">S</div>Saathi
+    </a>
+    <button class="btn btn-ghost btn-sm" onclick="showScreen('screen-home')">← Back to Home</button>
+  </nav>
+
+  <div class="section">
+    <div style="margin-bottom:30px">
+      <div style="font-family:var(--font-serif);font-size:28px;font-weight:600;margin-bottom:6px">Book a Visit</div>
+      <div style="color:var(--text2);font-size:15px">For families abroad or elders booking directly</div>
+    </div>
+
+    <!-- Step indicators -->
+    <div class="steps" id="booking-steps">
+      <div class="step"><div class="step-num active" id="step1-num">1</div><span class="step-label active" id="step1-lbl">Service</span></div>
+      <div class="step-line" id="line1"></div>
+      <div class="step"><div class="step-num" id="step2-num">2</div><span class="step-label" id="step2-lbl">Caregiver</span></div>
+      <div class="step-line" id="line2"></div>
+      <div class="step"><div class="step-num" id="step3-num">3</div><span class="step-label" id="step3-lbl">Details</span></div>
+      <div class="step-line" id="line3"></div>
+      <div class="step"><div class="step-num" id="step4-num">4</div><span class="step-label" id="step4-lbl">Confirm</span></div>
+    </div>
+
+    <!-- ── STEP 1: SERVICE SELECTION ─────────────── -->
+    <div id="booking-step1">
+      <div style="font-family:var(--font-serif);font-size:22px;font-weight:600;margin-bottom:6px">What kind of help is needed?</div>
+      <div style="color:var(--text2);font-size:15px;margin-bottom:22px">You can select more than one. If something specific, choose "Other" and describe it.</div>
+      <div class="services-grid" id="service-select">
+        <div class="service-card" onclick="toggleService(this,'Temple Visit')"><div class="service-icon">🛕</div><div class="service-name">Temple Visit</div><div class="service-desc">Accompany for darshan &amp; prayer</div></div>
+        <div class="service-card" onclick="toggleService(this,'Outing &amp; Meal')"><div class="service-icon">🍽️</div><div class="service-name">Outing &amp; Meal</div><div class="service-desc">Breakfast, lunch or evening out</div></div>
+        <div class="service-card" onclick="toggleService(this,'Hospital Visit')"><div class="service-icon">🏥</div><div class="service-name">Hospital Visit</div><div class="service-desc">Checkups, tests &amp; consultations</div></div>
+        <div class="service-card" onclick="toggleService(this,'Shopping Help')"><div class="service-icon">🛍️</div><div class="service-name">Shopping Help</div><div class="service-desc">Groceries, medicines &amp; more</div></div>
+        <div class="service-card" onclick="toggleService(this,'Companionship')"><div class="service-icon">💬</div><div class="service-name">Companionship</div><div class="service-desc">Conversation, games &amp; company</div></div>
+        <div class="service-card" onclick="toggleService(this,'Other')"><div class="service-icon">✨</div><div class="service-name">Other</div><div class="service-desc">Any specific request</div></div>
+      </div>
+      <div id="other-desc-wrap" style="display:none;margin-top:18px">
+        <label class="form-label">Please describe the request</label>
+        <textarea class="form-input" id="other-desc" placeholder="e.g. Help my mother water her plants and sit with her for a couple of hours..."></textarea>
+      </div>
+      <button class="btn btn-primary" style="margin-top:28px;font-size:17px;padding:14px 32px" onclick="goStep(2)">Next: Choose Caregiver →</button>
+    </div>
+
+    <!-- ── STEP 2: CAREGIVER SELECTION ───────────── -->
+    <div id="booking-step2" style="display:none">
+      <div class="assign-banner">
+        <div style="font-size:26px">✨</div>
+        <div style="font-size:15px;color:var(--teal);font-weight:600">We'll auto-assign the best available Saathi — or you can pick one below.</div>
+      </div>
+      <div class="caregiver-grid" id="caregiver-grid">
+        <div class="loading-spinner">Loading caregivers…</div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:26px;flex-wrap:wrap">
+        <button class="btn btn-ghost" onclick="goStep(1)">← Back</button>
+        <button class="btn btn-primary" style="font-size:17px;padding:14px 32px" onclick="goStep(3)">Next: Your Details →</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 3: ELDER DETAILS ──────────────────── -->
+    <div id="booking-step3" style="display:none">
+      <div class="booking-form">
+        <div style="font-family:var(--font-serif);font-size:22px;font-weight:600;margin-bottom:22px">Elder's Details</div>
+        <div class="info-bar">📱 Phone number is auto-filled from your device — please verify it before continuing.</div>
+
+        <div class="form-group">
+          <label class="form-label" for="elder-name">Elder's Full Name *</label>
+          <input class="form-input" id="elder-name" placeholder="e.g. Kamala Subramaniam" autocomplete="name" style="font-size:18px">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="elder-phone">Phone Number *</label>
+          <input class="form-input" id="elder-phone" type="tel" placeholder="+91 98765 43210" autocomplete="tel" style="font-size:18px">
+          <div class="auto-fill-note">📱 Auto-filled — please verify this is correct before submitting</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="form-group">
+            <label class="form-label" for="elder-age">Age</label>
+            <input class="form-input" id="elder-age" type="number" min="50" max="120" placeholder="e.g. 72" style="font-size:18px">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="book-date">Preferred Date *</label>
+            <input class="form-input" id="book-date" type="date" style="font-size:16px">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="elder-address">Address / Location</label>
+          <input class="form-input" id="elder-address" placeholder="Street, landmark, area..." autocomplete="street-address">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Who is booking?</label>
+          <div class="radio-group">
+            <div class="radio-btn active" onclick="setBooker(this,'Son/Daughter (abroad)')">Son/Daughter (abroad)</div>
+            <div class="radio-btn" onclick="setBooker(this,'Self (elder)')">Self (elder)</div>
+            <div class="radio-btn" onclick="setBooker(this,'Other family')">Other family</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="booker-name">Your Name (person booking)</label>
+          <input class="form-input" id="booker-name" placeholder="Your name" autocomplete="name">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="booker-phone">Your Phone (for caregiver to reach you)</label>
+          <input class="form-input" id="booker-phone" type="tel" placeholder="+91 or country code..." autocomplete="tel">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="elder-notes">Any special notes for the Saathi?</label>
+          <textarea class="form-input" id="elder-notes" placeholder="e.g. She needs a wheelchair. He prefers a female companion. Please bring change for the temple..."></textarea>
+        </div>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button class="btn btn-ghost" onclick="goStep(2)">← Back</button>
+          <button class="btn btn-primary" style="font-size:17px;padding:14px 32px" onclick="goStep(4)">Review Booking →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 4: CONFIRM ────────────────────────── -->
+    <div id="booking-step4" style="display:none">
+      <div style="max-width:580px">
+        <div style="font-family:var(--font-serif);font-size:22px;font-weight:600;margin-bottom:20px">Review &amp; Confirm</div>
+        <div class="summary-card">
+          <div style="font-weight:700;font-size:16px;color:var(--text);margin-bottom:16px">Booking Summary</div>
+          <div class="summary-row"><span class="summary-label">Service(s)</span><span class="summary-val" id="sum-service">—</span></div>
+          <div class="summary-row"><span class="summary-label">Saathi</span><span class="summary-val" id="sum-caregiver">—</span></div>
+          <div class="summary-row"><span class="summary-label">Date &amp; Time</span><span class="summary-val" id="sum-slot">—</span></div>
+          <div class="summary-row"><span class="summary-label">Elder's Name</span><span class="summary-val" id="sum-elder">—</span></div>
+          <div class="summary-row"><span class="summary-label">Elder's Phone</span><span class="summary-val" id="sum-phone">—</span></div>
+          <div class="summary-row"><span class="summary-label">Age</span><span class="summary-val" id="sum-age">—</span></div>
+          <div class="summary-row"><span class="summary-label">Location</span><span class="summary-val" id="sum-address">—</span></div>
+          <div class="summary-row"><span class="summary-label">Booked by</span><span class="summary-val" id="sum-booker">—</span></div>
+          <div class="summary-row"><span class="summary-label">Notes</span><span class="summary-val" id="sum-notes">—</span></div>
+        </div>
+
+        <div class="teal-bar" style="margin-bottom:22px">
+          ℹ️ Your Saathi will call to confirm the visit within 30 minutes. Families abroad can pay digitally for any products or treatments. Saathis never charge independently for their time.
+        </div>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button class="btn btn-ghost" onclick="goStep(3)">← Edit Details</button>
+          <button class="btn btn-primary btn-lg" id="confirm-btn" onclick="confirmBooking()">Confirm Booking ✓</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN 3: BOOKING SUCCESS
+═════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-success">
+  <nav class="nav">
+    <a class="logo" href="#" onclick="showScreen('screen-home');return false">
+      <div class="logo-icon">S</div>Saathi
+    </a>
+  </nav>
+  <div class="success-wrap">
+    <div class="success-inner">
+      <div class="success-icon">✓</div>
+      <div style="font-family:var(--font-serif);font-size:32px;font-weight:600;margin-bottom:14px">Booking Confirmed!</div>
+      <div style="color:var(--text2);font-size:17px;line-height:1.7;margin-bottom:6px">
+        Your Saathi <strong id="success-caregiver"></strong> has been assigned.
+      </div>
+      <div style="color:var(--text3);font-size:14px;margin-bottom:6px">
+        Booking ID: <strong id="success-booking-id" style="color:var(--teal)"></strong>
+      </div>
+      <div style="color:var(--text2);font-size:16px;margin-bottom:36px;line-height:1.7">
+        They will call within 30 minutes to confirm the visit. 🙏<br>
+        Thank you for being a caring family!
+      </div>
+      <button class="btn btn-primary btn-block btn-lg" style="margin-bottom:12px" onclick="showScreen('screen-home')">Back to Home</button>
+      <button class="btn btn-ghost btn-block" style="font-size:15px;padding:12px" onclick="startBooking()">Book Another Visit</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN 4: CAREGIVER LOGIN
+═════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-caregiver-login">
+  <div class="login-screen">
+    <div class="login-card">
+      <div style="text-align:center;margin-bottom:32px">
+        <div style="width:60px;height:60px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:26px;color:white;margin:0 auto 14px">S</div>
+        <div style="font-family:var(--font-serif);font-size:24px;font-weight:600;color:var(--text)">Saathi Portal</div>
+        <div style="color:var(--text3);font-size:15px;margin-top:4px">Sign in to your caregiver dashboard</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="login-id">Email Address</label>
+        <input class="form-input" id="login-id" type="email" placeholder="you@example.com" autocomplete="email" style="font-size:17px" onkeydown="if(event.key==='Enter')document.getElementById('login-pw').focus()">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="login-pw">Password</label>
+        <input class="form-input" id="login-pw" type="password" placeholder="••••••••" autocomplete="current-password" style="font-size:17px" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+
+      <button class="btn btn-teal btn-block btn-lg" id="login-btn" onclick="doLogin()" style="margin-top:8px">Login to Dashboard</button>
+
+      <div style="text-align:center;margin-top:20px;font-size:14px;color:var(--text3)">
+        Not a Saathi yet? <a href="mailto:hello@saathicare.in" style="color:var(--teal);font-weight:700">Contact us</a>
+        &nbsp;·&nbsp;
+        <span style="color:var(--teal);cursor:pointer;font-weight:600" onclick="showScreen('screen-home')">Back to Home</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN 5: CAREGIVER DASHBOARD
+═════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-caregiver-dashboard">
+  <!-- Header -->
+  <div class="dash-header">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;max-width:980px;margin:0 auto;width:100%">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="avatar" id="dash-avatar" style="background:rgba(255,255,255,0.2);color:white;font-size:18px;width:52px;height:52px;flex-shrink:0">PN</div>
+        <div>
+          <div style="font-size:13px;opacity:0.7;margin-bottom:3px">Welcome back</div>
+          <div style="font-family:var(--font-serif);font-size:22px;font-weight:600" id="dash-caregiver-name">Saathi Dashboard</div>
+          <div style="opacity:0.7;font-size:13px;margin-top:2px" id="dash-date"></div>
+        </div>
+      </div>
+      <button class="btn" style="background:rgba(255,255,255,0.15);color:white;border:1.5px solid rgba(255,255,255,0.3);font-size:14px" onclick="doLogout()">Log Out</button>
+    </div>
+  </div>
+
+  <div class="dash-body">
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="setDashTab('requests')">📋 Requests</button>
+      <button class="tab" onclick="setDashTab('calendar')">🗓️ Calendar</button>
+      <button class="tab" onclick="setDashTab('gallery')">📸 Gallery</button>
+    </div>
+
+    <!-- ── TAB: REQUESTS ─────────────────────────── -->
+    <div id="tab-requests">
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-num" id="stat-new" style="color:var(--orange)">—</div><div class="stat-lbl">New</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-week" style="color:var(--teal)">—</div><div class="stat-lbl">This Week</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-done" style="color:var(--green)">—</div><div class="stat-lbl">Completed</div></div>
+      </div>
+
+      <!-- Bookings list -->
+      <div id="bookings-list">
+        <div class="loading-spinner">Loading requests…</div>
+      </div>
+    </div>
+
+    <!-- ── TAB: CALENDAR ─────────────────────────── -->
+    <div id="tab-calendar" style="display:none">
+      <!-- Month nav -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div style="font-family:var(--font-serif);font-size:22px;font-weight:600" id="cal-month-title">May 2025</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="calNav(-1)">← Prev</button>
+          <button class="btn btn-ghost btn-sm" onclick="calNav(1)">Next →</button>
+        </div>
+      </div>
+
+      <!-- Calendar grid -->
+      <div style="background:var(--white);border-radius:var(--radius-lg);padding:18px;border:1.5px solid var(--border);margin-bottom:20px">
+        <div class="cal-grid">
+          <div class="cal-header">Sun</div>
+          <div class="cal-header">Mon</div>
+          <div class="cal-header">Tue</div>
+          <div class="cal-header">Wed</div>
+          <div class="cal-header">Thu</div>
+          <div class="cal-header">Fri</div>
+          <div class="cal-header">Sat</div>
+        </div>
+        <div class="cal-grid" id="cal-days-grid">
+          <!-- Dynamically rendered by renderCalendar() -->
+        </div>
+        <!-- Legend -->
+        <div style="display:flex;gap:18px;margin-top:14px;font-size:12px;font-weight:600;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:5px"><div style="width:13px;height:13px;border-radius:3px;background:var(--teal)"></div>Today</div>
+          <div style="display:flex;align-items:center;gap:5px"><div style="width:13px;height:13px;border-radius:3px;background:var(--orange-light);border:1px solid var(--orange)"></div>Has booking</div>
+          <div style="display:flex;align-items:center;gap:5px"><div style="width:13px;height:13px;border-radius:3px;background:#FFEBEE;border:1px solid var(--red)"></div>Blocked</div>
+        </div>
+      </div>
+
+      <!-- Day detail panel (shown on day click) -->
+      <div class="day-detail-panel" id="day-detail-panel"></div>
+
+      <!-- Block slots -->
+      <div class="block-slot-panel">
+        <h4>🚫 Block Time Off</h4>
+        <div style="color:var(--text2);font-size:14px;margin-bottom:16px">Mark times when you're unavailable so families don't book you during those slots.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <div>
+            <label class="form-label">Date *</label>
+            <input type="date" class="form-input" id="block-date" style="font-size:16px">
+          </div>
+          <div>
+            <label class="form-label">Time Slot *</label>
+            <select class="form-input" id="block-time" style="font-size:16px">
+              <option value="9:00 AM">9:00 AM</option>
+              <option value="11:00 AM">11:00 AM</option>
+              <option value="1:00 PM">1:00 PM</option>
+              <option value="3:00 PM">3:00 PM</option>
+              <option value="5:00 PM">5:00 PM</option>
+              <option value="7:00 PM">7:00 PM</option>
+              <option value="All Day">All Day</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Reason (optional)</label>
+          <input class="form-input" id="block-reason" placeholder="e.g. Doctor appointment, personal work...">
+        </div>
+        <button class="btn btn-danger" id="block-btn" onclick="blockSlot()">🚫 Block This Slot</button>
+      </div>
+    </div>
+
+    <!-- ── TAB: GALLERY ──────────────────────────── -->
+    <div id="tab-gallery" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-weight:700;font-size:18px;margin-bottom:4px">Your Photo Gallery</div>
+          <div style="color:var(--text2);font-size:14px">Share moments from your visits. Families love seeing their parents happy!</div>
+        </div>
+        <button class="btn btn-teal btn-sm" onclick="triggerUpload()">+ Add Photo</button>
+      </div>
+
+      <div style="background:#FFF8E7;border:1.5px solid rgba(232,114,42,0.3);border-radius:var(--radius);padding:13px 16px;font-size:14px;color:var(--orange-dark);font-weight:600;margin-bottom:22px">
+        📸 Always ask permission before posting photos of the elders you visit. Privacy and dignity first.
+      </div>
+
+      <div class="media-grid" id="gallery-grid">
+        <div class="loading-spinner">Loading photos…</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     APP SCRIPT
+═════════════════════════════════════════════════════════ -->
+<script type="module" src="js/firebase-config.js"></script>
+<script type="module" src="js/app.js"></script>
+<script>
+  // Boot tasks (non-module — runs after all scripts)
+  document.addEventListener("DOMContentLoaded", () => {
+    // Set today's date in dashboard
+    const dateEl = document.getElementById("dash-date");
+    if (dateEl) {
+      dateEl.textContent = new Date().toLocaleDateString("en-IN", {
+        weekday:"long", day:"numeric", month:"long", year:"numeric"
+      });
+    }
+
+    // Auto-fill phone (best-effort via navigator - works on mobile browsers)
+    // Actual autofill happens via autocomplete="tel" on the input
+    // Set today as default date for booking
+    const dateInput = document.getElementById("book-date");
+    if (dateInput) dateInput.valueAsDate = new Date();
+  });
+
+  // startBooking resets the form and loads caregivers
+  function startBooking() {
+    showScreen("screen-book");
+    // Load caregivers when step 2 will be shown (pre-load)
+    if (typeof loadCaregivers === "function") loadCaregivers();
+  }
+</script>
+</body>
+</html>
