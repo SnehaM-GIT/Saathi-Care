@@ -3,7 +3,64 @@
 //  All Firebase reads/writes + UI state management
 // ============================================================
 
-import { auth, db, storage, COLLECTIONS } from "./firebase-config.js";
+import { auth, db, COLLECTIONS } from "./firebase-config.js";
+
+// ─────────────────────────────────────────────
+//  DEMO CAREGIVERS (shown when Firestore is empty / not yet seeded)
+//  Remove this block once you run seed-caregivers.js
+// ─────────────────────────────────────────────
+const DEMO_CAREGIVERS = [
+  {
+    id         : "demo-priya",
+    name       : "Priya Nair",
+    phone      : "+91 98765 00001",
+    bio        : "I love spending time with elders. I speak Kannada, Tamil, and Hindi.",
+    since      : "2023",
+    rating     : "4.9",
+    avatarBg   : "#FBE9D9",
+    avatarColor: "#E8722A",
+    active     : true,
+    isDemo     : true
+  },
+  {
+    id         : "demo-arjun",
+    name       : "Arjun Sharma",
+    phone      : "+91 98765 00002",
+    bio        : "Patient, caring, and always on time. Happy to help with hospital visits and errands.",
+    since      : "2024",
+    rating     : "4.8",
+    avatarBg   : "#E0F0F0",
+    avatarColor: "#2A7F7F",
+    active     : true,
+    isDemo     : true
+  },
+  {
+    id         : "demo-meera",
+    name       : "Meera Krishnan",
+    phone      : "+91 98765 00003",
+    bio        : "Retired teacher with a warm heart. Loves conversations, bhajans, and temple visits.",
+    since      : "2023",
+    rating     : "5.0",
+    avatarBg   : "#F3E5F5",
+    avatarColor: "#8E44AD",
+    active     : true,
+    isDemo     : true
+  }
+];
+
+// ─────────────────────────────────────────────
+//  CLOUDINARY CONFIG
+//  Replace these with your own Cloudinary values.
+//  Get them from: https://cloudinary.com → Dashboard
+//    CLOUD_NAME    → "Cloud name" shown on dashboard
+//    UPLOAD_PRESET → Settings → Upload → Add upload preset
+//                    (set to "Unsigned" mode)
+// ─────────────────────────────────────────────
+const CLOUDINARY = {
+  CLOUD_NAME   : "dkrkkibmq",      // e.g. "saathicare"
+  UPLOAD_PRESET: "YOUR_UPLOAD_PRESET",   // e.g. "saathi_gallery"
+  FOLDER       : "saathi_gallery"        // organises uploads in Cloudinary
+};
 
 // ─────────────────────────────────────────────
 //  APP STATE
@@ -136,6 +193,11 @@ export async function loadCaregivers() {
       .where("active", "==", true).get();
 
     State.caregivers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Fall back to demo caregivers if Firestore has none yet
+    if (State.caregivers.length === 0) {
+      State.caregivers = DEMO_CAREGIVERS;
+    }
 
     // Load blocked slots for today
     const today = todayStr();
@@ -307,13 +369,14 @@ export async function confirmBooking() {
 
     const booking = {
       services      : State.selectedServices,
-      caregiverId   : State.selectedCaregiver.id,
+      caregiverId   : State.selectedCaregiver.id.startsWith("demo-") ? "unassigned" : State.selectedCaregiver.id,
       caregiverName : State.selectedCaregiver.name,
       slot          : State.selectedSlot || { date: todayStr(), time: "TBD" },
       elder         : State.elderDetails,
       status        : "pending",
       createdAt     : firebase.firestore.FieldValue.serverTimestamp(),
-      otherDesc     : document.getElementById("other-desc")?.value || ""
+      otherDesc     : document.getElementById("other-desc")?.value || "",
+      isDemo        : State.selectedCaregiver.id.startsWith("demo-") || false
     };
 
     const ref = await db.collection(COLLECTIONS.BOOKINGS).add(booking);
@@ -643,27 +706,45 @@ export async function handleMediaUpload(input) {
   const file = input.files[0];
   if (!file) return;
   if (!file.type.startsWith("image/")) { showToast("Only images supported", "error"); return; }
-  if (file.size > 5 * 1024 * 1024) { showToast("Max file size is 5MB", "error"); return; }
+  if (file.size > 10 * 1024 * 1024) { showToast("Max file size is 10MB", "error"); return; }
 
   const caption = prompt("Add a caption for this photo (optional):") || "";
   showToast("Uploading photo…");
 
   try {
-    const fileName = `gallery/${State.currentUser.uid}/${Date.now()}_${file.name}`;
-    const ref = storage.ref(fileName);
-    await ref.put(file);
-    const url = await ref.getDownloadURL();
+    // ── Upload to Cloudinary (unsigned upload, no server needed) ──
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", CLOUDINARY.UPLOAD_PRESET);
+    formData.append("folder", CLOUDINARY.FOLDER);
+    // Tag by caregiver UID so you can manage in Cloudinary dashboard
+    formData.append("tags", State.currentUser.uid);
 
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY.CLOUD_NAME}/image/upload`,
+      { method: "POST", body: formData }
+    );
+
+    if (!res.ok) throw new Error("Cloudinary upload failed");
+    const data = await res.json();
+
+    const url        = data.secure_url;       // https CDN URL
+    const publicId   = data.public_id;        // used for deletion later
+
+    // ── Save metadata to Firestore ──
     const docRef = await db.collection(COLLECTIONS.MEDIA).add({
-      caregiverId: State.currentUser.uid,
+      caregiverId  : State.currentUser.uid,
       caregiverName: State.caregiverProfile?.name || "Saathi",
       url, caption,
-      type: "image",
-      fileName,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      type         : "image",
+      publicId,                               // stored so we can delete from Cloudinary
+      createdAt    : firebase.firestore.FieldValue.serverTimestamp()
     });
 
-    State.galleryItems.unshift({ id: docRef.id, caregiverId: State.currentUser.uid, url, caption, type: "image" });
+    State.galleryItems.unshift({
+      id: docRef.id, caregiverId: State.currentUser.uid,
+      url, caption, type: "image", publicId
+    });
     renderGallery();
     showToast("Photo uploaded ✓", "success");
   } catch (e) {
@@ -677,13 +758,27 @@ export async function deleteMedia(mediaId) {
   if (!confirm("Delete this photo?")) return;
   try {
     const item = State.galleryItems.find(i => i.id === mediaId);
-    if (item?.fileName) {
-      await storage.ref(item.fileName).delete().catch(() => {}); // ignore if already gone
-    }
+
+    // ── Delete from Cloudinary ──────────────────────────────────
+    // NOTE: Deleting from Cloudinary via unsigned requests isn't possible
+    // for security reasons. Two options:
+    //
+    // Option A (recommended for small apps): Just delete from Firestore.
+    //   The image stays in Cloudinary but won't show in your app.
+    //   Cloudinary free tier is 25GB so orphaned images won't matter.
+    //
+    // Option B: In your Cloudinary dashboard → Media Library, manually
+    //   delete images when needed. Or set up a Firebase Cloud Function
+    //   (requires Blaze plan) to call the Cloudinary delete API with
+    //   your API secret server-side.
+    //
+    // For Saathi Care, Option A is perfectly fine.
+
+    // Delete Firestore record (removes from app UI)
     await db.collection(COLLECTIONS.MEDIA).doc(mediaId).delete();
     State.galleryItems = State.galleryItems.filter(i => i.id !== mediaId);
     renderGallery();
-    showToast("Photo deleted", "success");
+    showToast("Photo removed ✓", "success");
   } catch (e) {
     showToast("Delete failed.", "error");
   }
@@ -742,7 +837,150 @@ function setText(id, val) {
   if (el) el.textContent = val;
 }
 
-// Expose to window for inline onclick handlers in HTML
+// ─────────────────────────────────────────────
+//  CAREGIVER APPLICATION FORM
+// ─────────────────────────────────────────────
+export async function submitApplication() {
+  const name    = document.getElementById("app-name").value.trim();
+  const email   = document.getElementById("app-email").value.trim();
+  const phone   = document.getElementById("app-phone").value.trim();
+  const area    = document.getElementById("app-area").value.trim();
+  const bio     = document.getElementById("app-bio").value.trim();
+  const langs   = document.getElementById("app-langs").value.trim();
+
+  if (!name || !email || !phone) {
+    showToast("Name, email and phone are required", "error"); return;
+  }
+
+  const btn = document.getElementById("app-submit-btn");
+  btn.textContent = "Submitting…"; btn.disabled = true;
+
+  try {
+    await db.collection("applications").add({
+      name, email, phone, area, bio, langs,
+      status    : "pending",
+      createdAt : firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showScreen("screen-apply-success");
+    showToast("Application submitted! We'll be in touch. 🙏", "success");
+  } catch (e) {
+    showToast("Submission failed. Please try again.", "error");
+    console.error(e);
+  } finally {
+    btn.textContent = "Submit Application"; btn.disabled = false;
+  }
+}
+
+// ─────────────────────────────────────────────
+//  OWNER DASHBOARD
+//  Access: yourdomain.com?owner=true
+//  You are the owner — change OWNER_EMAIL below.
+// ─────────────────────────────────────────────
+const OWNER_EMAIL = "owner@saathicare.in"; // Change this to YOUR email
+
+export async function loadOwnerDashboard() {
+  const appList  = document.getElementById("owner-applications-list");
+  const bookList = document.getElementById("owner-bookings-list");
+
+  if (appList) appList.innerHTML = `<div class="loading-spinner">Loading applications…</div>`;
+  if (bookList) bookList.innerHTML = `<div class="loading-spinner">Loading bookings…</div>`;
+
+  try {
+    // Load applications
+    const appSnap = await db.collection("applications").orderBy("createdAt", "desc").limit(50).get();
+    const apps = appSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if (appList) {
+      if (apps.length === 0) {
+        appList.innerHTML = `<div class="empty-state">No applications yet.</div>`;
+      } else {
+        appList.innerHTML = apps.map(a => `
+          <div class="request-card" style="margin-bottom:14px">
+            <div class="req-icon">👤</div>
+            <div class="req-body">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+                <div class="req-title">${escHtml(a.name)}</div>
+                <span class="status-badge ${a.status === 'approved' ? 'status-confirmed' : a.status === 'rejected' ? 'status-cancelled' : 'status-new'}">${a.status || 'pending'}</span>
+              </div>
+              <div class="req-meta">📧 ${escHtml(a.email)} · 📞 ${escHtml(a.phone)}</div>
+              ${a.area ? `<div class="req-meta">📍 ${escHtml(a.area)}</div>` : ""}
+              ${a.langs ? `<div class="req-meta">🗣️ ${escHtml(a.langs)}</div>` : ""}
+              ${a.bio ? `<div style="font-size:13px;color:var(--text2);margin-top:6px;font-style:italic">"${escHtml(a.bio)}"</div>` : ""}
+              <div class="req-actions">
+                ${a.status !== 'approved' ? `<button class="btn btn-teal btn-sm" onclick="approveApplication('${a.id}')">✓ Approve</button>` : ""}
+                ${a.status !== 'rejected' ? `<button class="btn btn-ghost btn-sm" onclick="rejectApplication('${a.id}')">✗ Reject</button>` : ""}
+              </div>
+            </div>
+          </div>`).join("");
+      }
+    }
+
+    // Load all bookings
+    const bookSnap = await db.collection("bookings").orderBy("createdAt", "desc").limit(50).get();
+    const bookings = bookSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if (bookList) {
+      if (bookings.length === 0) {
+        bookList.innerHTML = `<div class="empty-state">No bookings yet.</div>`;
+      } else {
+        bookList.innerHTML = bookings.map(b => `
+          <div class="request-card" style="margin-bottom:14px">
+            <div class="req-icon">📋</div>
+            <div class="req-body">
+              <div style="display:flex;justify-content:space-between;gap:8px">
+                <div class="req-title">${escHtml(b.services?.join(", ") || "—")}</div>
+                <span class="status-badge status-${b.status || 'new'}">${b.status || 'pending'}</span>
+              </div>
+              <div class="req-meta">👴 ${escHtml(b.elder?.name || "—")} · 📞 ${escHtml(b.elder?.phone || "—")}</div>
+              <div class="req-meta">🧑‍⚕️ ${escHtml(b.caregiverName || "Unassigned")} · 📅 ${b.slot?.date || "—"} ${b.slot?.time || ""}</div>
+              ${b.isDemo ? `<div style="font-size:12px;color:var(--orange);font-weight:700;margin-top:4px">⚠️ Demo booking — assign a real caregiver</div>` : ""}
+            </div>
+          </div>`).join("");
+      }
+    }
+
+    // Update counts
+    const pendingApps = apps.filter(a => a.status === "pending").length;
+    const el = document.getElementById("owner-app-count");
+    if (el) el.textContent = pendingApps;
+
+  } catch (e) {
+    if (appList)  appList.innerHTML  = `<div class="error-msg">Error loading data. Check Firestore rules.</div>`;
+    if (bookList) bookList.innerHTML = `<div class="error-msg">Error loading bookings.</div>`;
+    console.error("Owner dashboard error:", e);
+  }
+}
+
+export async function approveApplication(appId) {
+  try {
+    await db.collection("applications").doc(appId).update({ status: "approved" });
+    showToast("Application approved ✓", "success");
+    loadOwnerDashboard();
+  } catch (e) { showToast("Update failed", "error"); }
+}
+
+export async function rejectApplication(appId) {
+  try {
+    await db.collection("applications").doc(appId).update({ status: "rejected" });
+    showToast("Application rejected", "error");
+    loadOwnerDashboard();
+  } catch (e) { showToast("Update failed", "error"); }
+}
+
+export function setOwnerTab(tab) {
+  ["applications", "all-bookings"].forEach(t => {
+    const el = document.getElementById(`owner-tab-${t}`);
+    if (el) el.style.display = t === tab ? "block" : "none";
+  });
+  document.querySelectorAll(".owner-tab").forEach((t, i) => {
+    const tabs = ["applications", "all-bookings"];
+    t.className = "tab owner-tab" + (tabs[i] === tab ? " active" : "");
+  });
+}
+
+// ─────────────────────────────────────────────
+//  Expose to window for inline onclick handlers in HTML
+// ─────────────────────────────────────────────
 Object.assign(window, {
   showScreen, showToast, doLogin, doLogout,
   toggleService, selectCaregiver, selectSlot,
@@ -750,5 +988,6 @@ Object.assign(window, {
   updateBookingStatus, blockSlot, unblockSlot,
   setDashTab, renderCalendar, calNav, showDayDetail,
   triggerUpload, handleMediaUpload, deleteMedia,
+  submitApplication, loadOwnerDashboard, approveApplication, rejectApplication, setOwnerTab,
   scrollToHow: () => document.getElementById("how-it-works")?.scrollIntoView({ behavior:"smooth" })
 });

@@ -14,9 +14,19 @@ A complete companion care platform for elderly parents.
 | Firestore reads | 50,000 / day | ✅ Fine for hundreds of users |
 | Firestore writes | 20,000 / day | ✅ Fine |
 | Firestore storage | 1 GB | ✅ Fine |
-| Firebase Storage | 5 GB | ✅ Photos |
 | Firebase Hosting | 10 GB / month | ✅ Fine |
 | Custom domain | Free | ✅ |
+
+**Note:** Firebase Storage has been replaced with **Cloudinary** (free forever, no credit card needed).
+
+## Cloudinary Free Plan Limits
+
+| Feature | Free Limit | Saathi Usage |
+|---|---|---|
+| Storage | 25 GB | ✅ ~50,000 photos |
+| Bandwidth | 25 GB / month | ✅ Fine |
+| Transformations | 25 credits/month | ✅ Fine |
+| Credit card required | ❌ None | ✅ |
 
 ---
 
@@ -41,9 +51,30 @@ A complete companion care platform for elderly parents.
 3. Choose region: **asia-south1 (Mumbai)** for India
 4. Click **Enable**
 
-### C. Firebase Storage
-1. Firebase Console → **Storage** → **Get started**
-2. Accept defaults → choose same region → **Done**
+### C. Cloudinary (for photo uploads — free, no credit card)
+
+**Why Cloudinary instead of Firebase Storage?**  
+Firebase Storage requires linking a billing account even on the free plan. Cloudinary gives you **25GB free storage** with zero billing required.
+
+1. Go to [https://cloudinary.com](https://cloudinary.com) → **Sign up free**
+2. After signup, your **Dashboard** shows your **Cloud Name** — copy it
+3. Go to **Settings** (gear icon) → **Upload** tab
+4. Scroll to **Upload presets** → Click **Add upload preset**
+5. Set **Signing Mode** to **Unsigned**
+6. Name it something like `saathi_gallery`
+7. (Optional) Under **Folder**, set `saathi_gallery` to keep uploads organised
+8. Click **Save**
+9. Open `js/app.js` and update the `CLOUDINARY` config at the top:
+
+```js
+const CLOUDINARY = {
+  CLOUD_NAME   : "your-cloud-name",    // from Cloudinary Dashboard
+  UPLOAD_PRESET: "saathi_gallery",     // the preset you just created
+  FOLDER       : "saathi_gallery"
+};
+```
+
+That's it! Caregivers can now upload photos directly from the browser — no backend, no billing, no Firebase Storage needed.
 
 ---
 
@@ -55,15 +86,7 @@ A complete companion care platform for elderly parents.
 
 ---
 
-## Step 4 — Add Storage Security Rules
-
-1. Firebase Console → **Storage** → **Rules** tab
-2. Replace content with the contents of `storage.rules`
-3. Click **Publish**
-
----
-
-## Step 5 — Get Your Firebase Config
+## Step 4 — Get Your Firebase Config
 
 1. Firebase Console → **Project Settings** (gear icon) → **General**
 2. Scroll to **"Your apps"** → Click **"</>"** (Web app)
@@ -213,7 +236,7 @@ For a native app feel, users can **"Add to Home Screen"** from their browser.
 |---|---|
 | Caregivers not loading | Check Firestore rules are published; check `active: true` in docs |
 | Login fails | Verify email/password match what was created in seed script |
-| Photos not uploading | Check Storage rules are published; check file is < 5MB |
+| Photos not uploading | Check Cloudinary CLOUD_NAME and UPLOAD_PRESET in app.js; check browser console for errors |
 | Bookings not saving | Check Firestore rules; check browser console for errors |
 | Site not loading | Run `firebase deploy` again; check `public/js/firebase-config.js` has real values |
 

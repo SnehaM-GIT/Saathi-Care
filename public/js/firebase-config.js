@@ -17,9 +17,9 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 // Expose global db handles used throughout the app
-const auth    = firebase.auth();
-const db      = firebase.firestore();
-const storage = firebase.storage();
+const auth = firebase.auth();
+const db   = firebase.firestore();
+// Note: firebase.storage() removed — photos now handled by Cloudinary (free, no billing needed)
 
 // ── Firestore collection helpers ──────────────────────────
 const COLLECTIONS = {
@@ -29,4 +29,4 @@ const COLLECTIONS = {
   BLOCKED    : "blocked_slots" // slots blocked by caregivers
 };
 
-export { auth, db, storage, COLLECTIONS };
+export { auth, db, COLLECTIONS };

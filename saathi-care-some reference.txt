@@ -1,0 +1,11 @@
+saathi-care-a8525
+
+
+
+ok i am facing an issue eberything works well but firebase storage does not have a free option can u suggest any other equally good deployment method and modify the files accordingly otherwise there is one pay as u go plan which is giving me 5GB data how much will that be enough for how much will it cost if i exceed should o try that but if there is any other free but equally good options making sure all my functionalities remain lets stick to that  
+
+
+final url 
+Project Console: https://console.firebase.google.com/project/saathi-care-a8525/overview
+Hosting URL: https://saathi-care-a8525.web.app
+

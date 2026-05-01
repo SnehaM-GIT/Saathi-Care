@@ -19,7 +19,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  <!-- firebase-storage-compat.js removed — photos now use Cloudinary (free, no billing) -->
 </head>
 <body>
 
@@ -49,7 +49,7 @@
   <!-- Hero -->
   <div class="hero">
     <div class="hero-inner">
-      <div class="hero-badge">Trusted Companion Care · Bengaluru</div>
+      <div class="hero-badge">Trusted Companion Care · Chennai</div>
       <h1>A <span>helping hand</span><br>when family is far away</h1>
       <p>We connect caring volunteers with elderly parents so no wish goes unfulfilled — temple visits, hospital check-ups, breakfast outings & more.</p>
       <div class="hero-btns">
@@ -77,7 +77,7 @@
       <div class="hiw-step">
         <div class="hiw-icon">🤝</div>
         <div class="hiw-title">3. We Show Up</div>
-        <div class="hiw-desc">Your Saathi arrives, spends quality time, and makes sure every need is met with warmth. Families pay for products/treatments. The visit is free.</div>
+        <div class="hiw-desc">Your Saathi arrives, spends quality time, and makes sure every need is met with warmth.</div>
       </div>
     </div>
   </div>
@@ -131,13 +131,13 @@
       </div>
       <div style="text-align:center">
         <div style="font-size:36px;margin-bottom:10px">💙</div>
-        <div style="font-weight:700;font-size:16px;margin-bottom:6px">No hidden costs</div>
-        <div style="color:var(--text2);font-size:14px">The visit is free. You only pay for products or treatments needed.</div>
+        <div style="font-weight:700;font-size:16px;margin-bottom:6px">With Warmth</div>
+        <div style="color:var(--text2);font-size:14px">Every Saathi is personally known and brings genuine care to every visit.</div>
       </div>
     </div>
   </div>
 
-  <div class="footer"><p>© 2025 Saathi Care · Made with love for our elders · Bengaluru, India</p></div>
+  <div class="footer"><p>© 2025 Saathi Care · Made with love for our elders · Chennai, India</p></div>
 </div>
 
 
@@ -285,7 +285,7 @@
         </div>
 
         <div class="teal-bar" style="margin-bottom:22px">
-          ℹ️ Your Saathi will call to confirm the visit within 30 minutes. Families abroad can pay digitally for any products or treatments. Saathis never charge independently for their time.
+          ℹ️ Your Saathi will call to confirm the visit within 30 minutes. For any questions, reach us at hello@saathicare.in
         </div>
 
         <div style="display:flex;gap:12px;flex-wrap:wrap">
@@ -353,7 +353,7 @@
       <button class="btn btn-teal btn-block btn-lg" id="login-btn" onclick="doLogin()" style="margin-top:8px">Login to Dashboard</button>
 
       <div style="text-align:center;margin-top:20px;font-size:14px;color:var(--text3)">
-        Not a Saathi yet? <a href="mailto:hello@saathicare.in" style="color:var(--teal);font-weight:700">Contact us</a>
+        Want to become a Saathi? <span style="color:var(--teal);cursor:pointer;font-weight:700" onclick="showScreen('screen-apply')">Apply to join →</span>
         &nbsp;·&nbsp;
         <span style="color:var(--teal);cursor:pointer;font-weight:600" onclick="showScreen('screen-home')">Back to Home</span>
       </div>
@@ -493,6 +493,107 @@
 </div>
 
 <!-- ════════════════════════════════════════════════════════
+     SCREEN 6: APPLY TO BECOME A SAATHI
+═════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-apply">
+  <div class="login-screen">
+    <div class="login-card" style="max-width:500px">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="width:60px;height:60px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px">🙏</div>
+        <div style="font-family:var(--font-serif);font-size:24px;font-weight:600;color:var(--text)">Join as a Saathi</div>
+        <div style="color:var(--text3);font-size:15px;margin-top:6px;line-height:1.6">Be a companion for elders in Chennai.<br>We'll review your application and reach out.</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="app-name">Full Name *</label>
+        <input class="form-input" id="app-name" placeholder="Your full name" autocomplete="name" style="font-size:17px">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="app-email">Email Address *</label>
+        <input class="form-input" id="app-email" type="email" placeholder="you@example.com" autocomplete="email" style="font-size:17px">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="app-phone">Phone Number *</label>
+        <input class="form-input" id="app-phone" type="tel" placeholder="+91 98765 43210" autocomplete="tel" style="font-size:17px">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="app-area">Your Area / Neighbourhood</label>
+        <input class="form-input" id="app-area" placeholder="e.g. Anna Nagar, T. Nagar, Adyar..." style="font-size:16px">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="app-langs">Languages You Speak</label>
+        <input class="form-input" id="app-langs" placeholder="e.g. Tamil, English, Hindi..." style="font-size:16px">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="app-bio">Tell us a little about yourself</label>
+        <textarea class="form-input" id="app-bio" rows="3" placeholder="Why do you want to be a Saathi? Any experience with elderly care?"></textarea>
+      </div>
+
+      <button class="btn btn-primary btn-block btn-lg" id="app-submit-btn" onclick="submitApplication()" style="margin-top:8px">Submit Application 🙏</button>
+
+      <div style="text-align:center;margin-top:18px;font-size:14px;color:var(--text3)">
+        <span style="color:var(--teal);cursor:pointer;font-weight:600" onclick="showScreen('screen-caregiver-login')">← Back to Login</span>
+        &nbsp;·&nbsp;
+        <span style="color:var(--teal);cursor:pointer;font-weight:600" onclick="showScreen('screen-home')">Home</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Apply success screen -->
+<div class="screen" id="screen-apply-success">
+  <div class="login-screen">
+    <div class="login-card" style="text-align:center">
+      <div style="font-size:60px;margin-bottom:18px">🎉</div>
+      <div style="font-family:var(--font-serif);font-size:26px;font-weight:600;margin-bottom:12px">Application Received!</div>
+      <div style="color:var(--text2);font-size:16px;line-height:1.7;margin-bottom:28px">Thank you for wanting to be a Saathi. We'll review your application and contact you within 2-3 days.</div>
+      <button class="btn btn-primary btn-block btn-lg" onclick="showScreen('screen-home')">Back to Home</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN 7: OWNER DASHBOARD
+     Access: yourdomain.com?owner=true
+═════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-owner">
+  <div class="dash-header" style="background:var(--orange)">
+    <div style="display:flex;justify-content:space-between;align-items:center;max-width:980px;margin:0 auto;width:100%">
+      <div>
+        <div style="font-size:13px;opacity:0.8;margin-bottom:3px">Owner Panel</div>
+        <div style="font-family:var(--font-serif);font-size:22px;font-weight:600">Saathi Care — Owner Dashboard</div>
+        <div style="opacity:0.7;font-size:13px;margin-top:2px">Chennai</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span id="owner-app-count" style="background:white;color:var(--orange);font-weight:700;border-radius:100px;padding:4px 12px;font-size:13px">—</span>
+        <span style="color:rgba(255,255,255,0.7);font-size:12px">pending</span>
+        <button class="btn" style="background:rgba(255,255,255,0.15);color:white;border:1.5px solid rgba(255,255,255,0.3);font-size:14px" onclick="showScreen('screen-home')">← Home</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dash-body">
+    <div class="tabs">
+      <button class="tab owner-tab active" onclick="setOwnerTab('applications')">👥 Applications</button>
+      <button class="tab owner-tab" onclick="setOwnerTab('all-bookings')">📋 All Bookings</button>
+    </div>
+
+    <div id="owner-tab-applications">
+      <div style="font-weight:700;font-size:18px;margin-bottom:6px;color:var(--text)">Caregiver Applications</div>
+      <div style="color:var(--text2);font-size:14px;margin-bottom:22px">People who applied to become a Saathi. Approve or reject below.</div>
+      <div id="owner-applications-list"><div class="loading-spinner">Loading…</div></div>
+    </div>
+
+    <div id="owner-tab-all-bookings" style="display:none">
+      <div style="font-weight:700;font-size:18px;margin-bottom:6px;color:var(--text)">All Bookings</div>
+      <div style="color:var(--text2);font-size:14px;margin-bottom:22px">Every booking made on the platform, newest first.</div>
+      <div id="owner-bookings-list"><div class="loading-spinner">Loading…</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
      APP SCRIPT
 ═════════════════════════════════════════════════════════ -->
 <script type="module" src="js/firebase-config.js"></script>
@@ -513,6 +614,16 @@
     // Set today as default date for booking
     const dateInput = document.getElementById("book-date");
     if (dateInput) dateInput.valueAsDate = new Date();
+
+    // ── Owner mode: yourdomain.com?owner=true ──────────────
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("owner") === "true" || params.get("owner") === "1") {
+      // Show owner dashboard after module scripts load
+      setTimeout(() => {
+        showScreen("screen-owner");
+        if (typeof loadOwnerDashboard === "function") loadOwnerDashboard();
+      }, 300);
+    }
   });
 
   // startBooking resets the form and loads caregivers
