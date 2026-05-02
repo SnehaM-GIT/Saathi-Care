@@ -19,7 +19,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <!-- firebase-storage-compat.js removed — photos now use Cloudinary (free, no billing) -->
 </head>
 <body>
 
@@ -51,7 +50,7 @@
     <div class="hero-inner">
       <div class="hero-badge">Trusted Companion Care · Chennai</div>
       <h1>A <span>helping hand</span><br>when family is far away</h1>
-      <p>We connect caring volunteers with elderly parents so no wish goes unfulfilled — temple visits, hospital check-ups, breakfast outings & more.</p>
+      <p>We connect caring volunteers with elderly parents so no wish goes unfulfilled — temple visits, hospital check-ups, breakfast outings &amp; more.</p>
       <div class="hero-btns">
         <button class="btn btn-primary btn-lg" onclick="startBooking()">Book a Visit</button>
         <button class="btn btn-outline btn-lg" onclick="scrollToHow()">How It Works ↓</button>
@@ -67,12 +66,12 @@
       <div class="hiw-step">
         <div class="hiw-icon">📋</div>
         <div class="hiw-title">1. Choose a Service</div>
-        <div class="hiw-desc">Select what kind of help your parent needs — from temple visits to hospital appointments. You can describe any other wish too.</div>
+        <div class="hiw-desc">Select what kind of help your parent needs — from temple visits to hospital appointments.</div>
       </div>
       <div class="hiw-step">
         <div class="hiw-icon">🗓️</div>
         <div class="hiw-title">2. Pick a Saathi</div>
-        <div class="hiw-desc">View available caregivers and their free time slots. Book with who you trust — or let us auto-assign the best match.</div>
+        <div class="hiw-desc">View available caregivers and their free time slots. Book with who you trust.</div>
       </div>
       <div class="hiw-step">
         <div class="hiw-icon">🤝</div>
@@ -106,7 +105,6 @@
     <div style="font-family:var(--font-serif);font-size:30px;color:white;font-weight:600;margin-bottom:12px">Moments of Care</div>
     <div style="color:rgba(255,255,255,0.8);margin-bottom:32px;font-size:16px">Real visits. Real smiles. Real connections.</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;max-width:680px;margin:0 auto 28px" id="home-gallery-preview">
-      <!-- Gallery items loaded from Firestore. Fallback: -->
       <div style="background:rgba(255,255,255,0.14);border-radius:12px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><div style="font-size:34px">🛕</div><div style="color:rgba(255,255,255,0.8);font-size:11px;font-weight:600">Temple visit</div></div>
       <div style="background:rgba(255,255,255,0.14);border-radius:12px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><div style="font-size:34px">☕</div><div style="color:rgba(255,255,255,0.8);font-size:11px;font-weight:600">Morning chai</div></div>
       <div style="background:rgba(255,255,255,0.14);border-radius:12px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><div style="font-size:34px">🏥</div><div style="color:rgba(255,255,255,0.8);font-size:11px;font-weight:600">Hospital support</div></div>
@@ -115,7 +113,7 @@
     <button class="btn" style="background:white;color:var(--teal);font-weight:700;font-size:16px;padding:12px 28px" onclick="showScreen('screen-home');setDashTab('gallery')">View All Photos</button>
   </div>
 
-  <!-- Reassurance section -->
+  <!-- Reassurance -->
   <div class="section" style="max-width:780px">
     <div class="section-title" style="text-align:center">Why families trust Saathi</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;margin-top:28px">
@@ -132,12 +130,76 @@
       <div style="text-align:center">
         <div style="font-size:36px;margin-bottom:10px">💙</div>
         <div style="font-weight:700;font-size:16px;margin-bottom:6px">With Warmth</div>
-        <div style="color:var(--text2);font-size:14px">Every Saathi is personally known and brings genuine care to every visit.</div>
+        <div style="color:var(--text2);font-size:14px">Every Saathi brings genuine care to every visit.</div>
       </div>
     </div>
   </div>
 
   <div class="footer"><p>© 2025 Saathi Care · Made with love for our elders · Chennai, India</p></div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN: PHONE OTP — Family verifies number before booking
+     Created accounts let families see their past visits.
+═════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-phone-otp">
+  <nav class="nav">
+    <a class="logo" href="#" onclick="showScreen('screen-home');return false">
+      <div class="logo-icon">S</div>Saathi
+    </a>
+    <button class="btn btn-ghost btn-sm" onclick="showScreen('screen-home')">← Back</button>
+  </nav>
+  <div class="login-screen">
+    <div class="login-card">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="font-size:52px;margin-bottom:12px">📱</div>
+        <div style="font-family:var(--font-serif);font-size:24px;font-weight:600;color:var(--text)">Verify Your Number</div>
+        <div style="color:var(--text3);font-size:15px;margin-top:8px;line-height:1.6">
+          We'll send a one-time code so you can<br>track your bookings and past visits.
+        </div>
+      </div>
+
+      <!-- Step 1: Enter phone -->
+      <div id="otp-step1">
+        <div class="form-group">
+          <label class="form-label" for="otp-phone">Mobile Number</label>
+          <input class="form-input" id="otp-phone" type="tel" placeholder="+91 98765 43210"
+            autocomplete="tel" style="font-size:18px"
+            onkeydown="if(event.key==='Enter') sendOTP()">
+        </div>
+        <!-- Invisible reCAPTCHA mounts here -->
+        <div id="recaptcha-container"></div>
+        <button class="btn btn-primary btn-block btn-lg" id="otp-send-btn" onclick="sendOTP()" style="margin-top:8px">
+          Send OTP →
+        </button>
+        <div style="text-align:center;margin-top:18px">
+          <span style="color:var(--teal);cursor:pointer;font-size:14px;font-weight:600"
+            onclick="skipOTPAndBook()">Skip for now — book without account →</span>
+        </div>
+      </div>
+
+      <!-- Step 2: Enter OTP -->
+      <div id="otp-step2" style="display:none">
+        <div style="background:var(--teal-light);border-radius:var(--radius);padding:13px 16px;font-size:14px;color:var(--teal);font-weight:600;margin-bottom:20px">
+          📨 OTP sent to <strong id="otp-display-number"></strong>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="otp-code">Enter 6-digit OTP</label>
+          <input class="form-input" id="otp-code" type="number" placeholder="123456"
+            style="font-size:26px;letter-spacing:10px;text-align:center"
+            onkeydown="if(event.key==='Enter') verifyOTP()">
+        </div>
+        <button class="btn btn-primary btn-block btn-lg" id="otp-verify-btn" onclick="verifyOTP()">
+          Verify &amp; Continue →
+        </button>
+        <div style="text-align:center;margin-top:14px">
+          <span style="color:var(--teal);cursor:pointer;font-size:14px;font-weight:600"
+            onclick="resendOTP()">← Resend OTP</span>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 
@@ -172,7 +234,7 @@
     <!-- ── STEP 1: SERVICE SELECTION ─────────────── -->
     <div id="booking-step1">
       <div style="font-family:var(--font-serif);font-size:22px;font-weight:600;margin-bottom:6px">What kind of help is needed?</div>
-      <div style="color:var(--text2);font-size:15px;margin-bottom:22px">You can select more than one. If something specific, choose "Other" and describe it.</div>
+      <div style="color:var(--text2);font-size:15px;margin-bottom:22px">You can select more than one.</div>
       <div class="services-grid" id="service-select">
         <div class="service-card" onclick="toggleService(this,'Temple Visit')"><div class="service-icon">🛕</div><div class="service-name">Temple Visit</div><div class="service-desc">Accompany for darshan &amp; prayer</div></div>
         <div class="service-card" onclick="toggleService(this,'Outing &amp; Meal')"><div class="service-icon">🍽️</div><div class="service-name">Outing &amp; Meal</div><div class="service-desc">Breakfast, lunch or evening out</div></div>
@@ -186,13 +248,29 @@
         <textarea class="form-input" id="other-desc" placeholder="e.g. Help my mother water her plants and sit with her for a couple of hours..."></textarea>
       </div>
       <button class="btn btn-primary" style="margin-top:28px;font-size:17px;padding:14px 32px" onclick="goStep(2)">Next: Choose Caregiver →</button>
+      <!-- Past visits panel injected here by renderFamilyPastBookings() after OTP verify -->
     </div>
 
     <!-- ── STEP 2: CAREGIVER SELECTION ───────────── -->
     <div id="booking-step2" style="display:none">
+      <div style="font-family:var(--font-serif);font-size:22px;font-weight:600;margin-bottom:6px">Choose a Saathi &amp; Time</div>
+      <div style="color:var(--text2);font-size:15px;margin-bottom:16px">Pick a date first, then choose a caregiver and available slot.</div>
+
+      <!-- Date picker — onchange reloads caregivers for that date -->
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap">
+        <div>
+          <label class="form-label" style="margin-bottom:6px">Visit Date</label>
+          <input class="form-input" id="book-date" type="date" style="font-size:16px;width:auto"
+            onchange="loadCaregivers(this.value)">
+        </div>
+        <div style="padding-top:28px;color:var(--text3);font-size:13px">
+          ← Change date to see availability
+        </div>
+      </div>
+
       <div class="assign-banner">
         <div style="font-size:26px">✨</div>
-        <div style="font-size:15px;color:var(--teal);font-weight:600">We'll auto-assign the best available Saathi — or you can pick one below.</div>
+        <div style="font-size:15px;color:var(--teal);font-weight:600">We'll auto-assign the best available Saathi — or pick one below.</div>
       </div>
       <div class="caregiver-grid" id="caregiver-grid">
         <div class="loading-spinner">Loading caregivers…</div>
@@ -207,7 +285,6 @@
     <div id="booking-step3" style="display:none">
       <div class="booking-form">
         <div style="font-family:var(--font-serif);font-size:22px;font-weight:600;margin-bottom:22px">Elder's Details</div>
-        <div class="info-bar">📱 Phone number is auto-filled from your device — please verify it before continuing.</div>
 
         <div class="form-group">
           <label class="form-label" for="elder-name">Elder's Full Name *</label>
@@ -215,9 +292,9 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="elder-phone">Phone Number *</label>
+          <label class="form-label" for="elder-phone">Elder's Phone Number *</label>
           <input class="form-input" id="elder-phone" type="tel" placeholder="+91 98765 43210" autocomplete="tel" style="font-size:18px">
-          <div class="auto-fill-note">📱 Auto-filled — please verify this is correct before submitting</div>
+          <div class="auto-fill-note">📱 Auto-filled if you verified your number — please confirm it's correct</div>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
@@ -226,8 +303,9 @@
             <input class="form-input" id="elder-age" type="number" min="50" max="120" placeholder="e.g. 72" style="font-size:18px">
           </div>
           <div class="form-group">
-            <label class="form-label" for="book-date">Preferred Date *</label>
-            <input class="form-input" id="book-date" type="date" style="font-size:16px">
+            <label class="form-label" for="book-date-step3">Preferred Date *</label>
+            <input class="form-input" id="book-date-step3" type="date" style="font-size:16px" readonly
+              onclick="goStep(2)" title="Go back to Step 2 to change date">
           </div>
         </div>
 
@@ -257,7 +335,7 @@
 
         <div class="form-group">
           <label class="form-label" for="elder-notes">Any special notes for the Saathi?</label>
-          <textarea class="form-input" id="elder-notes" placeholder="e.g. She needs a wheelchair. He prefers a female companion. Please bring change for the temple..."></textarea>
+          <textarea class="form-input" id="elder-notes" placeholder="e.g. She needs a wheelchair. He prefers a female companion..."></textarea>
         </div>
 
         <div style="display:flex;gap:12px;flex-wrap:wrap">
@@ -285,7 +363,7 @@
         </div>
 
         <div class="teal-bar" style="margin-bottom:22px">
-          ℹ️ Your Saathi will call to confirm the visit within 30 minutes. For any questions, reach us at hello@saathicare.in
+          ℹ️ Your Saathi will call to confirm the visit within 30 minutes. For questions: hello@saathicare.in
         </div>
 
         <div style="display:flex;gap:12px;flex-wrap:wrap">
@@ -364,6 +442,8 @@
 
 <!-- ════════════════════════════════════════════════════════
      SCREEN 5: CAREGIVER DASHBOARD
+     If logged-in user is an owner, a "👑 Applications" tab
+     is dynamically injected by app.js after login.
 ═════════════════════════════════════════════════════════ -->
 <div class="screen" id="screen-caregiver-dashboard">
   <!-- Header -->
@@ -382,7 +462,7 @@
   </div>
 
   <div class="dash-body">
-    <!-- Tabs -->
+    <!-- Tabs (owner tab injected here dynamically if owner logs in) -->
     <div class="tabs">
       <button class="tab active" onclick="setDashTab('requests')">📋 Requests</button>
       <button class="tab" onclick="setDashTab('calendar')">🗓️ Calendar</button>
@@ -391,14 +471,11 @@
 
     <!-- ── TAB: REQUESTS ─────────────────────────── -->
     <div id="tab-requests">
-      <!-- Stats -->
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-num" id="stat-new" style="color:var(--orange)">—</div><div class="stat-lbl">New</div></div>
         <div class="stat-card"><div class="stat-num" id="stat-week" style="color:var(--teal)">—</div><div class="stat-lbl">This Week</div></div>
         <div class="stat-card"><div class="stat-num" id="stat-done" style="color:var(--green)">—</div><div class="stat-lbl">Completed</div></div>
       </div>
-
-      <!-- Bookings list -->
       <div id="bookings-list">
         <div class="loading-spinner">Loading requests…</div>
       </div>
@@ -406,7 +483,6 @@
 
     <!-- ── TAB: CALENDAR ─────────────────────────── -->
     <div id="tab-calendar" style="display:none">
-      <!-- Month nav -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <div style="font-family:var(--font-serif);font-size:22px;font-weight:600" id="cal-month-title">May 2025</div>
         <div style="display:flex;gap:8px">
@@ -415,7 +491,6 @@
         </div>
       </div>
 
-      <!-- Calendar grid -->
       <div style="background:var(--white);border-radius:var(--radius-lg);padding:18px;border:1.5px solid var(--border);margin-bottom:20px">
         <div class="cal-grid">
           <div class="cal-header">Sun</div>
@@ -426,10 +501,7 @@
           <div class="cal-header">Fri</div>
           <div class="cal-header">Sat</div>
         </div>
-        <div class="cal-grid" id="cal-days-grid">
-          <!-- Dynamically rendered by renderCalendar() -->
-        </div>
-        <!-- Legend -->
+        <div class="cal-grid" id="cal-days-grid"></div>
         <div style="display:flex;gap:18px;margin-top:14px;font-size:12px;font-weight:600;flex-wrap:wrap">
           <div style="display:flex;align-items:center;gap:5px"><div style="width:13px;height:13px;border-radius:3px;background:var(--teal)"></div>Today</div>
           <div style="display:flex;align-items:center;gap:5px"><div style="width:13px;height:13px;border-radius:3px;background:var(--orange-light);border:1px solid var(--orange)"></div>Has booking</div>
@@ -437,13 +509,11 @@
         </div>
       </div>
 
-      <!-- Day detail panel (shown on day click) -->
       <div class="day-detail-panel" id="day-detail-panel"></div>
 
-      <!-- Block slots -->
       <div class="block-slot-panel">
         <h4>🚫 Block Time Off</h4>
-        <div style="color:var(--text2);font-size:14px;margin-bottom:16px">Mark times when you're unavailable so families don't book you during those slots.</div>
+        <div style="color:var(--text2);font-size:14px;margin-bottom:16px">Mark times when you're unavailable.</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
           <div>
             <label class="form-label">Date *</label>
@@ -479,18 +549,20 @@
         </div>
         <button class="btn btn-teal btn-sm" onclick="triggerUpload()">+ Add Photo</button>
       </div>
-
       <div style="background:#FFF8E7;border:1.5px solid rgba(232,114,42,0.3);border-radius:var(--radius);padding:13px 16px;font-size:14px;color:var(--orange-dark);font-weight:600;margin-bottom:22px">
-        📸 Always ask permission before posting photos of the elders you visit. Privacy and dignity first.
+        📸 Always ask permission before posting photos of the elders you visit.
       </div>
-
       <div class="media-grid" id="gallery-grid">
         <div class="loading-spinner">Loading photos…</div>
       </div>
     </div>
 
+    <!-- ── TAB: OWNER (injected dynamically by app.js) ── -->
+    <!-- Rendered by injectOwnerTab() in app.js after owner login -->
+
   </div>
 </div>
+
 
 <!-- ════════════════════════════════════════════════════════
      SCREEN 6: APPLY TO BECOME A SAATHI
@@ -526,11 +598,9 @@
       </div>
       <div class="form-group">
         <label class="form-label" for="app-bio">Tell us a little about yourself</label>
-        <textarea class="form-input" id="app-bio" rows="3" placeholder="Why do you want to be a Saathi? Any experience with elderly care?"></textarea>
+        <textarea class="form-input" id="app-bio" rows="3" placeholder="Why do you want to be a Saathi?"></textarea>
       </div>
-
       <button class="btn btn-primary btn-block btn-lg" id="app-submit-btn" onclick="submitApplication()" style="margin-top:8px">Submit Application 🙏</button>
-
       <div style="text-align:center;margin-top:18px;font-size:14px;color:var(--text3)">
         <span style="color:var(--teal);cursor:pointer;font-weight:600" onclick="showScreen('screen-caregiver-login')">← Back to Login</span>
         &nbsp;·&nbsp;
@@ -540,7 +610,7 @@
   </div>
 </div>
 
-<!-- Apply success screen -->
+<!-- Apply success -->
 <div class="screen" id="screen-apply-success">
   <div class="login-screen">
     <div class="login-card" style="text-align:center">
@@ -554,8 +624,9 @@
 
 
 <!-- ════════════════════════════════════════════════════════
-     SCREEN 7: OWNER DASHBOARD
-     Access: yourdomain.com?owner=true
+     SCREEN 7: OWNER DASHBOARD (standalone ?owner=true URL)
+     Primary owner experience is now via the caregiver
+     dashboard tab — this screen is kept as a fallback.
 ═════════════════════════════════════════════════════════ -->
 <div class="screen" id="screen-owner">
   <div class="dash-header" style="background:var(--orange)">
@@ -578,30 +649,28 @@
       <button class="tab owner-tab active" onclick="setOwnerTab('applications')">👥 Applications</button>
       <button class="tab owner-tab" onclick="setOwnerTab('all-bookings')">📋 All Bookings</button>
     </div>
-
     <div id="owner-tab-applications">
-      <div style="font-weight:700;font-size:18px;margin-bottom:6px;color:var(--text)">Caregiver Applications</div>
-      <div style="color:var(--text2);font-size:14px;margin-bottom:22px">People who applied to become a Saathi. Approve or reject below.</div>
+      <div style="font-weight:700;font-size:18px;margin-bottom:6px">Caregiver Applications</div>
+      <div style="color:var(--text2);font-size:14px;margin-bottom:22px">People who applied to become a Saathi.</div>
       <div id="owner-applications-list"><div class="loading-spinner">Loading…</div></div>
     </div>
-
     <div id="owner-tab-all-bookings" style="display:none">
-      <div style="font-weight:700;font-size:18px;margin-bottom:6px;color:var(--text)">All Bookings</div>
-      <div style="color:var(--text2);font-size:14px;margin-bottom:22px">Every booking made on the platform, newest first.</div>
+      <div style="font-weight:700;font-size:18px;margin-bottom:6px">All Bookings</div>
+      <div style="color:var(--text2);font-size:14px;margin-bottom:22px">Every booking made on the platform.</div>
       <div id="owner-bookings-list"><div class="loading-spinner">Loading…</div></div>
     </div>
   </div>
 </div>
 
+
 <!-- ════════════════════════════════════════════════════════
-     APP SCRIPT
+     APP SCRIPTS
 ═════════════════════════════════════════════════════════ -->
 <script type="module" src="js/firebase-config.js"></script>
 <script type="module" src="js/app.js"></script>
 <script>
-  // Boot tasks (non-module — runs after all scripts)
   document.addEventListener("DOMContentLoaded", () => {
-    // Set today's date in dashboard
+    // Set today's date in dashboard header
     const dateEl = document.getElementById("dash-date");
     if (dateEl) {
       dateEl.textContent = new Date().toLocaleDateString("en-IN", {
@@ -609,16 +678,24 @@
       });
     }
 
-    // Auto-fill phone (best-effort via navigator - works on mobile browsers)
-    // Actual autofill happens via autocomplete="tel" on the input
     // Set today as default date for booking
     const dateInput = document.getElementById("book-date");
     if (dateInput) dateInput.valueAsDate = new Date();
 
-    // ── Owner mode: yourdomain.com?owner=true ──────────────
+    // Mirror the selected date into step 3's read-only display field
+    if (dateInput) {
+      dateInput.addEventListener("change", () => {
+        const step3date = document.getElementById("book-date-step3");
+        if (step3date) step3date.value = dateInput.value;
+      });
+      // Set initial mirror value
+      const step3date = document.getElementById("book-date-step3");
+      if (step3date) step3date.valueAsDate = new Date();
+    }
+
+    // ── Owner mode: yoursite.com?owner=true ──────────
     const params = new URLSearchParams(window.location.search);
     if (params.get("owner") === "true" || params.get("owner") === "1") {
-      // Show owner dashboard after module scripts load
       setTimeout(() => {
         showScreen("screen-owner");
         if (typeof loadOwnerDashboard === "function") loadOwnerDashboard();
@@ -626,11 +703,24 @@
     }
   });
 
-  // startBooking resets the form and loads caregivers
+  // startBooking: route through OTP screen if not already phone-verified
   function startBooking() {
-    showScreen("screen-book");
-    // Load caregivers when step 2 will be shown (pre-load)
-    if (typeof loadCaregivers === "function") loadCaregivers();
+    const user = firebase.auth().currentUser;
+    if (user && user.phoneNumber) {
+      // Already verified — go straight to booking
+      const dateVal = document.getElementById("book-date")?.value;
+      showScreen("screen-book");
+      if (typeof loadCaregivers === "function") loadCaregivers(dateVal);
+    } else {
+      // Reset OTP UI to step 1
+      const s1 = document.getElementById("otp-step1");
+      const s2 = document.getElementById("otp-step2");
+      if (s1) s1.style.display = "block";
+      if (s2) s2.style.display = "none";
+      const codeInput = document.getElementById("otp-code");
+      if (codeInput) codeInput.value = "";
+      showScreen("screen-phone-otp");
+    }
   }
 </script>
 </body>

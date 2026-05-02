@@ -35,7 +35,12 @@ service cloud.firestore {
         request.auth.uid == resource.data.caregiverId;
       allow update: if false;
     }
-
+    // ── APPLICATIONS ─────────────────────────────
+    // Anyone can create an application
+    match /applications/{appId} {
+    allow create: if true;
+    allow read, update, delete: if false;
+}
     // ── BLOCKED SLOTS ─────────────────────────────────────────
     // Anyone can read (booking page checks blocked slots)
     // Only the caregiver who owns the block can write/delete

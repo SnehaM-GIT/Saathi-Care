@@ -1,84 +1,69 @@
 // ============================================================
-//  SAATHI CARE — Main Application Logic
-//  All Firebase reads/writes + UI state management
+//  SAATHI CARE — Main Application Logic v2
+//  Changes from original:
+//    • Dual-owner support via OWNER_EMAILS array
+//    • Owner who logs in as caregiver gets Applications tab injected
+//    • Phone OTP login for families (creates Firebase Auth account)
+//    • Past visits shown to returning families after OTP verify
+//    • Date-aware slot loading — slots reload when booking date changes
 // ============================================================
 
 import { auth, db, COLLECTIONS } from "./firebase-config.js";
 
 // ─────────────────────────────────────────────
-//  DEMO CAREGIVERS (shown when Firestore is empty / not yet seeded)
-//  Remove this block once you run seed-caregivers.js
+//  OWNER EMAILS  (supports up to 2 owners)
+//  Change these to your real owner email(s).
+//  If you only have 1 owner, just put the same email twice
+//  or leave the second entry as an empty string.
 // ─────────────────────────────────────────────
-const DEMO_CAREGIVERS = [
-  {
-    id         : "demo-priya",
-    name       : "Priya Nair",
-    phone      : "+91 98765 00001",
-    bio        : "I love spending time with elders. I speak Kannada, Tamil, and Hindi.",
-    since      : "2023",
-    rating     : "4.9",
-    avatarBg   : "#FBE9D9",
-    avatarColor: "#E8722A",
-    active     : true,
-    isDemo     : true
-  },
-  {
-    id         : "demo-arjun",
-    name       : "Arjun Sharma",
-    phone      : "+91 98765 00002",
-    bio        : "Patient, caring, and always on time. Happy to help with hospital visits and errands.",
-    since      : "2024",
-    rating     : "4.8",
-    avatarBg   : "#E0F0F0",
-    avatarColor: "#2A7F7F",
-    active     : true,
-    isDemo     : true
-  },
-  {
-    id         : "demo-meera",
-    name       : "Meera Krishnan",
-    phone      : "+91 98765 00003",
-    bio        : "Retired teacher with a warm heart. Loves conversations, bhajans, and temple visits.",
-    since      : "2023",
-    rating     : "5.0",
-    avatarBg   : "#F3E5F5",
-    avatarColor: "#8E44AD",
-    active     : true,
-    isDemo     : true
-  }
+const OWNER_EMAILS = [
+  "snehatest29@gmail.com",   // ← Change to real owner 1 email
+  "owner2@saathicare.in"    // ← Change to real owner 2 email (or leave blank)
 ];
+
+function isOwner(email) {
+  if (!email) return false;
+  return OWNER_EMAILS.filter(Boolean).map(e => e.toLowerCase()).includes(email.toLowerCase());
+}
 
 // ─────────────────────────────────────────────
 //  CLOUDINARY CONFIG
 //  Replace these with your own Cloudinary values.
 //  Get them from: https://cloudinary.com → Dashboard
-//    CLOUD_NAME    → "Cloud name" shown on dashboard
-//    UPLOAD_PRESET → Settings → Upload → Add upload preset
-//                    (set to "Unsigned" mode)
 // ─────────────────────────────────────────────
 const CLOUDINARY = {
-  CLOUD_NAME   : "dkrkkibmq",      // e.g. "saathicare"
-  UPLOAD_PRESET: "YOUR_UPLOAD_PRESET",   // e.g. "saathi_gallery"
-  FOLDER       : "saathi_gallery"        // organises uploads in Cloudinary
+  CLOUD_NAME   : "YOUR_CLOUD_NAME",        // e.g. "saathicare"
+  UPLOAD_PRESET: "YOUR_UPLOAD_PRESET",     // e.g. "saathi_gallery"
+  FOLDER       : "saathi_gallery"
 };
 
 // ─────────────────────────────────────────────
 //  APP STATE
 // ─────────────────────────────────────────────
 const State = {
-  currentUser      : null,      // Firebase Auth user
-  caregiverProfile : null,      // Firestore caregiver doc
+  currentUser      : null,
+  caregiverProfile : null,
   selectedServices : [],
-  selectedCaregiver: null,      // { id, name, avatarColor }
-  selectedSlot     : null,      // { date, time }
-  bookerType       : "Son / Daughter (abroad)",
+  selectedCaregiver: null,
+  selectedSlot     : null,
+  bookerType       : "Son/Daughter (abroad)",
   elderDetails     : {},
   currentBookingStep: 1,
-  caregivers       : [],        // loaded from Firestore
-  blockedSlots     : {},        // { caregiverId: [{ date, time }] }
-  bookings         : [],        // dashboard bookings for caregiver
-  galleryItems     : [],        // loaded gallery posts
+  caregivers       : [],
+  blockedSlots     : {},
+  bookings         : [],
+  galleryItems     : [],
+  myBlockedSlots   : [],
+  isOwner          : false,
+  familyPhone      : null,
+  familyBookings   : []
 };
+
+// ─────────────────────────────────────────────
+//  OTP STATE
+// ─────────────────────────────────────────────
+let _recaptchaVerifier  = null;
+let _confirmationResult = null;
 
 // ─────────────────────────────────────────────
 //  SCREEN ROUTER
@@ -97,7 +82,7 @@ export function showToast(msg, type = "info") {
   t.textContent = msg;
   t.className = `toast show toast-${type}`;
   clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.remove("show"), 3000);
+  t._timer = setTimeout(() => t.classList.remove("show"), 3500);
 }
 
 // ─────────────────────────────────────────────
@@ -118,6 +103,14 @@ export async function doLogin() {
     showScreen("screen-caregiver-dashboard");
     showToast("Welcome back! 👋", "success");
     await loadDashboardData();
+
+    // ── Owner check: inject Applications tab if this is an owner ──
+    if (isOwner(cred.user.email)) {
+      State.isOwner = true;
+      injectOwnerTab();
+      await loadOwnerPanelData();
+    }
+
   } catch (err) {
     showToast(authErrorMessage(err.code), "error");
   } finally {
@@ -127,8 +120,14 @@ export async function doLogin() {
 
 export function doLogout() {
   auth.signOut().then(() => {
-    State.currentUser = null;
+    State.currentUser      = null;
     State.caregiverProfile = null;
+    State.isOwner          = false;
+    // Remove injected owner tab if present
+    const ownerBtn = document.getElementById("tab-owner-btn");
+    if (ownerBtn) ownerBtn.remove();
+    const ownerPanel = document.getElementById("tab-owner");
+    if (ownerPanel) ownerPanel.remove();
     showScreen("screen-home");
     showToast("Logged out successfully");
   });
@@ -138,22 +137,131 @@ export function doLogout() {
 auth.onAuthStateChanged(async user => {
   if (user) {
     State.currentUser = user;
+    // Phone-authenticated family user — don't load caregiver dashboard
+    if (user.phoneNumber && !user.email) return;
     await loadCaregiverProfile(user.uid);
-    // If the user lands on dashboard directly, load data
     if (document.getElementById("screen-caregiver-dashboard").classList.contains("active")) {
       await loadDashboardData();
+      if (isOwner(user.email)) {
+        State.isOwner = true;
+        injectOwnerTab();
+        await loadOwnerPanelData();
+      }
     }
   }
 });
 
 function authErrorMessage(code) {
   const map = {
-    "auth/user-not-found"  : "No account found with that email.",
-    "auth/wrong-password"  : "Incorrect password.",
-    "auth/invalid-email"   : "Invalid email address.",
+    "auth/user-not-found"   : "No account found with that email.",
+    "auth/wrong-password"   : "Incorrect password.",
+    "auth/invalid-email"    : "Invalid email address.",
     "auth/too-many-requests": "Too many attempts. Try again later."
   };
   return map[code] || "Login failed. Please try again.";
+}
+
+// ─────────────────────────────────────────────
+//  OWNER TAB INJECTION
+//  Called after caregiver login if email is in OWNER_EMAILS.
+//  Adds a "👑 Applications" tab to the caregiver dashboard.
+// ─────────────────────────────────────────────
+function injectOwnerTab() {
+  // Add tab button
+  const tabsEl = document.querySelector("#screen-caregiver-dashboard .tabs");
+  if (tabsEl && !document.getElementById("tab-owner-btn")) {
+    const ownerTabBtn = document.createElement("button");
+    ownerTabBtn.className  = "tab";
+    ownerTabBtn.id         = "tab-owner-btn";
+    ownerTabBtn.innerHTML  = "👑 Applications";
+    ownerTabBtn.onclick    = () => setDashTab("owner");
+    tabsEl.appendChild(ownerTabBtn);
+  }
+
+  // Add tab panel into dash-body
+  const dashBody = document.querySelector("#screen-caregiver-dashboard .dash-body");
+  if (dashBody && !document.getElementById("tab-owner")) {
+    const ownerPanel = document.createElement("div");
+    ownerPanel.id = "tab-owner";
+    ownerPanel.style.display = "none";
+    ownerPanel.innerHTML = `
+      <div style="margin-bottom:32px">
+        <div style="font-weight:700;font-size:20px;margin-bottom:4px;color:var(--text)">Caregiver Applications</div>
+        <div style="color:var(--text2);font-size:14px;margin-bottom:20px">People who applied to become a Saathi. Approve or reject below.</div>
+        <div id="owner-applications-list2"><div class="loading-spinner">Loading applications…</div></div>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:20px;margin-bottom:4px;color:var(--text)">All Bookings</div>
+        <div style="color:var(--text2);font-size:14px;margin-bottom:20px">Every booking made on the platform, newest first.</div>
+        <div id="owner-bookings-list2"><div class="loading-spinner">Loading bookings…</div></div>
+      </div>
+    `;
+    dashBody.appendChild(ownerPanel);
+  }
+}
+
+// ─────────────────────────────────────────────
+//  OWNER PANEL DATA LOADER
+//  Loads applications + all bookings into the injected owner tab.
+// ─────────────────────────────────────────────
+async function loadOwnerPanelData() {
+  const appList  = document.getElementById("owner-applications-list2");
+  const bookList = document.getElementById("owner-bookings-list2");
+  if (!appList) return;
+
+  try {
+    // Applications
+    const appSnap = await db.collection("applications").orderBy("createdAt", "desc").limit(50).get();
+    const apps    = appSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    appList.innerHTML = apps.length === 0
+      ? `<div class="empty-state">No applications yet.</div>`
+      : apps.map(a => `
+        <div class="request-card" style="margin-bottom:14px">
+          <div class="req-icon">👤</div>
+          <div class="req-body">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+              <div class="req-title">${escHtml(a.name)}</div>
+              <span class="status-badge ${a.status==="approved"?"status-confirmed":a.status==="rejected"?"status-cancelled":"status-new'"}">
+                ${a.status || "pending"}
+              </span>
+            </div>
+            <div class="req-meta">📧 ${escHtml(a.email)} · 📞 ${escHtml(a.phone)}</div>
+            ${a.area  ? `<div class="req-meta">📍 ${escHtml(a.area)}</div>`  : ""}
+            ${a.langs ? `<div class="req-meta">🗣️ ${escHtml(a.langs)}</div>` : ""}
+            ${a.bio   ? `<div style="font-size:13px;color:var(--text2);margin-top:6px;font-style:italic">"${escHtml(a.bio)}"</div>` : ""}
+            <div class="req-actions">
+              ${a.status !== "approved" ? `<button class="btn btn-teal btn-sm" onclick="approveApplication('${a.id}',true)">✓ Approve</button>` : ""}
+              ${a.status !== "rejected" ? `<button class="btn btn-ghost btn-sm" onclick="rejectApplication('${a.id}',true)">✗ Reject</button>`  : ""}
+            </div>
+          </div>
+        </div>`).join("");
+
+    // All bookings
+    const bookSnap = await db.collection("bookings").orderBy("createdAt", "desc").limit(50).get();
+    const bookings = bookSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    bookList.innerHTML = bookings.length === 0
+      ? `<div class="empty-state">No bookings yet.</div>`
+      : bookings.map(b => `
+        <div class="request-card" style="margin-bottom:14px">
+          <div class="req-icon">📋</div>
+          <div class="req-body">
+            <div style="display:flex;justify-content:space-between;gap:8px">
+              <div class="req-title">${escHtml(b.services?.join(", ") || "—")}</div>
+              <span class="status-badge status-${b.status || "new"}">${b.status || "pending"}</span>
+            </div>
+            <div class="req-meta">👴 ${escHtml(b.elder?.name || "—")} · 📞 ${escHtml(b.elder?.phone || "—")}</div>
+            <div class="req-meta">🧑‍⚕️ ${escHtml(b.caregiverName || "Unassigned")} · 📅 ${b.slot?.date || "—"} ${b.slot?.time || ""}</div>
+            ${b.isDemo ? `<div style="font-size:12px;color:var(--orange);font-weight:700;margin-top:4px">⚠️ Demo booking</div>` : ""}
+          </div>
+        </div>`).join("");
+
+  } catch (e) {
+    if (appList)  appList.innerHTML  = `<div class="error-msg">Error loading applications. Check Firestore rules.</div>`;
+    if (bookList) bookList.innerHTML = `<div class="error-msg">Error loading bookings.</div>`;
+    console.error("Owner panel error:", e);
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -179,14 +287,174 @@ function renderCaregiverHeader() {
 }
 
 // ─────────────────────────────────────────────
+//  PHONE OTP — Family Login
+//  Families verify their phone before booking.
+//  This creates a Firebase Auth account automatically.
+// ─────────────────────────────────────────────
+function initRecaptcha() {
+  if (_recaptchaVerifier) return;
+  _recaptchaVerifier = new firebase.auth.RecaptchaVerifier("recaptcha-container", {
+    size    : "invisible",
+    callback: () => {}
+  });
+}
+
+export async function sendOTP() {
+  const raw   = document.getElementById("otp-phone").value.trim();
+  if (!raw) { showToast("Enter your phone number", "error"); return; }
+
+  // Normalise: ensure +91 prefix for Indian numbers
+  let phone = raw;
+  if (!phone.startsWith("+")) {
+    phone = "+91" + phone.replace(/^0/, "");
+  }
+  phone = phone.replace(/\s/g, "");
+
+  const btn = document.getElementById("otp-send-btn");
+  btn.textContent = "Sending…"; btn.disabled = true;
+
+  try {
+    initRecaptcha();
+    _confirmationResult = await auth.signInWithPhoneNumber(phone, _recaptchaVerifier);
+    document.getElementById("otp-step1").style.display = "none";
+    document.getElementById("otp-step2").style.display = "block";
+    document.getElementById("otp-display-number").textContent = phone;
+    showToast("OTP sent ✓", "success");
+  } catch (e) {
+    showToast("Failed to send OTP: " + (e.message || e.code), "error");
+    if (_recaptchaVerifier) { _recaptchaVerifier.clear(); _recaptchaVerifier = null; }
+    console.error("OTP send error:", e);
+  } finally {
+    btn.textContent = "Send OTP →"; btn.disabled = false;
+  }
+}
+
+export async function verifyOTP() {
+  const code = document.getElementById("otp-code").value.trim();
+  if (!code) { showToast("Enter the OTP", "error"); return; }
+
+  const btn = document.getElementById("otp-verify-btn");
+  btn.textContent = "Verifying…"; btn.disabled = true;
+
+  try {
+    const cred = await _confirmationResult.confirm(code);
+    State.currentUser = cred.user;
+    State.familyPhone = cred.user.phoneNumber;
+
+    // Pre-fill phone fields in booking form
+    const elderPhone  = document.getElementById("elder-phone");
+    const bookerPhone = document.getElementById("booker-phone");
+    if (elderPhone)  elderPhone.value  = cred.user.phoneNumber;
+    if (bookerPhone) bookerPhone.value = cred.user.phoneNumber;
+
+    showToast("Verified ✓ Welcome!", "success");
+
+    // Load caregivers for selected date before going to booking
+    const dateVal = document.getElementById("book-date")?.value || todayStr();
+    showScreen("screen-book");
+    await loadCaregivers(dateVal);
+
+    // Load and show past bookings for this number
+    await loadFamilyPastBookings(cred.user.phoneNumber);
+
+  } catch (e) {
+    showToast("Invalid OTP. Please try again.", "error");
+    console.error("OTP verify error:", e);
+  } finally {
+    btn.textContent = "Verify & Continue →"; btn.disabled = false;
+  }
+}
+
+export function resendOTP() {
+  _recaptchaVerifier  = null;
+  _confirmationResult = null;
+  document.getElementById("otp-step1").style.display = "block";
+  document.getElementById("otp-step2").style.display = "none";
+  document.getElementById("otp-code").value = "";
+  showToast("Enter your number again to resend");
+}
+
+export function skipOTPAndBook() {
+  // Allow booking without phone verification
+  const dateVal = document.getElementById("book-date")?.value || todayStr();
+  showScreen("screen-book");
+  loadCaregivers(dateVal);
+}
+
+// ─────────────────────────────────────────────
+//  FAMILY — Past bookings
+//  Shown in the booking flow after OTP verify.
+// ─────────────────────────────────────────────
+async function loadFamilyPastBookings(phone) {
+  try {
+    const snap = await db.collection(COLLECTIONS.BOOKINGS)
+      .where("elder.phone", "==", phone)
+      .orderBy("createdAt", "desc")
+      .limit(10)
+      .get();
+    if (snap.empty) return;
+    State.familyBookings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderFamilyPastBookings();
+  } catch (e) {
+    console.error("Family bookings load error:", e);
+  }
+}
+
+function renderFamilyPastBookings() {
+  const bookings = State.familyBookings || [];
+  if (!bookings.length) return;
+
+  const wrap = document.getElementById("booking-step1");
+  if (!wrap) return;
+
+  // Remove old panel if re-rendering
+  const existing = document.getElementById("past-visits-panel");
+  if (existing) existing.remove();
+
+  const statusLabels = {
+    pending  : "Pending",
+    confirmed: "Confirmed",
+    done     : "Completed",
+    cancelled: "Cancelled"
+  };
+
+  const panel = document.createElement("div");
+  panel.id = "past-visits-panel";
+  panel.style.cssText = "margin-top:28px";
+  panel.innerHTML = `
+    <div style="background:var(--teal-light);border:1.5px solid rgba(42,127,127,0.3);border-radius:var(--radius-lg);padding:20px 22px">
+      <div style="font-weight:700;font-size:16px;color:var(--teal);margin-bottom:14px">📋 Your Past Visits</div>
+      ${bookings.map(b => `
+        <div style="background:white;border-radius:10px;padding:12px 14px;margin-bottom:10px;border:1.5px solid var(--border)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:4px">
+            <div style="font-weight:700;font-size:14px;color:var(--text)">${escHtml(b.services?.join(", ") || "Visit")}</div>
+            <span class="status-badge status-${b.status || "new"}">${statusLabels[b.status] || "Pending"}</span>
+          </div>
+          <div style="font-size:13px;color:var(--text2)">${formatDate(b.slot?.date)} · ${b.slot?.time || ""}</div>
+          <div style="font-size:13px;color:var(--text2)">with <strong>${escHtml(b.caregiverName || "—")}</strong></div>
+          ${b.elder?.notes ? `<div style="font-size:12px;color:var(--text3);margin-top:4px;font-style:italic">"${escHtml(b.elder.notes)}"</div>` : ""}
+        </div>
+      `).join("")}
+    </div>
+  `;
+  wrap.appendChild(panel);
+}
+
+// ─────────────────────────────────────────────
 //  BOOKING FLOW — Public Side
 // ─────────────────────────────────────────────
 
-// Load caregivers for the booking screen
-export async function loadCaregivers() {
-  const container = document.getElementById("caregiver-grid");
+// Load caregivers for a specific date (defaults to today)
+export async function loadCaregivers(dateStr) {
+  const container  = document.getElementById("caregiver-grid");
   if (!container) return;
   container.innerHTML = `<div class="loading-spinner">Loading caregivers…</div>`;
+
+  const targetDate = dateStr || todayStr();
+
+  // Update the date input to stay in sync
+  const dateInput = document.getElementById("book-date");
+  if (dateInput && dateStr && dateInput.value !== dateStr) dateInput.value = dateStr;
 
   try {
     const snap = await db.collection(COLLECTIONS.CAREGIVERS)
@@ -194,15 +462,14 @@ export async function loadCaregivers() {
 
     State.caregivers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    // Fall back to demo caregivers if Firestore has none yet
     if (State.caregivers.length === 0) {
-      State.caregivers = DEMO_CAREGIVERS;
+      container.innerHTML = `<div class="empty-state">No caregivers available yet. Please check back soon.</div>`;
+      return;
     }
 
-    // Load blocked slots for today
-    const today = todayStr();
+    // Load blocked slots for the target date
     const blockSnap = await db.collection(COLLECTIONS.BLOCKED)
-      .where("date", "==", today).get();
+      .where("date", "==", targetDate).get();
 
     State.blockedSlots = {};
     blockSnap.docs.forEach(d => {
@@ -211,16 +478,16 @@ export async function loadCaregivers() {
       State.blockedSlots[data.caregiverId].push(data.time);
     });
 
-    renderCaregiverCards(container);
+    renderCaregiverCards(container, targetDate);
   } catch (e) {
     container.innerHTML = `<div class="error-msg">Could not load caregivers. Please refresh.</div>`;
-    console.error(e);
+    console.error("loadCaregivers error:", e);
   }
 }
 
-function renderCaregiverCards(container) {
+function renderCaregiverCards(container, targetDate) {
   if (State.caregivers.length === 0) {
-    container.innerHTML = `<div class="empty-state">No caregivers available right now. Please try again later.</div>`;
+    container.innerHTML = `<div class="empty-state">No caregivers available right now.</div>`;
     return;
   }
 
@@ -228,19 +495,19 @@ function renderCaregiverCards(container) {
   container.innerHTML = "";
 
   State.caregivers.forEach(cg => {
-    const blocked = State.blockedSlots[cg.id] || [];
+    const blocked          = State.blockedSlots[cg.id] || [];
     const isAvailableToday = blocked.length < TIME_SLOTS.length;
 
     const slotsHtml = TIME_SLOTS.map(t => {
-      const isBlocked = blocked.includes(t);
-      return `<div class="slot ${isBlocked ? "blocked" : ""}" 
-        ${!isBlocked ? `onclick="selectSlot(event, this, '${t}', '${cg.id}')"` : ""}
+      const isBlocked = blocked.includes(t) || blocked.includes("All Day");
+      return `<div class="slot ${isBlocked ? "blocked" : ""}"
+        ${!isBlocked ? `onclick="selectSlot(event,this,'${t}','${cg.id}','${targetDate}')"` : ""}
         data-time="${t}">${t}</div>`;
     }).join("");
 
     const card = document.createElement("div");
     card.className = "caregiver-card";
-    card.id = `cg-card-${cg.id}`;
+    card.id        = `cg-card-${cg.id}`;
     card.innerHTML = `
       <div class="cv-top">
         <div class="avatar" style="background:${cg.avatarBg||"#E0F0F0"};color:${cg.avatarColor||"#2A7F7F"}">${initials(cg.name)}</div>
@@ -249,10 +516,10 @@ function renderCaregiverCards(container) {
           <div class="cv-role">Saathi since ${cg.since||"2024"} · ⭐ ${cg.rating||"5.0"}</div>
         </div>
       </div>
-      <span class="avail-badge ${isAvailableToday ? "avail-yes" : "avail-no"}">
-        ${isAvailableToday ? "Available Today" : "Busy Today"}
+      <span class="avail-badge ${isAvailableToday ? 'avail-yes' : 'avail-no'}">
+        ${isAvailableToday ? "Available" : "Fully Booked"} &middot; ${formatDate(targetDate)}
       </span>
-      <div style="font-size:13px;color:var(--text3);margin:8px 0 4px;font-weight:600">Today's Slots</div>
+      <div style="font-size:13px;color:var(--text3);margin:8px 0 4px;font-weight:600">Available Slots</div>
       <div class="slot-grid">${slotsHtml}</div>
       ${cg.bio ? `<div style="font-size:13px;color:var(--text2);margin-top:10px;line-height:1.5">${escHtml(cg.bio)}</div>` : ""}
     `;
@@ -270,13 +537,13 @@ export function selectCaregiver(id, name) {
   State.selectedCaregiver = { id, name };
 }
 
-export function selectSlot(e, el, time, caregiverId) {
+export function selectSlot(e, el, time, caregiverId, dateStr) {
   e.stopPropagation();
   const card = el.closest(".caregiver-card");
   card.querySelectorAll(".slot").forEach(s => s.classList.remove("selected"));
   el.classList.add("selected");
-  State.selectedSlot = { date: todayStr(), time };
-  // Also select this caregiver
+  const date = dateStr || document.getElementById("book-date")?.value || todayStr();
+  State.selectedSlot = { date, time };
   const cg = State.caregivers.find(c => c.id === caregiverId);
   if (cg) selectCaregiver(cg.id, cg.name);
 }
@@ -308,15 +575,16 @@ export function goStep(n) {
   if (n === 4) {
     const name  = document.getElementById("elder-name").value.trim();
     const phone = document.getElementById("elder-phone").value.trim();
-    const age   = document.getElementById("elder-age").value.trim();
-    const addr  = document.getElementById("elder-address").value.trim();
     if (!name || !phone) { showToast("Name and phone number are required", "error"); return; }
-
     State.elderDetails = {
-      name, phone, age,
-      address: addr,
+      name,
+      phone,
+      age    : document.getElementById("elder-age").value.trim(),
+      address: document.getElementById("elder-address").value.trim(),
       notes  : document.getElementById("elder-notes").value.trim(),
-      bookerType: State.bookerType
+      bookerType: State.bookerType,
+      bookerName : document.getElementById("booker-name")?.value.trim() || "",
+      bookerPhone: document.getElementById("booker-phone")?.value.trim() || ""
     };
     renderBookingSummary();
   }
@@ -330,7 +598,7 @@ function updateStepUI(n) {
     if (step) step.style.display = i === n ? "block" : "none";
     const num  = document.getElementById(`step${i}-num`);
     const lbl  = document.getElementById(`step${i}-lbl`);
-    if (num) num.className = "step-num" + (i === n ? " active" : i < n ? " done" : "");
+    if (num) num.className = "step-num"  + (i === n ? " active" : i < n ? " done" : "");
     if (lbl) lbl.className = "step-label" + (i === n ? " active" : i < n ? " done" : "");
     if (i < 4) {
       const line = document.getElementById(`line${i}`);
@@ -342,7 +610,7 @@ function updateStepUI(n) {
 function renderBookingSummary() {
   setText("sum-service",   State.selectedServices.join(", ") || "—");
   setText("sum-caregiver", State.selectedCaregiver?.name || "Auto-assigned");
-  setText("sum-slot",      State.selectedSlot ? `${State.selectedSlot.time} — ${formatDate(State.selectedSlot.date)}` : "—");
+  setText("sum-slot",      State.selectedSlot ? `${State.selectedSlot.time} - ${formatDate(State.selectedSlot.date)}` : "-");
   setText("sum-elder",     State.elderDetails.name);
   setText("sum-phone",     State.elderDetails.phone);
   setText("sum-age",       State.elderDetails.age || "Not provided");
@@ -356,7 +624,6 @@ export async function confirmBooking() {
   btn.textContent = "Confirming…"; btn.disabled = true;
 
   try {
-    // Auto-assign if no caregiver selected
     if (!State.selectedCaregiver) {
       const available = State.caregivers.filter(cg => {
         const blocked = State.blockedSlots[cg.id] || [];
@@ -368,35 +635,36 @@ export async function confirmBooking() {
     }
 
     const booking = {
-      services      : State.selectedServices,
-      caregiverId   : State.selectedCaregiver.id.startsWith("demo-") ? "unassigned" : State.selectedCaregiver.id,
-      caregiverName : State.selectedCaregiver.name,
-      slot          : State.selectedSlot || { date: todayStr(), time: "TBD" },
-      elder         : State.elderDetails,
-      status        : "pending",
-      createdAt     : firebase.firestore.FieldValue.serverTimestamp(),
-      otherDesc     : document.getElementById("other-desc")?.value || "",
-      isDemo        : State.selectedCaregiver.id.startsWith("demo-") || false
+      services     : State.selectedServices,
+      caregiverId  : State.selectedCaregiver.id,
+      caregiverName: State.selectedCaregiver.name,
+      slot         : State.selectedSlot || { date: todayStr(), time: "TBD" },
+      elder        : State.elderDetails,
+      status       : "pending",
+      createdAt    : firebase.firestore.FieldValue.serverTimestamp(),
+      otherDesc    : document.getElementById("other-desc")?.value || ""
     };
 
     const ref = await db.collection(COLLECTIONS.BOOKINGS).add(booking);
 
-    // Show success
-    setText("success-caregiver", State.selectedCaregiver.name);
+    setText("success-caregiver",  State.selectedCaregiver.name);
     setText("success-booking-id", ref.id.slice(0, 8).toUpperCase());
     showScreen("screen-success");
 
     // Reset state
-    State.selectedServices  = [];
-    State.selectedCaregiver = null;
-    State.selectedSlot      = null;
-    State.elderDetails      = {};
+    State.selectedServices   = [];
+    State.selectedCaregiver  = null;
+    State.selectedSlot       = null;
+    State.elderDetails       = {};
     State.currentBookingStep = 1;
     document.querySelectorAll(".service-card.selected").forEach(c => c.classList.remove("selected"));
+    const pastPanel = document.getElementById("past-visits-panel");
+    if (pastPanel) pastPanel.remove();
     updateStepUI(1);
 
   } catch (err) {
     showToast("Booking failed: " + err.message, "error");
+    console.error("confirmBooking error:", err);
   } finally {
     btn.textContent = "Confirm Booking ✓"; btn.disabled = false;
   }
@@ -416,9 +684,8 @@ async function loadBookings() {
     const snap = await db.collection(COLLECTIONS.BOOKINGS)
       .where("caregiverId", "==", State.currentUser.uid)
       .orderBy("createdAt", "desc")
-      .limit(30)
+      .limit(50)
       .get();
-
     State.bookings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderBookingsList();
     renderDashStats();
@@ -427,17 +694,12 @@ async function loadBookings() {
 
 function renderDashStats() {
   const bookings = State.bookings;
-  const today    = todayStr();
   const pending  = bookings.filter(b => b.status === "pending").length;
-  const thisWeek = bookings.filter(b => {
-    if (!b.slot?.date) return false;
-    return isThisWeek(b.slot.date);
-  }).length;
-  const done = bookings.filter(b => b.status === "done").length;
-
-  setText("stat-new",    pending);
-  setText("stat-week",   thisWeek);
-  setText("stat-done",   done);
+  const thisWeek = bookings.filter(b => b.slot?.date && isThisWeek(b.slot.date)).length;
+  const done     = bookings.filter(b => b.status === "done").length;
+  setText("stat-new",  pending);
+  setText("stat-week", thisWeek);
+  setText("stat-done", done);
 }
 
 function renderBookingsList() {
@@ -450,10 +712,10 @@ function renderBookingsList() {
   }
 
   const statusMap = {
-    pending   : { label: "New",       cls: "status-new"       },
-    confirmed : { label: "Confirmed", cls: "status-confirmed"  },
-    done      : { label: "Completed", cls: "status-done"       },
-    cancelled : { label: "Cancelled", cls: "status-cancelled"  }
+    pending  : { label: "New",       cls: "status-new"       },
+    confirmed: { label: "Confirmed", cls: "status-confirmed" },
+    done     : { label: "Completed", cls: "status-done"      },
+    cancelled: { label: "Cancelled", cls: "status-cancelled" }
   };
 
   const serviceIcons = {
@@ -466,11 +728,11 @@ function renderBookingsList() {
   };
 
   container.innerHTML = State.bookings.map(b => {
-    const st  = statusMap[b.status] || statusMap.pending;
-    const svc = b.services?.[0] || "Other";
-    const icon = serviceIcons[svc] || "✨";
+    const st          = statusMap[b.status] || statusMap.pending;
+    const svc         = b.services?.[0] || "Other";
+    const icon        = serviceIcons[svc] || "✨";
     const slotDisplay = b.slot ? `${b.slot.time} · ${formatDate(b.slot.date)}` : "TBD";
-    const addr = b.elder?.address ? ` · ${escHtml(b.elder.address)}` : "";
+    const addr        = b.elder?.address ? ` · ${escHtml(b.elder.address)}` : "";
 
     return `
     <div class="request-card" id="req-${b.id}">
@@ -483,11 +745,11 @@ function renderBookingsList() {
         <div class="req-meta">📅 ${slotDisplay}${addr}</div>
         <div class="req-meta"><strong>${escHtml(b.elder?.name || "—")}</strong> · Age ${b.elder?.age || "—"}</div>
         <div class="req-contact">📞 <a href="tel:${escHtml(b.elder?.phone || "")}" style="color:var(--teal);text-decoration:none;font-weight:700">${escHtml(b.elder?.phone || "—")}</a></div>
-        ${b.elder?.notes ? `<div style="font-size:13px;color:var(--text2);margin-top:6px;font-style:italic">"${escHtml(b.elder.notes)}"</div>` : ""}
-        ${b.otherDesc ? `<div style="font-size:13px;color:var(--text2);margin-top:4px">Request: ${escHtml(b.otherDesc)}</div>` : ""}
+        ${b.elder?.notes    ? `<div style="font-size:13px;color:var(--text2);margin-top:6px;font-style:italic">"${escHtml(b.elder.notes)}"</div>` : ""}
+        ${b.otherDesc       ? `<div style="font-size:13px;color:var(--text2);margin-top:4px">Request: ${escHtml(b.otherDesc)}</div>` : ""}
         <div class="req-actions" id="actions-${b.id}">
-          ${b.status === "pending" ? `
-            <button class="btn btn-teal btn-sm" onclick="updateBookingStatus('${b.id}','confirmed')">✓ Accept</button>
+          ${b.status === "pending"   ? `
+            <button class="btn btn-teal btn-sm"  onclick="updateBookingStatus('${b.id}','confirmed')">✓ Accept</button>
             <button class="btn btn-ghost btn-sm" onclick="updateBookingStatus('${b.id}','cancelled')">✗ Decline</button>` : ""}
           ${b.status === "confirmed" ? `
             <button class="btn btn-primary btn-sm" onclick="updateBookingStatus('${b.id}','done')">Mark as Done</button>` : ""}
@@ -500,10 +762,9 @@ function renderBookingsList() {
 export async function updateBookingStatus(bookingId, newStatus) {
   try {
     await db.collection(COLLECTIONS.BOOKINGS).doc(bookingId).update({
-      status: newStatus,
+      status   : newStatus,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    // Update local state
     const b = State.bookings.find(x => x.id === bookingId);
     if (b) b.status = newStatus;
     renderBookingsList();
@@ -522,16 +783,15 @@ async function loadBlockedSlots() {
   if (!State.currentUser) return;
   try {
     const snap = await db.collection(COLLECTIONS.BLOCKED)
-      .where("caregiverId", "==", State.currentUser.uid)
-      .get();
+      .where("caregiverId", "==", State.currentUser.uid).get();
     State.myBlockedSlots = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch (e) { console.error("Blocked slots load:", e); }
 }
 
 export function renderCalendar(year, month) {
-  const now   = new Date();
-  year  = year  || now.getFullYear();
-  month = month || now.getMonth();
+  const now  = new Date();
+  year  = year  !== undefined ? year  : now.getFullYear();
+  month = month !== undefined ? month : now.getMonth();
 
   const calTitle = document.getElementById("cal-month-title");
   if (calTitle) calTitle.textContent = new Date(year, month).toLocaleDateString("en-IN", { month: "long", year: "numeric" });
@@ -539,37 +799,33 @@ export function renderCalendar(year, month) {
   const grid = document.getElementById("cal-days-grid");
   if (!grid) return;
 
-  const firstDay = new Date(year, month, 1).getDay();
+  const firstDay    = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const today = now.getDate();
+  const today       = now.getDate();
   const isThisMonth = year === now.getFullYear() && month === now.getMonth();
 
-  // Collect all dates with activity
-  const bookedDates = new Set((State.bookings || [])
-    .map(b => b.slot?.date).filter(Boolean));
-  const blockedDates = new Set((State.myBlockedSlots || [])
-    .map(b => b.date).filter(Boolean));
+  const bookedDates  = new Set((State.bookings || []).map(b => b.slot?.date).filter(Boolean));
+  const blockedDates = new Set((State.myBlockedSlots || []).map(b => b.date).filter(Boolean));
 
   let html = "";
   for (let i = 0; i < firstDay; i++) html += `<div class="cal-day empty"></div>`;
   for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = `${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const dateStr   = `${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
     const isToday   = isThisMonth && d === today;
     const hasBook   = bookedDates.has(dateStr);
     const isBlocked = blockedDates.has(dateStr);
     const cls = isToday ? "today" : isBlocked ? "blocked" : hasBook ? "has-booking" : "";
-    html += `<button class="cal-day ${cls}" onclick="showDayDetail('${dateStr}')">${d}${(hasBook||isBlocked) ? '<div class="day-dot"></div>' : ""}</button>`;
+    html += `<button class="cal-day ${cls}" onclick="showDayDetail('${dateStr}')">${d}${(hasBook || isBlocked) ? '<div class="day-dot"></div>' : ""}</button>`;
   }
   grid.innerHTML = html;
 
-  // store for prev/next nav
   window._calYear  = year;
   window._calMonth = month;
 }
 
 export function calNav(dir) {
-  let m = (window._calMonth || new Date().getMonth()) + dir;
-  let y = window._calYear  || new Date().getFullYear();
+  let m = (window._calMonth !== undefined ? window._calMonth : new Date().getMonth()) + dir;
+  let y =  window._calYear  !== undefined ? window._calYear  : new Date().getFullYear();
   if (m > 11) { m = 0;  y++; }
   if (m < 0)  { m = 11; y--; }
   renderCalendar(y, m);
@@ -588,24 +844,26 @@ export function showDayDetail(dateStr) {
   if (dayBookings.length > 0) {
     html += `<div style="font-weight:700;font-size:13px;color:var(--text2);margin-bottom:8px">BOOKINGS</div>`;
     dayBookings.forEach(b => {
-      html += `<div style="background:var(--orange-light);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px">
-        <div style="font-weight:700">${escHtml(b.services?.join(", "))}</div>
-        <div style="color:var(--text2)">${b.slot?.time} · ${escHtml(b.elder?.name)}</div>
-        <div style="color:var(--teal);font-weight:600">${escHtml(b.elder?.phone)}</div>
-      </div>`;
+      html += `
+        <div style="background:var(--orange-light);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px">
+          <div style="font-weight:700">${escHtml(b.services?.join(", ") || "")}</div>
+          <div style="color:var(--text2)">${b.slot?.time} · ${escHtml(b.elder?.name || "")}</div>
+          <div style="color:var(--teal);font-weight:600">${escHtml(b.elder?.phone || "")}</div>
+        </div>`;
     });
   }
 
   if (dayBlocked.length > 0) {
     html += `<div style="font-weight:700;font-size:13px;color:var(--text2);margin:10px 0 8px">BLOCKED SLOTS</div>`;
     dayBlocked.forEach(b => {
-      html += `<div style="background:#FFEBEE;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px;display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <div style="font-weight:700;color:var(--red)">${b.time}</div>
-          ${b.reason ? `<div style="color:var(--text2)">${escHtml(b.reason)}</div>` : ""}
-        </div>
-        <button class="btn btn-ghost btn-sm" onclick="unblockSlot('${b.id}')">Unblock</button>
-      </div>`;
+      html += `
+        <div style="background:#FFEBEE;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px;display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-weight:700;color:var(--red)">${b.time}</div>
+            ${b.reason ? `<div style="color:var(--text2)">${escHtml(b.reason)}</div>` : ""}
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="unblockSlot('${b.id}')">Unblock</button>
+        </div>`;
     });
   }
 
@@ -613,8 +871,8 @@ export function showDayDetail(dateStr) {
     html += `<div style="color:var(--text3);font-size:14px">No bookings or blocks on this day.</div>`;
   }
 
-  panel.innerHTML = html;
-  panel.style.display = "block";
+  panel.innerHTML      = html;
+  panel.style.display  = "block";
 }
 
 export async function blockSlot() {
@@ -642,8 +900,9 @@ export async function blockSlot() {
     document.getElementById("block-reason").value = "";
   } catch (e) {
     showToast("Failed to block slot. Try again.", "error");
+    console.error("blockSlot error:", e);
   } finally {
-    btn.textContent = "Block This Slot"; btn.disabled = false;
+    btn.textContent = "🚫 Block This Slot"; btn.disabled = false;
   }
 }
 
@@ -678,7 +937,7 @@ function renderGallery() {
   const itemsHtml = State.galleryItems.map(item => `
     <div class="media-item">
       ${item.type === "image" && item.url
-        ? `<img src="${escHtml(item.url)}" alt="${escHtml(item.caption||"")}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius)">`
+        ? `<img src="${escHtml(item.url)}" alt="${escHtml(item.caption || "")}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius)">`
         : `<div style="font-size:40px">${item.emoji || "📸"}</div>`}
       <div class="media-overlay">
         <div>
@@ -698,6 +957,7 @@ function renderGallery() {
 }
 
 export function triggerUpload() {
+  if (!State.currentUser) { showToast("Please log in first", "error"); return; }
   document.getElementById("media-upload-input").click();
 }
 
@@ -706,50 +966,44 @@ export async function handleMediaUpload(input) {
   const file = input.files[0];
   if (!file) return;
   if (!file.type.startsWith("image/")) { showToast("Only images supported", "error"); return; }
-  if (file.size > 10 * 1024 * 1024) { showToast("Max file size is 10MB", "error"); return; }
+  if (file.size > 10 * 1024 * 1024)   { showToast("Max file size is 10MB", "error"); return; }
 
   const caption = prompt("Add a caption for this photo (optional):") || "";
   showToast("Uploading photo…");
 
   try {
-    // ── Upload to Cloudinary (unsigned upload, no server needed) ──
     const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", CLOUDINARY.UPLOAD_PRESET);
-    formData.append("folder", CLOUDINARY.FOLDER);
-    // Tag by caregiver UID so you can manage in Cloudinary dashboard
-    formData.append("tags", State.currentUser.uid);
+    formData.append("file",           file);
+    formData.append("upload_preset",  CLOUDINARY.UPLOAD_PRESET);
+    formData.append("folder",         CLOUDINARY.FOLDER);
+    formData.append("tags",           State.currentUser.uid);
 
     const res = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUDINARY.CLOUD_NAME}/image/upload`,
       { method: "POST", body: formData }
     );
-
     if (!res.ok) throw new Error("Cloudinary upload failed");
     const data = await res.json();
 
-    const url        = data.secure_url;       // https CDN URL
-    const publicId   = data.public_id;        // used for deletion later
-
-    // ── Save metadata to Firestore ──
     const docRef = await db.collection(COLLECTIONS.MEDIA).add({
       caregiverId  : State.currentUser.uid,
       caregiverName: State.caregiverProfile?.name || "Saathi",
-      url, caption,
+      url          : data.secure_url,
+      caption,
       type         : "image",
-      publicId,                               // stored so we can delete from Cloudinary
+      publicId     : data.public_id,
       createdAt    : firebase.firestore.FieldValue.serverTimestamp()
     });
 
     State.galleryItems.unshift({
       id: docRef.id, caregiverId: State.currentUser.uid,
-      url, caption, type: "image", publicId
+      url: data.secure_url, caption, type: "image", publicId: data.public_id
     });
     renderGallery();
     showToast("Photo uploaded ✓", "success");
   } catch (e) {
     showToast("Upload failed. Try again.", "error");
-    console.error(e);
+    console.error("Upload error:", e);
   }
   input.value = "";
 }
@@ -757,24 +1011,6 @@ export async function handleMediaUpload(input) {
 export async function deleteMedia(mediaId) {
   if (!confirm("Delete this photo?")) return;
   try {
-    const item = State.galleryItems.find(i => i.id === mediaId);
-
-    // ── Delete from Cloudinary ──────────────────────────────────
-    // NOTE: Deleting from Cloudinary via unsigned requests isn't possible
-    // for security reasons. Two options:
-    //
-    // Option A (recommended for small apps): Just delete from Firestore.
-    //   The image stays in Cloudinary but won't show in your app.
-    //   Cloudinary free tier is 25GB so orphaned images won't matter.
-    //
-    // Option B: In your Cloudinary dashboard → Media Library, manually
-    //   delete images when needed. Or set up a Firebase Cloud Function
-    //   (requires Blaze plan) to call the Cloudinary delete API with
-    //   your API secret server-side.
-    //
-    // For Saathi Care, Option A is perfectly fine.
-
-    // Delete Firestore record (removes from app UI)
     await db.collection(COLLECTIONS.MEDIA).doc(mediaId).delete();
     State.galleryItems = State.galleryItems.filter(i => i.id !== mediaId);
     renderGallery();
@@ -788,16 +1024,99 @@ export async function deleteMedia(mediaId) {
 //  DASHBOARD TAB SWITCHER
 // ─────────────────────────────────────────────
 export function setDashTab(tab) {
-  ["requests", "calendar", "gallery"].forEach(t => {
+  ["requests","calendar","gallery","owner"].forEach(t => {
     const el = document.getElementById(`tab-${t}`);
     if (el) el.style.display = t === tab ? "block" : "none";
   });
-  document.querySelectorAll(".tab").forEach((t, i) => {
-    const tabs = ["requests", "calendar", "gallery"];
-    t.className = "tab" + (tabs[i] === tab ? " active" : "");
+  // Update active class on all tab buttons
+  document.querySelectorAll("#screen-caregiver-dashboard .tab").forEach(btn => {
+    btn.classList.remove("active");
   });
-  if (tab === "calendar") renderCalendar();
+  const tabMap = {
+    requests: 0, calendar: 1, gallery: 2, owner: 3
+  };
+  const allTabs = document.querySelectorAll("#screen-caregiver-dashboard .tab");
+  const idx = tabMap[tab];
+  if (allTabs[idx]) allTabs[idx].classList.add("active");
+
+  if (tab === "calendar") renderCalendar(window._calYear, window._calMonth);
   if (tab === "gallery")  renderGallery();
+  if (tab === "owner" && State.isOwner) loadOwnerPanelData();
+}
+
+// ─────────────────────────────────────────────
+//  CAREGIVER APPLICATION FORM
+// ─────────────────────────────────────────────
+export async function submitApplication() {
+  const name  = document.getElementById("app-name").value.trim();
+  const email = document.getElementById("app-email").value.trim();
+  const phone = document.getElementById("app-phone").value.trim();
+  const area  = document.getElementById("app-area").value.trim();
+  const bio   = document.getElementById("app-bio").value.trim();
+  const langs = document.getElementById("app-langs").value.trim();
+
+  if (!name || !email || !phone) {
+    showToast("Name, email and phone are required", "error"); return;
+  }
+
+  const btn = document.getElementById("app-submit-btn");
+  btn.textContent = "Submitting…"; btn.disabled = true;
+
+  try {
+    await db.collection("applications").add({
+      name, email, phone, area, bio, langs,
+      status   : "pending",
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showScreen("screen-apply-success");
+    showToast("Application submitted! We'll be in touch. 🙏", "success");
+  } catch (e) {
+    showToast("Submission failed. Please try again.", "error");
+    console.error("Application submit error:", e);
+  } finally {
+    btn.textContent = "Submit Application 🙏"; btn.disabled = false;
+  }
+}
+
+// ─────────────────────────────────────────────
+//  OWNER DASHBOARD (standalone ?owner=true page)
+//  This is kept for the standalone URL approach.
+//  The injected tab above is the primary owner experience now.
+// ─────────────────────────────────────────────
+export async function loadOwnerDashboard() {
+  await loadOwnerPanelData();
+  // Also wire the standalone owner screen lists
+  const appList  = document.getElementById("owner-applications-list");
+  const bookList = document.getElementById("owner-bookings-list");
+  if (appList)  appList.innerHTML  = document.getElementById("owner-applications-list2")?.innerHTML || "";
+  if (bookList) bookList.innerHTML = document.getElementById("owner-bookings-list2")?.innerHTML    || "";
+}
+
+export async function approveApplication(appId, inDash = false) {
+  try {
+    await db.collection("applications").doc(appId).update({ status: "approved" });
+    showToast("Application approved ✓", "success");
+    inDash ? loadOwnerPanelData() : loadOwnerDashboard();
+  } catch (e) { showToast("Update failed", "error"); }
+}
+
+export async function rejectApplication(appId, inDash = false) {
+  try {
+    await db.collection("applications").doc(appId).update({ status: "rejected" });
+    showToast("Application rejected", "error");
+    inDash ? loadOwnerPanelData() : loadOwnerDashboard();
+  } catch (e) { showToast("Update failed", "error"); }
+}
+
+export function setOwnerTab(tab) {
+  ["applications","all-bookings"].forEach(t => {
+    const el = document.getElementById(`owner-tab-${t}`);
+    if (el) el.style.display = t === tab ? "block" : "none";
+  });
+  document.querySelectorAll(".owner-tab").forEach((t, i) => {
+    const tabs = ["applications","all-bookings"];
+    t.className = "tab owner-tab" + (tabs[i] === tab ? " active" : "");
+  });
 }
 
 // ─────────────────────────────────────────────
@@ -814,22 +1133,26 @@ function formatDate(str) {
 }
 
 function isThisWeek(dateStr) {
-  const d = new Date(dateStr + "T00:00:00");
-  const now = new Date();
+  const d           = new Date(dateStr + "T00:00:00");
+  const now         = new Date();
   const startOfWeek = new Date(now);
   startOfWeek.setDate(now.getDate() - now.getDay());
-  startOfWeek.setHours(0,0,0,0);
+  startOfWeek.setHours(0, 0, 0, 0);
   const endOfWeek = new Date(startOfWeek);
   endOfWeek.setDate(startOfWeek.getDate() + 6);
   return d >= startOfWeek && d <= endOfWeek;
 }
 
 function initials(name) {
-  return (name || "?").split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
+  return (name || "?").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 }
 
 function escHtml(str) {
-  return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 function setText(id, val) {
@@ -838,156 +1161,19 @@ function setText(id, val) {
 }
 
 // ─────────────────────────────────────────────
-//  CAREGIVER APPLICATION FORM
-// ─────────────────────────────────────────────
-export async function submitApplication() {
-  const name    = document.getElementById("app-name").value.trim();
-  const email   = document.getElementById("app-email").value.trim();
-  const phone   = document.getElementById("app-phone").value.trim();
-  const area    = document.getElementById("app-area").value.trim();
-  const bio     = document.getElementById("app-bio").value.trim();
-  const langs   = document.getElementById("app-langs").value.trim();
-
-  if (!name || !email || !phone) {
-    showToast("Name, email and phone are required", "error"); return;
-  }
-
-  const btn = document.getElementById("app-submit-btn");
-  btn.textContent = "Submitting…"; btn.disabled = true;
-
-  try {
-    await db.collection("applications").add({
-      name, email, phone, area, bio, langs,
-      status    : "pending",
-      createdAt : firebase.firestore.FieldValue.serverTimestamp()
-    });
-    showScreen("screen-apply-success");
-    showToast("Application submitted! We'll be in touch. 🙏", "success");
-  } catch (e) {
-    showToast("Submission failed. Please try again.", "error");
-    console.error(e);
-  } finally {
-    btn.textContent = "Submit Application"; btn.disabled = false;
-  }
-}
-
-// ─────────────────────────────────────────────
-//  OWNER DASHBOARD
-//  Access: yourdomain.com?owner=true
-//  You are the owner — change OWNER_EMAIL below.
-// ─────────────────────────────────────────────
-const OWNER_EMAIL = "owner@saathicare.in"; // Change this to YOUR email
-
-export async function loadOwnerDashboard() {
-  const appList  = document.getElementById("owner-applications-list");
-  const bookList = document.getElementById("owner-bookings-list");
-
-  if (appList) appList.innerHTML = `<div class="loading-spinner">Loading applications…</div>`;
-  if (bookList) bookList.innerHTML = `<div class="loading-spinner">Loading bookings…</div>`;
-
-  try {
-    // Load applications
-    const appSnap = await db.collection("applications").orderBy("createdAt", "desc").limit(50).get();
-    const apps = appSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-    if (appList) {
-      if (apps.length === 0) {
-        appList.innerHTML = `<div class="empty-state">No applications yet.</div>`;
-      } else {
-        appList.innerHTML = apps.map(a => `
-          <div class="request-card" style="margin-bottom:14px">
-            <div class="req-icon">👤</div>
-            <div class="req-body">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-                <div class="req-title">${escHtml(a.name)}</div>
-                <span class="status-badge ${a.status === 'approved' ? 'status-confirmed' : a.status === 'rejected' ? 'status-cancelled' : 'status-new'}">${a.status || 'pending'}</span>
-              </div>
-              <div class="req-meta">📧 ${escHtml(a.email)} · 📞 ${escHtml(a.phone)}</div>
-              ${a.area ? `<div class="req-meta">📍 ${escHtml(a.area)}</div>` : ""}
-              ${a.langs ? `<div class="req-meta">🗣️ ${escHtml(a.langs)}</div>` : ""}
-              ${a.bio ? `<div style="font-size:13px;color:var(--text2);margin-top:6px;font-style:italic">"${escHtml(a.bio)}"</div>` : ""}
-              <div class="req-actions">
-                ${a.status !== 'approved' ? `<button class="btn btn-teal btn-sm" onclick="approveApplication('${a.id}')">✓ Approve</button>` : ""}
-                ${a.status !== 'rejected' ? `<button class="btn btn-ghost btn-sm" onclick="rejectApplication('${a.id}')">✗ Reject</button>` : ""}
-              </div>
-            </div>
-          </div>`).join("");
-      }
-    }
-
-    // Load all bookings
-    const bookSnap = await db.collection("bookings").orderBy("createdAt", "desc").limit(50).get();
-    const bookings = bookSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-    if (bookList) {
-      if (bookings.length === 0) {
-        bookList.innerHTML = `<div class="empty-state">No bookings yet.</div>`;
-      } else {
-        bookList.innerHTML = bookings.map(b => `
-          <div class="request-card" style="margin-bottom:14px">
-            <div class="req-icon">📋</div>
-            <div class="req-body">
-              <div style="display:flex;justify-content:space-between;gap:8px">
-                <div class="req-title">${escHtml(b.services?.join(", ") || "—")}</div>
-                <span class="status-badge status-${b.status || 'new'}">${b.status || 'pending'}</span>
-              </div>
-              <div class="req-meta">👴 ${escHtml(b.elder?.name || "—")} · 📞 ${escHtml(b.elder?.phone || "—")}</div>
-              <div class="req-meta">🧑‍⚕️ ${escHtml(b.caregiverName || "Unassigned")} · 📅 ${b.slot?.date || "—"} ${b.slot?.time || ""}</div>
-              ${b.isDemo ? `<div style="font-size:12px;color:var(--orange);font-weight:700;margin-top:4px">⚠️ Demo booking — assign a real caregiver</div>` : ""}
-            </div>
-          </div>`).join("");
-      }
-    }
-
-    // Update counts
-    const pendingApps = apps.filter(a => a.status === "pending").length;
-    const el = document.getElementById("owner-app-count");
-    if (el) el.textContent = pendingApps;
-
-  } catch (e) {
-    if (appList)  appList.innerHTML  = `<div class="error-msg">Error loading data. Check Firestore rules.</div>`;
-    if (bookList) bookList.innerHTML = `<div class="error-msg">Error loading bookings.</div>`;
-    console.error("Owner dashboard error:", e);
-  }
-}
-
-export async function approveApplication(appId) {
-  try {
-    await db.collection("applications").doc(appId).update({ status: "approved" });
-    showToast("Application approved ✓", "success");
-    loadOwnerDashboard();
-  } catch (e) { showToast("Update failed", "error"); }
-}
-
-export async function rejectApplication(appId) {
-  try {
-    await db.collection("applications").doc(appId).update({ status: "rejected" });
-    showToast("Application rejected", "error");
-    loadOwnerDashboard();
-  } catch (e) { showToast("Update failed", "error"); }
-}
-
-export function setOwnerTab(tab) {
-  ["applications", "all-bookings"].forEach(t => {
-    const el = document.getElementById(`owner-tab-${t}`);
-    if (el) el.style.display = t === tab ? "block" : "none";
-  });
-  document.querySelectorAll(".owner-tab").forEach((t, i) => {
-    const tabs = ["applications", "all-bookings"];
-    t.className = "tab owner-tab" + (tabs[i] === tab ? " active" : "");
-  });
-}
-
-// ─────────────────────────────────────────────
-//  Expose to window for inline onclick handlers in HTML
+//  Expose to window for inline onclick handlers
 // ─────────────────────────────────────────────
 Object.assign(window, {
-  showScreen, showToast, doLogin, doLogout,
+  showScreen, showToast,
+  doLogin, doLogout,
+  sendOTP, verifyOTP, resendOTP, skipOTPAndBook,
   toggleService, selectCaregiver, selectSlot,
   setBooker, goStep, confirmBooking, loadCaregivers,
-  updateBookingStatus, blockSlot, unblockSlot,
+  updateBookingStatus,
+  blockSlot, unblockSlot,
   setDashTab, renderCalendar, calNav, showDayDetail,
   triggerUpload, handleMediaUpload, deleteMedia,
-  submitApplication, loadOwnerDashboard, approveApplication, rejectApplication, setOwnerTab,
-  scrollToHow: () => document.getElementById("how-it-works")?.scrollIntoView({ behavior:"smooth" })
+  submitApplication,
+  loadOwnerDashboard, approveApplication, rejectApplication, setOwnerTab,
+  scrollToHow: () => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
 });
