@@ -379,14 +379,11 @@ function renderCaregiverCards(container, targetDate) {
     card.className = "caregiver-card" + (State.selectedCaregiver?.id === cg.id ? " selected" : "");
     card.id = `cg-card-${cg.id}`;
     card.innerHTML = `
-      <div class="cg-info">
-        <div class="avatar" style="background:${cg.avatarColor || "#2A7F7F"}">${initials(cg.name)}</div>
-        <div class="cg-details">
-          <div class="cg-name">${escHtml(cg.name)}</div>
-          <div class="cg-bio">${escHtml(cg.bio || "Saathi Companion")}</div>
-        </div>
+      <div class="cg-header" style="display:flex; align-items:center; gap:12px; margin-bottom:12px">
+        <div class="avatar" style="background:${cg.avatarColor || "#2A7F7F"}; width:36px; height:36px; font-size:13px; flex-shrink:0">${initials(cg.name)}</div>
+        <div class="cg-name" style="font-size:16px; font-weight:700; color:var(--text)">${escHtml(cg.name)}</div>
       </div>
-      <div class="cg-slots">
+      <div class="cg-slots" style="margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:16px">
         ${TIME_SLOTS.map(time => {
           const isTaken = blocked.includes(time) || blocked.includes("All Day") || booked.includes(time);
           const isSel   = State.selectedCaregiver?.id === cg.id && State.selectedSlot?.time === time;
@@ -395,6 +392,9 @@ function renderCaregiverCards(container, targetDate) {
             data-time="${time}"
             onclick="selectSlot(event, this, '${time}', '${cg.id}', '${targetDate}')">${time}</button>`;
         }).join("")}
+      </div>
+      <div class="cg-details" style="padding-top:4px">
+        <div class="cg-bio" style="font-size:12px; color:var(--text3); line-height:1.4">${escHtml(cg.bio || "Saathi Companion")}</div>
       </div>
     `;
     container.appendChild(card);
