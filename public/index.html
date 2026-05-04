@@ -218,6 +218,25 @@
         </div>
       </div>
 
+      <!-- Duration selector -->
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap">
+        <div>
+          <label class="form-label" style="margin-bottom:6px">Duration (hours)</label>
+          <select class="form-input" id="book-duration" style="font-size:16px;width:auto;min-width:120px"
+            onchange="onDurationChange()">
+            <option value="2">2 hours</option>
+            <option value="4">4 hours</option>
+            <option value="6">6 hours</option>
+            <option value="8">8 hours</option>
+            <option value="10">10 hours</option>
+            <option value="12">Full day (12 hours)</option>
+          </select>
+        </div>
+        <div style="padding-top:28px;color:var(--text3);font-size:13px">
+          ⏱ Consecutive slots will be blocked based on duration
+        </div>
+      </div>
+
       <div class="assign-banner">
         <div style="font-size:26px">✨</div>
         <div style="font-size:15px;color:var(--teal);font-weight:600">We'll auto-assign the best available Saathi — or pick one below.</div>
@@ -610,8 +629,7 @@
 <!-- ════════════════════════════════════════════════════════
      APP SCRIPTS
 ═════════════════════════════════════════════════════════ -->
-<script type="module" src="js/firebase-config.js"></script>
-<script type="module" src="js/app.js"></script>
+<script src="js/app.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     // Set today's date in dashboard header

@@ -20,8 +20,12 @@ service cloud.firestore {
     // Only the assigned caregiver or owners can read / update their bookings
     match /bookings/{bookingId} {
       allow create: if true;
-      allow read, update: if request.auth != null &&
-        (request.auth.uid == resource.data.caregiverId || request.auth.token.email == "snehatest29@gmail.com" || request.auth.token.email == "owner2@saathicare.in");
+      allow read: if true;
+      allow update: if request.auth != null &&
+        (request.auth.uid == resource.data.caregiverId || 
+         request.auth.token.email == "snehatest29@gmail.com" || 
+         request.auth.token.email == "snehstest29@gmail.com" ||
+         request.auth.token.email == "owner2@saathicare.in");
       allow delete: if false; // Never delete bookings
     }
 
@@ -39,7 +43,10 @@ service cloud.firestore {
     // Anyone can create an application, owners can manage them
     match /applications/{appId} {
       allow create: if true;
-      allow read, update, delete: if request.auth != null && (request.auth.token.email == "snehatest29@gmail.com" || request.auth.token.email == "owner2@saathicare.in");
+      allow read, update, delete: if request.auth != null && 
+        (request.auth.token.email == "snehatest29@gmail.com" || 
+         request.auth.token.email == "snehstest29@gmail.com" ||
+         request.auth.token.email == "owner2@saathicare.in");
     }
     // ── BLOCKED SLOTS ─────────────────────────────────────────
     // Anyone can read (booking page checks blocked slots)

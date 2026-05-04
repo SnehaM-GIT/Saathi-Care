@@ -30,7 +30,7 @@ const caregivers = [
   {
     name       : "Saathi Owner",
     email      : "snehatest29@gmail.com",
-    password   : "CHANGE_ME_BEFORE_RUNNING",   // Set your owner password here locally (never commit!)
+    password   : "Owner@2025!",   // Default owner password
     phone      : "+91 90000 00000",
     bio        : "Platform Owner & Administrator",
     since      : "2025",
@@ -42,7 +42,7 @@ const caregivers = [
   {
     name       : "Priya Nair",
     email      : "priya@saathicare.in",
-    password   : "CHANGE_ME_BEFORE_RUNNING",
+    password   : "Saathi@2025!",
     phone      : "+91 98765 00001",
     bio        : "I love spending time with elders. I speak Kannada, Tamil, and Hindi.",
     since      : "2023",
@@ -54,7 +54,7 @@ const caregivers = [
   {
     name       : "Arjun Sharma",
     email      : "arjun@saathicare.in",
-    password   : "CHANGE_ME_BEFORE_RUNNING",
+    password   : "Saathi@2025!",
     phone      : "+91 98765 00002",
     bio        : "Patient, caring, and always on time. Happy to help with hospital visits and errands.",
     since      : "2024",
@@ -66,7 +66,7 @@ const caregivers = [
   {
     name       : "Meera Krishnan",
     email      : "meera@saathicare.in",
-    password   : "CHANGE_ME_BEFORE_RUNNING",
+    password   : "Saathi@2025!",
     phone      : "+91 98765 00003",
     bio        : "Retired teacher with a warm heart. Loves conversations, bhajans, and temple visits.",
     since      : "2023",
@@ -90,9 +90,9 @@ async function seed() {
         phoneNumber: cg.phone.replace(/\s/g, "")
       });
 
-      console.log(`✅ Auth account created: ${cg.name} (${userRecord.uid})`);
+      console.log(`✅ Auth account created/verified: ${cg.name} (${userRecord.uid})`);
 
-      // Create Firestore profile
+      // ALWAYS Create/Update Firestore profile to ensure 'active: true' and other fields are correct
       const { password, ...profileData } = cg;
       await db.collection("caregivers").doc(userRecord.uid).set({
         ...profileData,
@@ -100,11 +100,22 @@ async function seed() {
         createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
 
-      console.log(`   📄 Firestore profile created for ${cg.name}\n`);
+      console.log(`   📄 Firestore profile updated for ${cg.name}\n`);
 
     } catch (err) {
       if (err.code === "auth/email-already-exists") {
-        console.log(`⚠️  ${cg.name} already exists — skipping.\n`);
+        // If user exists, update their password and sync Firestore
+        const userRecord = await auth.getUserByEmail(cg.email);
+        await auth.updateUser(userRecord.uid, {
+          password: cg.password
+        });
+        
+        const { password, ...profileData } = cg;
+        await db.collection("caregivers").doc(userRecord.uid).set({
+          ...profileData,
+          uid      : userRecord.uid,
+        }, { merge: true });
+        console.log(`⚠️  ${cg.name} already exists — Password updated & Firestore profile synced.\n`);
       } else {
         console.error(`❌ Error creating ${cg.name}:`, err.message, "\n");
       }
