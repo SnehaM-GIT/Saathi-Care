@@ -30,7 +30,7 @@ const caregivers = [
   {
     name       : "Saathi Owner",
     email      : "snehatest29@gmail.com",
-    password   : "Owner@2025!",   // Default owner password
+    password   : "CHANGE_ME_BEFORE_RUNNING",   // Set your owner password here locally (never commit!)
     phone      : "+91 90000 00000",
     bio        : "Platform Owner & Administrator",
     since      : "2025",
@@ -42,7 +42,7 @@ const caregivers = [
   {
     name       : "Priya Nair",
     email      : "priya@saathicare.in",
-    password   : "Saathi@2025!",   // Change this!
+    password   : "CHANGE_ME_BEFORE_RUNNING",
     phone      : "+91 98765 00001",
     bio        : "I love spending time with elders. I speak Kannada, Tamil, and Hindi.",
     since      : "2023",
@@ -54,7 +54,7 @@ const caregivers = [
   {
     name       : "Arjun Sharma",
     email      : "arjun@saathicare.in",
-    password   : "Saathi@2025!",
+    password   : "CHANGE_ME_BEFORE_RUNNING",
     phone      : "+91 98765 00002",
     bio        : "Patient, caring, and always on time. Happy to help with hospital visits and errands.",
     since      : "2024",
@@ -66,7 +66,7 @@ const caregivers = [
   {
     name       : "Meera Krishnan",
     email      : "meera@saathicare.in",
-    password   : "Saathi@2025!",
+    password   : "CHANGE_ME_BEFORE_RUNNING",
     phone      : "+91 98765 00003",
     bio        : "Retired teacher with a warm heart. Loves conversations, bhajans, and temple visits.",
     since      : "2023",

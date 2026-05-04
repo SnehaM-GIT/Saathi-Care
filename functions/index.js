@@ -12,8 +12,8 @@ admin.initializeApp();
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER || 'snehatest29@gmail.com', // Read securely from .env
-    pass: process.env.EMAIL_PASS || 'password@123'           // Read securely from .env
+    user: process.env.EMAIL_USER,  // Set in functions/.env (never commit!)
+    pass: process.env.EMAIL_PASS   // Set in functions/.env (never commit!)
   }
 });
 
