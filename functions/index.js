@@ -12,8 +12,8 @@ admin.initializeApp();
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'snehatest29@gmail.com', // Replace with your Gmail
-    pass: 'password@123'     // Use App Password if 2FA enabled
+    user: process.env.EMAIL_USER || 'snehatest29@gmail.com', // Read securely from .env
+    pass: process.env.EMAIL_PASS || 'password@123'           // Read securely from .env
   }
 });
 
@@ -56,14 +56,14 @@ exports.onApplicationApproved = functions.firestore
       });
       // Send email to applicant
       await transporter.sendMail({
-        from: 'YOUR_GMAIL@gmail.com',
+        from: process.env.EMAIL_USER || 'YOUR_GMAIL@gmail.com',
         to: after.email,
         subject: 'Your Saathi Care Application is Approved!',
         text: `Hi ${after.name},\n\nYour application has been approved! You can now log in as a caregiver.\n\nThanks,\nSaathi Care Team`
       });
       // Send notification to owner
       await transporter.sendMail({
-        from: 'YOUR_GMAIL@gmail.com',
+        from: process.env.EMAIL_USER || 'YOUR_GMAIL@gmail.com',
         to: OWNER_EMAILS.join(','),
         subject: 'A Caregiver Application was Approved',
         text: `Application for ${after.name} (${after.email}) was approved and account created.`
@@ -78,7 +78,7 @@ exports.onNewApplication = functions.firestore
   .onCreate(async (snap, context) => {
     const data = snap.data();
     await transporter.sendMail({
-      from: 'YOUR_GMAIL@gmail.com',
+      from: process.env.EMAIL_USER || 'YOUR_GMAIL@gmail.com',
       to: OWNER_EMAILS.join(','),
       subject: 'New Saathi Caregiver Application',
       text: `New application received:\n\nName: ${data.name}\nEmail: ${data.email}\nPhone: ${data.phone}\nArea: ${data.area}\nLangs: ${data.langs}\nBio: ${data.bio}`

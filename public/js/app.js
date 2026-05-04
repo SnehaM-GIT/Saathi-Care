@@ -8,7 +8,7 @@
 //    • Date-aware slot loading — slots reload when booking date changes
 // ============================================================
 
-import { auth, db, COLLECTIONS } from "./firebase-config.js";
+import { auth, db, storage, COLLECTIONS } from "./firebase-config.js";
 
 // ─────────────────────────────────────────────
 //  OWNER EMAILS  (supports up to 2 owners)
@@ -32,8 +32,8 @@ function isOwner(email) {
 //  Get them from: https://cloudinary.com → Dashboard
 // ─────────────────────────────────────────────
 const CLOUDINARY = {
-  CLOUD_NAME   : "YOUR_CLOUD_NAME",        // e.g. "saathicare"
-  UPLOAD_PRESET: "YOUR_UPLOAD_PRESET",     // e.g. "saathi_gallery"
+  CLOUD_NAME   : "dkrkkibmq",              // e.g. "saathicare"
+  UPLOAD_PRESET: "saathi_gallery",         // e.g. "saathi_gallery"
   FOLDER       : "saathi_gallery"
 };
 
@@ -190,11 +190,6 @@ function injectOwnerTab() {
         <div style="color:var(--text2);font-size:14px;margin-bottom:20px">People who applied to become a Saathi. Approve or reject below.</div>
         <div id="owner-applications-list2"><div class="loading-spinner">Loading applications…</div></div>
       </div>
-      <div>
-        <div style="font-weight:700;font-size:20px;margin-bottom:4px;color:var(--text)">All Bookings</div>
-        <div style="color:var(--text2);font-size:14px;margin-bottom:20px">Every booking made on the platform, newest first.</div>
-        <div id="owner-bookings-list2"><div class="loading-spinner">Loading bookings…</div></div>
-      </div>
     `;
     dashBody.appendChild(ownerPanel);
   }
@@ -222,7 +217,7 @@ async function loadOwnerPanelData() {
           <div class="req-body">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
               <div class="req-title">${escHtml(a.name)}</div>
-              <span class="status-badge ${a.status==="approved"?"status-confirmed":a.status==="rejected"?"status-cancelled":"status-new'"}">
+              <span class="status-badge ${a.status==="approved"?"status-confirmed":a.status==="rejected"?"status-cancelled":"status-new"}">
                 ${a.status || "pending"}
               </span>
             </div>
@@ -237,29 +232,8 @@ async function loadOwnerPanelData() {
           </div>
         </div>`).join("");
 
-    // All bookings
-    const bookSnap = await db.collection("bookings").orderBy("createdAt", "desc").limit(50).get();
-    const bookings = bookSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-    bookList.innerHTML = bookings.length === 0
-      ? `<div class="empty-state">No bookings yet.</div>`
-      : bookings.map(b => `
-        <div class="request-card" style="margin-bottom:14px">
-          <div class="req-icon">📋</div>
-          <div class="req-body">
-            <div style="display:flex;justify-content:space-between;gap:8px">
-              <div class="req-title">${escHtml(b.services?.join(", ") || "—")}</div>
-              <span class="status-badge status-${b.status || "new"}">${b.status || "pending"}</span>
-            </div>
-            <div class="req-meta">👴 ${escHtml(b.elder?.name || "—")} · 📞 ${escHtml(b.elder?.phone || "—")}</div>
-            <div class="req-meta">🧑‍⚕️ ${escHtml(b.caregiverName || "Unassigned")} · 📅 ${b.slot?.date || "—"} ${b.slot?.time || ""}</div>
-            ${b.isDemo ? `<div style="font-size:12px;color:var(--orange);font-weight:700;margin-top:4px">⚠️ Demo booking</div>` : ""}
-          </div>
-        </div>`).join("");
-
   } catch (e) {
-    if (appList)  appList.innerHTML  = `<div class="error-msg">Error loading applications. Check Firestore rules.</div>`;
-    if (bookList) bookList.innerHTML = `<div class="error-msg">Error loading bookings.</div>`;
+    if (appList) appList.innerHTML = `<div class="error-msg">Error loading applications. Check Firestore rules.</div>`;
     console.error("Owner panel error:", e);
   }
 }
@@ -322,7 +296,11 @@ export async function sendOTP() {
     showToast("OTP sent ✓", "success");
   } catch (e) {
     showToast("Failed to send OTP: " + (e.message || e.code), "error");
-    if (_recaptchaVerifier) { _recaptchaVerifier.clear(); _recaptchaVerifier = null; }
+    if (_recaptchaVerifier) {
+      _recaptchaVerifier.clear();
+      document.getElementById("recaptcha-container").innerHTML = "";
+      _recaptchaVerifier = null;
+    }
     console.error("OTP send error:", e);
   } finally {
     btn.textContent = "Send OTP →"; btn.disabled = false;
@@ -681,15 +659,31 @@ export async function loadDashboardData() {
 
 async function loadBookings() {
   try {
-    const snap = await db.collection(COLLECTIONS.BOOKINGS)
-      .where("caregiverId", "==", State.currentUser.uid)
-      .orderBy("createdAt", "desc")
-      .limit(50)
-      .get();
-    State.bookings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    let snap;
+    if (State.isOwner) {
+      snap = await db.collection(COLLECTIONS.BOOKINGS).get();
+    } else {
+      snap = await db.collection(COLLECTIONS.BOOKINGS)
+        .where("caregiverId", "==", State.currentUser.uid)
+        .get();
+    }
+      
+    // Sort in memory to avoid needing a Firestore composite index
+    State.bookings = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => {
+        const tA = a.createdAt?.toMillis() || 0;
+        const tB = b.createdAt?.toMillis() || 0;
+        return tB - tA; // descending
+      });
+      
     renderBookingsList();
     renderDashStats();
-  } catch (e) { console.error("Bookings load error:", e); }
+  } catch (e) { 
+    console.error("Bookings load error:", e);
+    const container = document.getElementById("bookings-list");
+    if (container) container.innerHTML = `<div class="empty-state">Failed to load bookings.</div>`;
+  }
 }
 
 function renderDashStats() {
@@ -984,11 +978,12 @@ export async function handleMediaUpload(input) {
     );
     if (!res.ok) throw new Error("Cloudinary upload failed");
     const data = await res.json();
+    const downloadUrl = data.secure_url;
 
     const docRef = await db.collection(COLLECTIONS.MEDIA).add({
       caregiverId  : State.currentUser.uid,
       caregiverName: State.caregiverProfile?.name || "Saathi",
-      url          : data.secure_url,
+      url          : downloadUrl,
       caption,
       type         : "image",
       publicId     : data.public_id,
@@ -997,7 +992,7 @@ export async function handleMediaUpload(input) {
 
     State.galleryItems.unshift({
       id: docRef.id, caregiverId: State.currentUser.uid,
-      url: data.secure_url, caption, type: "image", publicId: data.public_id
+      url: downloadUrl, caption, type: "image", publicId: data.public_id
     });
     renderGallery();
     showToast("Photo uploaded ✓", "success");
@@ -1011,7 +1006,12 @@ export async function handleMediaUpload(input) {
 export async function deleteMedia(mediaId) {
   if (!confirm("Delete this photo?")) return;
   try {
+    // Delete from Firestore
     await db.collection(COLLECTIONS.MEDIA).doc(mediaId).delete();
+    
+    // (Note: Deleting the actual file from Cloudinary requires a backend server with API secret.
+    // For now, removing from Firestore hides it from the app completely.)
+    
     State.galleryItems = State.galleryItems.filter(i => i.id !== mediaId);
     renderGallery();
     showToast("Photo removed ✓", "success");
@@ -1063,11 +1063,20 @@ export async function submitApplication() {
   btn.textContent = "Submitting…"; btn.disabled = true;
 
   try {
-    await db.collection("applications").add({
+    // We wrap the add operation in a Promise.race with a timeout.
+    // If Firebase isn't configured properly (e.g. invalid API key), it will hang forever.
+    const addPromise = db.collection("applications").add({
       name, email, phone, area, bio, langs,
       status   : "pending",
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+    
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("Connection timeout. Please check your internet connection or Firebase configuration.")), 8000)
+    );
+
+    await Promise.race([addPromise, timeoutPromise]);
+    
     showScreen("screen-apply-success");
     showToast("Application submitted! We'll be in touch. 🙏", "success");
   } catch (e) {
@@ -1161,6 +1170,45 @@ function setText(id, val) {
 }
 
 // ─────────────────────────────────────────────
+//  PUBLIC GALLERY
+// ─────────────────────────────────────────────
+async function loadPublicGallery() {
+  const container = document.getElementById("home-gallery-preview");
+  if (!container) return;
+
+  try {
+    const snap = await db.collection(COLLECTIONS.MEDIA)
+      .where("type", "==", "image")
+      .orderBy("createdAt", "desc")
+      .limit(6)
+      .get();
+
+    if (snap.empty) {
+      container.innerHTML = `<div style="grid-column: 1 / -1; color: rgba(255,255,255,0.7)">No moments shared yet. Check back soon!</div>`;
+      return;
+    }
+
+    container.innerHTML = "";
+    snap.forEach(doc => {
+      const data = doc.data();
+      const div = document.createElement("div");
+      div.style = "background:rgba(255,255,255,0.14);border-radius:12px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;position:relative;";
+      
+      const img = document.createElement("img");
+      img.src = data.url;
+      img.style = "width:100%;height:100%;object-fit:cover;";
+      img.loading = "lazy";
+      
+      div.appendChild(img);
+      container.appendChild(div);
+    });
+  } catch (e) {
+    console.error("Failed to load public gallery:", e);
+    container.innerHTML = `<div style="grid-column: 1 / -1; color: rgba(255,255,255,0.7)">Failed to load moments.</div>`;
+  }
+}
+
+// ─────────────────────────────────────────────
 //  Expose to window for inline onclick handlers
 // ─────────────────────────────────────────────
 Object.assign(window, {
@@ -1175,5 +1223,10 @@ Object.assign(window, {
   triggerUpload, handleMediaUpload, deleteMedia,
   submitApplication,
   loadOwnerDashboard, approveApplication, rejectApplication, setOwnerTab,
-  scrollToHow: () => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
+  scrollToHow: () => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" }),
+  loadPublicGallery
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadPublicGallery();
 });

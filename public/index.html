@@ -19,6 +19,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 </head>
 <body>
 
@@ -105,10 +106,8 @@
     <div style="font-family:var(--font-serif);font-size:30px;color:white;font-weight:600;margin-bottom:12px">Moments of Care</div>
     <div style="color:rgba(255,255,255,0.8);margin-bottom:32px;font-size:16px">Real visits. Real smiles. Real connections.</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;max-width:680px;margin:0 auto 28px" id="home-gallery-preview">
-      <div style="background:rgba(255,255,255,0.14);border-radius:12px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><div style="font-size:34px">🛕</div><div style="color:rgba(255,255,255,0.8);font-size:11px;font-weight:600">Temple visit</div></div>
-      <div style="background:rgba(255,255,255,0.14);border-radius:12px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><div style="font-size:34px">☕</div><div style="color:rgba(255,255,255,0.8);font-size:11px;font-weight:600">Morning chai</div></div>
-      <div style="background:rgba(255,255,255,0.14);border-radius:12px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><div style="font-size:34px">🏥</div><div style="color:rgba(255,255,255,0.8);font-size:11px;font-weight:600">Hospital support</div></div>
-      <div style="background:rgba(255,255,255,0.14);border-radius:12px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><div style="font-size:34px">🛍️</div><div style="color:rgba(255,255,255,0.8);font-size:11px;font-weight:600">Shopping trip</div></div>
+      <!-- Images will be injected here via JS -->
+      <div style="grid-column: 1 / -1; color: rgba(255,255,255,0.7)">Loading latest moments...</div>
     </div>
     <button class="btn" style="background:white;color:var(--teal);font-weight:700;font-size:16px;padding:12px 28px" onclick="showScreen('screen-home');setDashTab('gallery')">View All Photos</button>
   </div>
@@ -150,56 +149,7 @@
     </a>
     <button class="btn btn-ghost btn-sm" onclick="showScreen('screen-home')">← Back</button>
   </nav>
-  <div class="login-screen">
-    <div class="login-card">
-      <div style="text-align:center;margin-bottom:28px">
-        <div style="font-size:52px;margin-bottom:12px">📱</div>
-        <div style="font-family:var(--font-serif);font-size:24px;font-weight:600;color:var(--text)">Verify Your Number</div>
-        <div style="color:var(--text3);font-size:15px;margin-top:8px;line-height:1.6">
-          We'll send a one-time code so you can<br>track your bookings and past visits.
-        </div>
-      </div>
 
-      <!-- Step 1: Enter phone -->
-      <div id="otp-step1">
-        <div class="form-group">
-          <label class="form-label" for="otp-phone">Mobile Number</label>
-          <input class="form-input" id="otp-phone" type="tel" placeholder="+91 98765 43210"
-            autocomplete="tel" style="font-size:18px"
-            onkeydown="if(event.key==='Enter') sendOTP()">
-        </div>
-        <!-- Invisible reCAPTCHA mounts here -->
-        <div id="recaptcha-container"></div>
-        <button class="btn btn-primary btn-block btn-lg" id="otp-send-btn" onclick="sendOTP()" style="margin-top:8px">
-          Send OTP →
-        </button>
-        <div style="text-align:center;margin-top:18px">
-          <span style="color:var(--teal);cursor:pointer;font-size:14px;font-weight:600"
-            onclick="skipOTPAndBook()">Skip for now — book without account →</span>
-        </div>
-      </div>
-
-      <!-- Step 2: Enter OTP -->
-      <div id="otp-step2" style="display:none">
-        <div style="background:var(--teal-light);border-radius:var(--radius);padding:13px 16px;font-size:14px;color:var(--teal);font-weight:600;margin-bottom:20px">
-          📨 OTP sent to <strong id="otp-display-number"></strong>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="otp-code">Enter 6-digit OTP</label>
-          <input class="form-input" id="otp-code" type="number" placeholder="123456"
-            style="font-size:26px;letter-spacing:10px;text-align:center"
-            onkeydown="if(event.key==='Enter') verifyOTP()">
-        </div>
-        <button class="btn btn-primary btn-block btn-lg" id="otp-verify-btn" onclick="verifyOTP()">
-          Verify &amp; Continue →
-        </button>
-        <div style="text-align:center;margin-top:14px">
-          <span style="color:var(--teal);cursor:pointer;font-size:14px;font-weight:600"
-            onclick="resendOTP()">← Resend OTP</span>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
 
@@ -647,17 +597,11 @@
   <div class="dash-body">
     <div class="tabs">
       <button class="tab owner-tab active" onclick="setOwnerTab('applications')">👥 Applications</button>
-      <button class="tab owner-tab" onclick="setOwnerTab('all-bookings')">📋 All Bookings</button>
     </div>
     <div id="owner-tab-applications">
       <div style="font-weight:700;font-size:18px;margin-bottom:6px">Caregiver Applications</div>
       <div style="color:var(--text2);font-size:14px;margin-bottom:22px">People who applied to become a Saathi.</div>
       <div id="owner-applications-list"><div class="loading-spinner">Loading…</div></div>
-    </div>
-    <div id="owner-tab-all-bookings" style="display:none">
-      <div style="font-weight:700;font-size:18px;margin-bottom:6px">All Bookings</div>
-      <div style="color:var(--text2);font-size:14px;margin-bottom:22px">Every booking made on the platform.</div>
-      <div id="owner-bookings-list"><div class="loading-spinner">Loading…</div></div>
     </div>
   </div>
 </div>
@@ -703,24 +647,11 @@
     }
   });
 
-  // startBooking: route through OTP screen if not already phone-verified
+  // startBooking: go straight to booking (OTP bypassed to avoid billing)
   function startBooking() {
-    const user = firebase.auth().currentUser;
-    if (user && user.phoneNumber) {
-      // Already verified — go straight to booking
-      const dateVal = document.getElementById("book-date")?.value;
-      showScreen("screen-book");
-      if (typeof loadCaregivers === "function") loadCaregivers(dateVal);
-    } else {
-      // Reset OTP UI to step 1
-      const s1 = document.getElementById("otp-step1");
-      const s2 = document.getElementById("otp-step2");
-      if (s1) s1.style.display = "block";
-      if (s2) s2.style.display = "none";
-      const codeInput = document.getElementById("otp-code");
-      if (codeInput) codeInput.value = "";
-      showScreen("screen-phone-otp");
-    }
+    const dateVal = document.getElementById("book-date")?.value;
+    showScreen("screen-book");
+    if (typeof loadCaregivers === "function") loadCaregivers(dateVal);
   }
 </script>
 </body>

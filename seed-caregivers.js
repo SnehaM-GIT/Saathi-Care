@@ -28,6 +28,18 @@ const db   = admin.firestore();
 // Change names, emails, passwords before running!
 const caregivers = [
   {
+    name       : "Saathi Owner",
+    email      : "snehatest29@gmail.com",
+    password   : "Owner@2025!",   // Default owner password
+    phone      : "+91 90000 00000",
+    bio        : "Platform Owner & Administrator",
+    since      : "2025",
+    rating     : "5.0",
+    avatarBg   : "#FFF3E0",
+    avatarColor: "#E8722A",
+    active     : true
+  },
+  {
     name       : "Priya Nair",
     email      : "priya@saathicare.in",
     password   : "Saathi@2025!",   // Change this!
