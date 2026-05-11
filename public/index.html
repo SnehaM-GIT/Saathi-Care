@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <meta name="description" content="Saathi Care — Trusted companion care for elderly parents when family is far away.">
+  <meta name="description" content="Accompany — Trusted companion care for elderly parents when family is far away.">
   <meta name="theme-color" content="#E8722A">
-  <title>Saathi Care</title>
+  <title>Accompany</title>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,7 +38,7 @@
 <div class="screen active" id="screen-home">
   <nav class="nav">
     <a class="logo" href="#" onclick="showScreen('screen-home');return false">
-      <div class="logo-icon">S</div>Saathi
+      <div class="logo-icon">A</div>Accompany
     </a>
     <div class="nav-actions">
       <button class="btn btn-ghost" style="padding:12px 24px;font-size:16px;font-weight:700" onclick="showScreen('screen-caregiver-login')">👨‍⚕️ Caregiver Login</button>
@@ -61,7 +61,7 @@
 
   <!-- How It Works -->
   <div class="section" id="how-it-works" style="background:var(--white)">
-    <div class="section-title">How Saathi Works</div>
+    <div class="section-title">How Accompany Works</div>
     <div class="section-sub">Three simple steps to get care for your loved one</div>
     <div class="hiw-grid">
       <div class="hiw-step">
@@ -71,13 +71,13 @@
       </div>
       <div class="hiw-step">
         <div class="hiw-icon">🗓️</div>
-        <div class="hiw-title">2. Pick a Saathi</div>
+        <div class="hiw-title">2. Pick a Companion</div>
         <div class="hiw-desc">View available caregivers and their free time slots. Book with who you trust.</div>
       </div>
       <div class="hiw-step">
         <div class="hiw-icon">🤝</div>
         <div class="hiw-title">3. We Show Up</div>
-        <div class="hiw-desc">Your Saathi arrives, spends quality time, and makes sure every need is met with warmth.</div>
+        <div class="hiw-desc">Your Companion arrives, spends quality time, and makes sure every need is met with warmth.</div>
       </div>
     </div>
   </div>
@@ -86,7 +86,7 @@
   <div style="background:var(--warm);padding:50px 24px">
     <div style="max-width:980px;margin:0 auto">
       <div class="section-title">Our Services</div>
-      <div class="section-sub">What your Saathi can help with</div>
+      <div class="section-sub">What your Companion can help with</div>
       <div class="services-grid">
         <div class="service-card"><div class="service-icon">🛕</div><div class="service-name">Temple Visit</div><div class="service-desc">Accompany for darshan &amp; prayer</div></div>
         <div class="service-card"><div class="service-icon">🍽️</div><div class="service-name">Outing &amp; Meal</div><div class="service-desc">Breakfast, lunch or evening out</div></div>
@@ -114,11 +114,11 @@
 
   <!-- Reassurance -->
   <div class="section" style="max-width:780px">
-    <div class="section-title" style="text-align:center">Why families trust Saathi</div>
+    <div class="section-title" style="text-align:center">Why families trust Accompany</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;margin-top:28px">
       <div style="text-align:center">
         <div style="font-size:36px;margin-bottom:10px">🔒</div>
-        <div style="font-weight:700;font-size:16px;margin-bottom:6px">Verified Saathis</div>
+        <div style="font-weight:700;font-size:16px;margin-bottom:6px">Verified Companions</div>
         <div style="color:var(--text2);font-size:14px">Every caregiver is personally known and background-checked.</div>
       </div>
       <div style="text-align:center">
@@ -129,12 +129,12 @@
       <div style="text-align:center">
         <div style="font-size:36px;margin-bottom:10px">💙</div>
         <div style="font-weight:700;font-size:16px;margin-bottom:6px">With Warmth</div>
-        <div style="color:var(--text2);font-size:14px">Every Saathi brings genuine care to every visit.</div>
+        <div style="color:var(--text2);font-size:14px">Every Companion brings genuine care to every visit.</div>
       </div>
     </div>
   </div>
 
-  <div class="footer"><p>© 2025 Saathi Care · Made with love for our elders · Chennai, India</p></div>
+  <div class="footer"><p>© 2025 Accompany · Made with love for our elders · Chennai, India</p></div>
 </div>
 
 
@@ -145,7 +145,7 @@
 <div class="screen" id="screen-phone-otp">
   <nav class="nav">
     <a class="logo" href="#" onclick="showScreen('screen-home');return false">
-      <div class="logo-icon">S</div>Saathi
+      <div class="logo-icon">A</div>Accompany
     </a>
     <button class="btn btn-ghost btn-sm" onclick="showScreen('screen-home')">← Back</button>
   </nav>
@@ -159,7 +159,7 @@
 <div class="screen" id="screen-book">
   <nav class="nav">
     <a class="logo" href="#" onclick="showScreen('screen-home');return false">
-      <div class="logo-icon">S</div>Saathi
+      <div class="logo-icon">A</div>Accompany
     </a>
     <button class="btn btn-ghost btn-sm" onclick="showScreen('screen-home')">← Back to Home</button>
   </nav>
@@ -203,7 +203,7 @@
 
     <!-- ── STEP 2: CAREGIVER SELECTION ───────────── -->
     <div id="booking-step2" style="display:none">
-      <div style="font-family:var(--font-serif);font-size:22px;font-weight:600;margin-bottom:6px">Choose a Saathi &amp; Time</div>
+      <div style="font-family:var(--font-serif);font-size:22px;font-weight:600;margin-bottom:6px">Choose a Companion &amp; Time</div>
       <div style="color:var(--text2);font-size:15px;margin-bottom:16px">Pick a date first, then choose a caregiver and available slot.</div>
 
       <!-- Date picker — onchange reloads caregivers for that date -->
@@ -239,7 +239,7 @@
 
       <div class="assign-banner">
         <div style="font-size:26px">✨</div>
-        <div style="font-size:15px;color:var(--teal);font-weight:600">We'll auto-assign the best available Saathi — or pick one below.</div>
+        <div style="font-size:15px;color:var(--teal);font-weight:600">We'll auto-assign the best available Companion — or pick one below.</div>
       </div>
       <div class="caregiver-grid" id="caregiver-grid">
         <div class="loading-spinner">Loading caregivers…</div>
@@ -303,7 +303,7 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="elder-notes">Any special notes for the Saathi?</label>
+          <label class="form-label" for="elder-notes">Any special notes for the Companion?</label>
           <textarea class="form-input" id="elder-notes" placeholder="e.g. She needs a wheelchair. He prefers a female companion..."></textarea>
         </div>
 
@@ -321,7 +321,7 @@
         <div class="summary-card">
           <div style="font-weight:700;font-size:16px;color:var(--text);margin-bottom:16px">Booking Summary</div>
           <div class="summary-row"><span class="summary-label">Service(s)</span><span class="summary-val" id="sum-service">—</span></div>
-          <div class="summary-row"><span class="summary-label">Saathi</span><span class="summary-val" id="sum-caregiver">—</span></div>
+          <div class="summary-row"><span class="summary-label">Companion</span><span class="summary-val" id="sum-caregiver">—</span></div>
           <div class="summary-row"><span class="summary-label">Date &amp; Time</span><span class="summary-val" id="sum-slot">—</span></div>
           <div class="summary-row"><span class="summary-label">Elder's Name</span><span class="summary-val" id="sum-elder">—</span></div>
           <div class="summary-row"><span class="summary-label">Elder's Phone</span><span class="summary-val" id="sum-phone">—</span></div>
@@ -332,7 +332,7 @@
         </div>
 
         <div class="teal-bar" style="margin-bottom:22px">
-          ℹ️ Your Saathi will call to confirm the visit within 30 minutes. For questions: hello@saathicare.in
+          ℹ️ Your Companion will call to confirm the visit within 30 minutes. For questions: hello@accompany.in
         </div>
 
         <div style="display:flex;gap:12px;flex-wrap:wrap">
@@ -359,7 +359,7 @@
       <div class="success-icon">✓</div>
       <div style="font-family:var(--font-serif);font-size:32px;font-weight:600;margin-bottom:14px">Booking Confirmed!</div>
       <div style="color:var(--text2);font-size:17px;line-height:1.7;margin-bottom:6px">
-        Your Saathi <strong id="success-caregiver"></strong> has been assigned.
+        Your Companion <strong id="success-caregiver"></strong> has been assigned.
       </div>
       <div style="color:var(--text3);font-size:14px;margin-bottom:6px">
         Booking ID: <strong id="success-booking-id" style="color:var(--teal)"></strong>
@@ -382,8 +382,8 @@
   <div class="login-screen">
     <div class="login-card">
       <div style="text-align:center;margin-bottom:32px">
-        <div style="width:60px;height:60px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:26px;color:white;margin:0 auto 14px">S</div>
-        <div style="font-family:var(--font-serif);font-size:24px;font-weight:600;color:var(--text)">Saathi Portal</div>
+        <div style="width:60px;height:60px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:26px;color:white;margin:0 auto 14px">A</div>
+        <div style="font-family:var(--font-serif);font-size:24px;font-weight:600;color:var(--text)">Accompany Portal</div>
         <div style="color:var(--text3);font-size:15px;margin-top:4px">Sign in to your caregiver dashboard</div>
       </div>
 
@@ -400,7 +400,7 @@
       <button class="btn btn-teal btn-block btn-lg" id="login-btn" onclick="doLogin()" style="margin-top:8px">Login to Dashboard</button>
 
       <div style="text-align:center;margin-top:20px;font-size:14px;color:var(--text3)">
-        Want to become a Saathi? <span style="color:var(--teal);cursor:pointer;font-weight:700" onclick="showScreen('screen-apply')">Apply to join →</span>
+        Want to become a Companion? <span style="color:var(--teal);cursor:pointer;font-weight:700" onclick="showScreen('screen-apply')">Apply to join →</span>
         &nbsp;·&nbsp;
         <span style="color:var(--teal);cursor:pointer;font-weight:600" onclick="showScreen('screen-home')">Back to Home</span>
       </div>
@@ -422,7 +422,7 @@
         <div class="avatar" id="dash-avatar" style="background:rgba(255,255,255,0.2);color:white;font-size:18px;width:52px;height:52px;flex-shrink:0">PN</div>
         <div>
           <div style="font-size:13px;opacity:0.7;margin-bottom:3px">Welcome back</div>
-          <div style="font-family:var(--font-serif);font-size:22px;font-weight:600" id="dash-caregiver-name">Saathi Dashboard</div>
+          <div style="font-family:var(--font-serif);font-size:22px;font-weight:600" id="dash-caregiver-name">Accompany Dashboard</div>
           <div style="opacity:0.7;font-size:13px;margin-top:2px" id="dash-date"></div>
         </div>
       </div>
@@ -436,6 +436,7 @@
       <button class="tab active" onclick="setDashTab('requests')">📋 Requests</button>
       <button class="tab" onclick="setDashTab('calendar')">🗓️ Calendar</button>
       <button class="tab" onclick="setDashTab('gallery')">📸 Gallery</button>
+      <button class="tab" onclick="setDashTab('settings')">⚙️ Settings</button>
     </div>
 
     <!-- ── TAB: REQUESTS ─────────────────────────── -->
@@ -529,6 +530,33 @@
     <!-- ── TAB: OWNER (injected dynamically by app.js) ── -->
     <!-- Rendered by injectOwnerTab() in app.js after owner login -->
 
+    <!-- ── TAB: SETTINGS ─────────────────────────── -->
+    <div id="tab-settings" style="display:none">
+      <div style="max-width:480px; margin:0 auto">
+        <div style="font-family:var(--font-serif); font-size:22px; font-weight:600; margin-bottom:20px">Settings</div>
+        
+        <div class="settings-card" style="background:white; border:1.5px solid var(--border); border-radius:var(--radius-lg); padding:24px">
+          <div style="font-weight:700; font-size:16px; margin-bottom:16px; color:var(--text)">Change Password</div>
+          
+          <div class="form-group">
+            <label class="form-label" for="new-pw">New Password</label>
+            <input class="form-input" id="new-pw" type="password" placeholder="••••••••" style="font-size:16px">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="confirm-pw">Confirm New Password</label>
+            <input class="form-input" id="confirm-pw" type="password" placeholder="••••••••" style="font-size:16px">
+          </div>
+          
+          <button class="btn btn-primary btn-block" id="change-pw-btn" onclick="doChangePassword()">Update Password</button>
+          
+          <div style="margin-top:16px; font-size:13px; color:var(--text3); line-height:1.5">
+            💡 For your security, choose a strong password that you don't use elsewhere.
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -541,7 +569,7 @@
     <div class="login-card" style="max-width:500px">
       <div style="text-align:center;margin-bottom:28px">
         <div style="width:60px;height:60px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px">🙏</div>
-        <div style="font-family:var(--font-serif);font-size:24px;font-weight:600;color:var(--text)">Join as a Saathi</div>
+        <div style="font-family:var(--font-serif);font-size:24px;font-weight:600;color:var(--text)">Join as a Companion</div>
         <div style="color:var(--text3);font-size:15px;margin-top:6px;line-height:1.6">Be a companion for elders in Chennai.<br>We'll review your application and reach out.</div>
       </div>
 
@@ -567,7 +595,7 @@
       </div>
       <div class="form-group">
         <label class="form-label" for="app-bio">Tell us a little about yourself</label>
-        <textarea class="form-input" id="app-bio" rows="3" placeholder="Why do you want to be a Saathi?"></textarea>
+        <textarea class="form-input" id="app-bio" rows="3" placeholder="Why do you want to be a Companion?"></textarea>
       </div>
       <button class="btn btn-primary btn-block btn-lg" id="app-submit-btn" onclick="submitApplication()" style="margin-top:8px">Submit Application 🙏</button>
       <div style="text-align:center;margin-top:18px;font-size:14px;color:var(--text3)">
@@ -585,7 +613,7 @@
     <div class="login-card" style="text-align:center">
       <div style="font-size:60px;margin-bottom:18px">🎉</div>
       <div style="font-family:var(--font-serif);font-size:26px;font-weight:600;margin-bottom:12px">Application Received!</div>
-      <div style="color:var(--text2);font-size:16px;line-height:1.7;margin-bottom:28px">Thank you for wanting to be a Saathi. We'll review your application and contact you within 2-3 days.</div>
+      <div style="color:var(--text2);font-size:16px;line-height:1.7;margin-bottom:28px">Thank you for wanting to be a Companion. We'll review your application and contact you within 2-3 days.</div>
       <button class="btn btn-primary btn-block btn-lg" onclick="showScreen('screen-home')">Back to Home</button>
     </div>
   </div>
@@ -602,7 +630,7 @@
     <div style="display:flex;justify-content:space-between;align-items:center;max-width:980px;margin:0 auto;width:100%">
       <div>
         <div style="font-size:13px;opacity:0.8;margin-bottom:3px">Owner Panel</div>
-        <div style="font-family:var(--font-serif);font-size:22px;font-weight:600">Saathi Care — Owner Dashboard</div>
+        <div style="font-family:var(--font-serif);font-size:22px;font-weight:600">Accompany — Owner Dashboard</div>
         <div style="opacity:0.7;font-size:13px;margin-top:2px">Chennai</div>
       </div>
       <div style="display:flex;gap:10px;align-items:center">
@@ -619,7 +647,7 @@
     </div>
     <div id="owner-tab-applications">
       <div style="font-weight:700;font-size:18px;margin-bottom:6px">Caregiver Applications</div>
-      <div style="color:var(--text2);font-size:14px;margin-bottom:22px">People who applied to become a Saathi.</div>
+      <div style="color:var(--text2);font-size:14px;margin-bottom:22px">People who applied to become a Companion.</div>
       <div id="owner-applications-list"><div class="loading-spinner">Loading…</div></div>
     </div>
   </div>
@@ -629,7 +657,7 @@
 <!-- ════════════════════════════════════════════════════════
      APP SCRIPTS
 ═════════════════════════════════════════════════════════ -->
-<script src="js/app.js?v=3.3"></script>
+<script src="js/app.js?v=4.2"></script>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     // Set today's date in dashboard header

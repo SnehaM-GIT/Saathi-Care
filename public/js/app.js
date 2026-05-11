@@ -1,5 +1,5 @@
 // ============================================================
-//  SAATHI CARE — Firebase Configuration & App Initialization
+//  ACCOMPANY — Firebase Configuration & App Initialization
 // ============================================================
 
 const firebaseConfig = {
@@ -14,7 +14,11 @@ const firebaseConfig = {
 // Initialize Firebase using the compat SDK (loaded in index.html)
 firebase.initializeApp(firebaseConfig);
 
+// Initialize a secondary app instance to allow creating accounts for others without logging out the owner
+const secondaryApp = firebase.initializeApp(firebaseConfig, "Secondary");
+
 const auth = firebase.auth();
+const secondaryAuth = secondaryApp.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
 
@@ -26,7 +30,7 @@ const COLLECTIONS = {
 };
 
 // ============================================================
-//  SAATHI CARE — Main Application Logic v2 (Unified)
+//  ACCOMPANY — Main Application Logic v2 (Unified)
 // ============================================================
 
 const State = {
@@ -51,6 +55,7 @@ const State = {
   bookings         : [],
   myBlockedSlots   : [],
   galleryItems     : [],
+  calDate          : new Date(),
   isOwner          : false
 };
 
@@ -81,8 +86,8 @@ function showToast(msg, type = "info") {
   const t = document.getElementById("toast");
   if (!t) return;
   t.textContent = msg;
-  t.className   = `toast toast-${type} active`;
-  setTimeout(() => t.classList.remove("active"), 4000);
+  t.className   = `toast toast-${type} show`;
+  setTimeout(() => t.classList.remove("show"), 4000);
 }
 
 // ─────────────────────────────────────────────
@@ -175,7 +180,7 @@ function injectOwnerTab() {
     ownerPanel.innerHTML = `
       <div style="margin-bottom:32px">
         <div style="font-weight:700;font-size:20px;margin-bottom:4px;color:var(--text)">Caregiver Applications</div>
-        <div style="color:var(--text2);font-size:14px;margin-bottom:20px">People who applied to become a Saathi. Approve or reject below.</div>
+        <div style="color:var(--text2);font-size:14px;margin-bottom:20px">People who applied to become a Companion. Approve or reject below.</div>
         <div id="owner-applications-list2"><div class="loading-spinner">Loading applications…</div></div>
       </div>
     `;
@@ -201,10 +206,10 @@ async function loadOwnerPanelData() {
                 ${a.status || "pending"}
               </span>
             </div>
-            <div class="req-meta">📧 ${escHtml(a.email)} · 📞 ${escHtml(a.phone)}</div>
+            <div class="req-meta">📧 ${a.email ? escHtml(a.email) : '<span style="color:red">Missing</span>'} · 📞 ${a.phone ? escHtml(a.phone) : '<span style="color:red">Missing</span>'}</div>
             <div class="req-actions">
-              ${a.status !== "approved" ? `<button class="btn btn-teal btn-sm" onclick="approveApplication('${a.id}',true)">✓ Approve</button>` : ""}
-              ${a.status !== "rejected" ? `<button class="btn btn-ghost btn-sm" onclick="rejectApplication('${a.id}',true)">✗ Reject</button>`  : ""}
+              ${a.status !== "approved" ? `<button class="btn btn-teal btn-sm" onclick="approveApplication('${a.id}', this)">✓ Approve</button>` : ""}
+              ${a.status !== "rejected" ? `<button class="btn btn-ghost btn-sm" onclick="rejectApplication('${a.id}', this)">✗ Reject</button>`  : ""}
             </div>
           </div>
         </div>`).join("");
@@ -271,7 +276,7 @@ async function verifyOTP() {
   try {
     const res = await _confirmationResult.confirm(code);
     State.currentUser = res.user;
-    showToast("Verified! Welcome to Saathi Care.", "success");
+    showToast("Verified! Welcome to Accompany.", "success");
     goStep(1);
     loadCaregivers();
     renderFamilyPastBookings();
@@ -394,7 +399,7 @@ function renderCaregiverCards(container, targetDate) {
         }).join("")}
       </div>
       <div class="cg-details" style="padding-top:4px">
-        <div class="cg-bio" style="font-size:12px; color:var(--text3); line-height:1.4">${escHtml(cg.bio || "Saathi Companion")}</div>
+        <div class="cg-bio" style="font-size:12px; color:var(--text3); line-height:1.4">${escHtml(cg.bio || "Companion")}</div>
       </div>
     `;
     container.appendChild(card);
@@ -528,7 +533,7 @@ async function confirmBooking() {
     const booking = {
       services     : State.selectedServices,
       caregiverId  : State.selectedCaregiver?.id || "auto",
-      caregiverName: State.selectedCaregiver?.name || "Saathi Care",
+      caregiverName: State.selectedCaregiver?.name || "Accompany",
       slot         : State.selectedSlot || { date: todayStr(), time: "TBD" },
       slotTimes    : slotTimes,
       duration     : State.bookingDuration,
@@ -602,9 +607,153 @@ async function loadBlockedSlots() {
   State.myBlockedSlots = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-function renderCalendar(y, m) {
+function renderCalendar() {
   const grid = document.getElementById("cal-days-grid");
-  if (grid) grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text3)">Calendar rendering...</div>`;
+  if (!grid) return;
+  
+  const d = State.calDate || new Date();
+  const year = d.getFullYear();
+  const month = d.getMonth();
+  
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  setText("cal-month-title", `${monthNames[month]} ${year}`);
+  
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  
+  const today = new Date();
+  const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+  
+  let html = "";
+  for (let i = 0; i < firstDay; i++) {
+    html += `<div class="cal-day empty"></div>`;
+  }
+  
+  for (let i = 1; i <= daysInMonth; i++) {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+    const isToday = isCurrentMonth && today.getDate() === i;
+    
+    // Check bookings and blocks
+    const dayBookings = State.bookings.filter(b => b.slot?.date === dateStr);
+    const hasBooking = dayBookings.length > 0;
+    const dayBlocks = State.myBlockedSlots.filter(b => b.date === dateStr);
+    const hasBlock = dayBlocks.length > 0;
+    
+    let indicatorHtml = "";
+    if (isToday) indicatorHtml += `<div style="width:6px;height:6px;border-radius:50%;background:var(--teal);margin-bottom:2px"></div>`;
+    if (hasBooking) indicatorHtml += `<div style="width:6px;height:6px;border-radius:50%;background:var(--orange);margin-bottom:2px"></div>`;
+    if (hasBlock) indicatorHtml += `<div style="width:6px;height:6px;border-radius:50%;background:var(--red)"></div>`;
+    
+    html += `
+      <div class="cal-day ${isToday ? 'today' : ''} ${hasBooking ? 'has-booking' : ''}" 
+           onclick="showDayDetail('${dateStr}')" style="cursor:pointer;position:relative;display:flex;flex-direction:column;align-items:center;padding-top:10px;height:60px;border-bottom:1px solid var(--border);border-right:1px solid var(--border)">
+        <div class="cal-date-num" style="font-weight:${isToday ? '700' : '400'};color:${isToday ? 'var(--teal)' : 'var(--text)'}">${i}</div>
+        <div style="display:flex;gap:3px;position:absolute;bottom:8px">${indicatorHtml}</div>
+      </div>
+    `;
+  }
+  
+  grid.innerHTML = html;
+}
+
+function calNav(dir) {
+  if (!State.calDate) State.calDate = new Date();
+  State.calDate.setMonth(State.calDate.getMonth() + dir);
+  renderCalendar();
+}
+
+function showDayDetail(dateStr) {
+  const panel = document.getElementById("day-detail-panel");
+  if (!panel) return;
+  
+  const blockInput = document.getElementById("block-date");
+  if (blockInput) blockInput.value = dateStr;
+  
+  const dayBookings = State.bookings.filter(b => b.slot?.date === dateStr);
+  const dayBlocks = State.myBlockedSlots.filter(b => b.date === dateStr);
+  
+  if (dayBookings.length === 0 && dayBlocks.length === 0) {
+    panel.innerHTML = `<div style="padding:16px;background:var(--white);border-radius:var(--radius);border:1.5px solid var(--border);margin-bottom:20px;text-align:center;color:var(--text2)">No schedule for ${formatDate(dateStr)}</div>`;
+    return;
+  }
+  
+  let html = `<div style="padding:16px;background:var(--white);border-radius:var(--radius);border:1.5px solid var(--border);margin-bottom:20px">`;
+  html += `<div style="font-weight:700;margin-bottom:12px;font-size:16px">Schedule for ${formatDate(dateStr)}</div>`;
+  
+  dayBookings.forEach(b => {
+    html += `
+      <div style="background:var(--teal-light);padding:10px 14px;border-radius:6px;margin-bottom:8px;border:1px solid rgba(42,127,127,0.2)">
+        <div style="font-size:14px;font-weight:700;color:var(--teal);margin-bottom:2px">${b.slot?.time} · ${escHtml(b.services?.join(", "))}</div>
+        <div style="font-size:13px;color:var(--text2)">👤 ${escHtml(b.elder?.name)}</div>
+      </div>
+    `;
+  });
+  
+  dayBlocks.forEach(b => {
+    html += `
+      <div style="background:#FFEBEE;padding:10px 14px;border-radius:6px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(220,53,69,0.2)">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--red);margin-bottom:2px">🚫 ${b.time} (Blocked)</div>
+          ${b.reason ? `<div style="font-size:13px;color:var(--text2)">${escHtml(b.reason)}</div>` : ''}
+        </div>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red);padding:4px 8px;font-size:12px" onclick="unblockSlot('${b.id}')">Remove</button>
+      </div>
+    `;
+  });
+  
+  html += `</div>`;
+  panel.innerHTML = html;
+}
+
+async function blockSlot() {
+  const date = document.getElementById("block-date").value;
+  const time = document.getElementById("block-time").value;
+  const reason = document.getElementById("block-reason").value.trim();
+  
+  if (!date || !time) {
+    showToast("Select date and time to block", "error");
+    return;
+  }
+  
+  const btn = document.getElementById("block-btn");
+  btn.disabled = true;
+  btn.textContent = "Blocking...";
+  
+  try {
+    await db.collection(COLLECTIONS.BLOCKED).add({
+      caregiverId: State.currentUser.uid,
+      date,
+      time,
+      reason,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    showToast("Slot blocked", "success");
+    document.getElementById("block-reason").value = "";
+    await loadBlockedSlots();
+    renderCalendar();
+    showDayDetail(date);
+  } catch (e) {
+    console.error(e);
+    showToast("Failed to block slot", "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "🚫 Block This Slot";
+  }
+}
+
+async function unblockSlot(id) {
+  try {
+    await db.collection(COLLECTIONS.BLOCKED).doc(id).delete();
+    showToast("Block removed", "success");
+    await loadBlockedSlots();
+    renderCalendar();
+    const currentViewDate = document.getElementById("block-date").value;
+    if (currentViewDate) showDayDetail(currentViewDate);
+  } catch (e) {
+    console.error(e);
+    showToast("Failed to remove block", "error");
+  }
 }
 
 async function loadGallery() {
@@ -633,22 +782,144 @@ async function handleMediaUpload(input) {
 }
 
 async function submitApplication() {
-  const name = document.getElementById("app-name").value.trim();
-  if (!name) { showToast("Name is required", "error"); return; }
+  const name  = document.getElementById("app-name").value.trim();
+  const email = document.getElementById("app-email").value.trim();
+  const phone = document.getElementById("app-phone").value.trim();
+  const area  = document.getElementById("app-area").value.trim();
+  const langs = document.getElementById("app-langs").value.trim();
+  const bio   = document.getElementById("app-bio").value.trim();
+
+  if (!name || !email || !phone) { showToast("Name, Email and Phone are required", "error"); return; }
+  
+  const btn = document.getElementById("app-submit-btn");
+  btn.textContent = "Submitting..."; btn.disabled = true;
+
   try {
-    await db.collection("applications").add({ name, status: "pending", createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    await db.collection("applications").add({
+      name, email, phone, area, langs, bio,
+      status: "pending",
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
     showScreen("screen-apply-success");
-  } catch (e) { showToast("Failed", "error"); }
+  } catch (e) { 
+    showToast("Submission failed", "error"); 
+  } finally {
+    btn.textContent = "Submit Application 🙏"; btn.disabled = false;
+  }
+}
+
+async function doChangePassword() {
+  const newPw = document.getElementById("new-pw").value;
+  const confirmPw = document.getElementById("confirm-pw").value;
+
+  if (!newPw || newPw.length < 6) {
+    showToast("Password must be at least 6 characters", "error");
+    return;
+  }
+  if (newPw !== confirmPw) {
+    showToast("Passwords do not match", "error");
+    return;
+  }
+
+  const btn = document.getElementById("change-pw-btn");
+  btn.textContent = "Updating...";
+  btn.disabled = true;
+
+  try {
+    const user = auth.currentUser;
+    await user.updatePassword(newPw);
+    showToast("Password updated successfully! ✅", "success");
+    document.getElementById("new-pw").value = "";
+    document.getElementById("confirm-pw").value = "";
+  } catch (error) {
+    console.error("Change password error:", error);
+    if (error.code === 'auth/requires-recent-login') {
+      showToast("Please log out and log in again to change password.", "error");
+    } else {
+      showToast(error.message, "error");
+    }
+  } finally {
+    btn.textContent = "Update Password";
+    btn.disabled = false;
+  }
 }
 
 async function loadOwnerDashboard() { loadOwnerPanelData(); }
-async function approveApplication(id) { await db.collection("applications").doc(id).update({ status: "approved" }); loadOwnerPanelData(); }
+async function approveApplication(id, btn) {
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = "Processing...";
+  }
+  
+  try {
+    const appRef = db.collection("applications").doc(id);
+    const snap = await appRef.get();
+    const appData = snap.data();
+
+    if (!appData || !appData.email) {
+      showToast("Cannot approve: Missing application data.", "error");
+      if (btn) { btn.disabled = false; btn.innerHTML = "✓ Approve"; }
+      return;
+    }
+
+    const randomPassword = Math.random().toString(36).slice(-10) + "A1!";
+    let uid = id;
+
+    showToast("Creating account...", "info");
+
+    try {
+      // Create Auth account using secondary instance (to stay logged in as owner)
+      const userCred = await secondaryAuth.createUserWithEmailAndPassword(appData.email, randomPassword);
+      uid = userCred.user.uid;
+      await secondaryAuth.signOut();
+    } catch (authErr) {
+      if (authErr.code !== "auth/email-already-in-use") {
+        throw new Error("Auth Error: " + authErr.message);
+      }
+    }
+
+    // 2. Mark application as approved
+    await appRef.update({ status: "approved" });
+
+    // 3. Create/Update Caregiver Profile in Firestore
+    await db.collection(COLLECTIONS.CAREGIVERS).doc(uid).set({
+      name: appData.name,
+      email: appData.email,
+      phone: appData.phone || "",
+      area: appData.area || "",
+      langs: appData.langs || "",
+      bio: appData.bio || "Companion",
+      active: true,
+      since: new Date().getFullYear(),
+      rating: 5.0,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    showToast("Application Approved! ✅", "success");
+    
+    // Show credentials to owner
+    setTimeout(() => {
+      alert(`Success! Account created for ${appData.name}.\n\nCredentials to share:\n📧 Email: ${appData.email}\n🔑 Password: ${randomPassword}\n\nPlease ask them to change their password in Settings after logging in.`);
+    }, 100);
+    
+    loadOwnerPanelData();
+  } catch (e) {
+    console.error("Approval failure:", e);
+    showToast("Error: " + (e.message || "Unknown failure"), "error");
+    if (btn) { btn.disabled = false; btn.innerHTML = "✓ Approve"; }
+  }
+}
 async function rejectApplication(id) { await db.collection("applications").doc(id).update({ status: "rejected" }); loadOwnerPanelData(); }
 
 function setDashTab(tab) {
-  ["requests","calendar","gallery","owner"].forEach(t => {
+  ["requests","calendar","gallery","owner","settings"].forEach(t => {
     const el = document.getElementById(`tab-${t}`);
     if (el) el.style.display = t === tab ? "block" : "none";
+  });
+  // Update active tab style
+  document.querySelectorAll(".tabs .tab").forEach(btn => {
+    btn.classList.remove("active");
+    if (btn.innerText.toLowerCase().includes(tab)) btn.classList.add("active");
   });
 }
 
@@ -687,7 +958,7 @@ const GlobalActions = {
   toggleService, selectCaregiver: (id) => loadCaregivers(), selectSlot, onDurationChange,
   setBooker, goStep, confirmBooking, loadCaregivers, updateBookingStatus,
   triggerUpload, handleMediaUpload, submitApplication, loadOwnerDashboard, approveApplication, rejectApplication,
-  setDashTab, setOwnerTab, scrollToHow, loadPublicGallery
+  setDashTab, setOwnerTab, scrollToHow, loadPublicGallery, doChangePassword
 };
 for (const [k, v] of Object.entries(GlobalActions)) window[k] = v;
 
