@@ -46,6 +46,19 @@
     </div>
   </nav>
 
+  <!-- Homepage Tab Navigation -->
+  <div class="home-tabs-wrapper">
+    <div class="home-tabs">
+      <button class="home-tab active" onclick="switchHomeView('main', this)">🏡 Home</button>
+      <button class="home-tab" onclick="switchHomeView('purpose', this)">🌟 Our Purpose</button>
+      <button class="home-tab" onclick="switchHomeView('services', this)">✨ Our Services</button>
+      <button class="home-tab" onclick="switchHomeView('how', this)">📋 How It Works</button>
+      <button class="home-tab" onclick="switchHomeView('ethos', this)">🤝 The Sakha & Sakhi Ethos</button>
+    </div>
+  </div>
+
+  <!-- Home View: MAIN (Original Landing) -->
+  <div id="home-view-main" class="home-view-section active">
   <!-- Hero -->
   <div class="hero">
     <div class="hero-inner">
@@ -133,6 +146,273 @@
       </div>
     </div>
   </div>
+  
+  </div> <!-- End home-view-main -->
+
+  <!-- Home View: OUR PURPOSE -->
+  <div id="home-view-purpose" class="home-view-section" style="display:none">
+    <div class="rich-header">
+      <div class="rich-badge">Why Accompany</div>
+      <h2>Our Purpose | The Ikigai of Accompany</h2>
+      <p class="rich-subtitle">Because nobody should miss out on life, for lack of company!</p>
+    </div>
+    
+    <div class="rich-section">
+      <div class="ikigai-card">
+        <p class="lead-text">At Accompany, we believe growing older should mean growing richer - richer in terms of experiences, conversations, and joy.</p>
+        <p>But very often, the simple logistics of stepping out keep our elders from living their lives fully and fulfillingly. It could either be moving around the city or going on a spiritual trip or a destination of their choice. Imagine dreaming a tirth yatra like Kashi Rameshwaram for ages, doctor’s visit postponed, a sunrise by the beach missed, a music kutcheri or a movie or a dance drama skipped because there’s no support system - literally, no one to go with!</p>
+        <div class="ikigai-highlight">That's Accompany - a company in need; indeed ❤.</div>
+      </div>
+      
+      <div class="differentiator-grid" style="margin-top:40px;">
+        <div class="diff-card highlight-card">
+          <h3>We’re not caregivers. We’re neither a cab service. We are companions.</h3>
+          <p class="diff-meta">(Thoughtful, Trustworthy and Present)</p>
+          <ul class="quote-list">
+            <li>"The friend who says ‘I’ll come with you.’"</li>
+            <li>"The daughter who holds your hand on a temple step."</li>
+            <li>"The grandson who waits patiently while you finish shopping."</li>
+          </ul>
+        </div>
+        <div class="diff-card">
+          <div class="diff-icon">🌟</div>
+          <h3>Restore independence through companionship.</h3>
+          <p>Our Ikigai^ is simple. Ikigai in Japanese means ‘a reason for living’.</p>
+          <div class="teal-bar" style="margin-top:16px; display:inline-block; line-height:1.4">At Accompany, it's a bit more -<br>‘a reason for giving’.</div>
+        </div>
+      </div>
+      
+      <div class="section-title" style="margin-top:60px; text-align:center;">Our Value Proposition | Key Differentiator</div>
+      <div class="hiw-grid" style="margin-top:30px;">
+        <div class="hiw-step">
+          <div class="hiw-icon">🌸</div>
+          <div class="hiw-title">Sakhas and Sakhis, Not Vendors</div>
+          <div class="hiw-desc">Our team is trained in senior sensitivity, safety, and emotional presence. There is no rush, and they don't look at their watches.</div>
+        </div>
+        <div class="hiw-step">
+          <div class="hiw-icon">🔒</div>
+          <div class="hiw-title">Verified & Trusted</div>
+          <div class="hiw-desc">Background-checked Sakhas and Sakhis. Live location sharing with family. Post-visit updates and pictures filled with memories.</div>
+        </div>
+        <div class="hiw-step">
+          <div class="hiw-icon">⭐</div>
+          <div class="hiw-title">Flexible & Personal</div>
+          <div class="hiw-desc">One-time need or weekly routine - it's your call! Choose a Companion that matches your personality and interests.</div>
+        </div>
+        <div class="hiw-step">
+          <div class="hiw-icon">🚗</div>
+          <div class="hiw-title">Beyond Pick and Drop</div>
+          <div class="hiw-desc">We stay. We engage. We ensure you are comfortable, heard, and safe. Always by your side in the queue, holding your arm where you need it.</div>
+        </div>
+      </div>
+      
+      <div class="sms-benefits" style="margin-top:40px; display:flex; gap:20px; flex-wrap:wrap; justify-content:center;">
+        <div class="info-bar">🕊️ SMS to Family : Peace of mind knowing your loved ones are not alone.</div>
+        <div class="info-bar" style="background:var(--teal-light); color:var(--teal-dark)">🕊️💃 SMS to Elderly : Live your life and say “Yes" to freedom again.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Home View: OUR SERVICES -->
+  <div id="home-view-services" class="home-view-section" style="display:none">
+    <div class="rich-header" style="background: linear-gradient(135deg, #E8F5F5, #FDF0E2);">
+      <div class="rich-badge">What We Do</div>
+      <h2>Our Service</h2>
+      <p class="rich-subtitle">Accompany provides trusted companions for senior citizens across communities, families, and social circles. Think of us as your extended family member, available when you need someone by your side.</p>
+    </div>
+    
+    <div class="rich-section">
+      <div class="ikigai-card" style="text-align:center; margin-bottom:40px;">
+        <p class="lead-text">In the last 5 years, we’ve travelled alongside and accompanied a wide cross-section of people on their pilgrimage journeys across ‘Incredible India’, temple and hospital visits, and walks in the park.</p>
+      </div>
+
+      <div class="service-category">
+        <div class="cat-header" style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+          <div class="cat-icon" style="font-size:32px;">🛫</div>
+          <h3 style="font-family:var(--font-serif); font-size:28px;">Travel</h3>
+        </div>
+        <div class="differentiator-grid">
+          <div class="diff-card">
+            <h4 style="color:var(--orange-dark); font-size:18px; margin-bottom:10px;">1:1 Accompany Yatra (Sr. Citizens)</h4>
+            <p style="color:var(--text2); font-size:14px; margin-bottom:16px;">Designed specifically for senior citizens, to support families who want 1:1 care for parents or grandparents on their tirth yatras or vacay to any other destinations. Curated for senior citizens, who love to travel on their dates, at their pace, with undivided attention.</p>
+            <ul class="custom-list">
+              <li><strong>1. Totally Customized :</strong> You choose the place, dates, and duration. Kashi or your Kuladeivam, Mathura or Mantralayam. Want only one temple per day? Done.</li>
+              <li><strong>2. Dedicated Sakha / Sakhi :</strong> One companion (1:1) travels along from home to home. Allow them to manage everything - tickets, hotel, food, dharshan queues, meds, wheelchair, and a helping hand.</li>
+              <li><strong>3. Comfort First :</strong> Senior-friendly hotels, ground floor rooms, healthy diet, and extra rest days. Your comfort and health guides the itinerary.</li>
+            </ul>
+          </div>
+          <div class="diff-card">
+            <h4 style="color:var(--teal-dark); font-size:18px; margin-bottom:10px;">Group Accompany Yatra (Open-2-All)</h4>
+            <p style="color:var(--text2); font-size:14px; margin-bottom:16px;">Designed specifically for anyone who wants to explore ‘Incredible India' in good company. Other than the pilgrimage trips designed for Sr. Citizens, we also travel from Kanyakumari to Kashmir, the forts of Rajasthan, the backwaters of Kerala, the beaches of Andaman and the North-east circuits! Curated Group Trips, open to all ages - solo travelers, friends and families.</p>
+            <div class="ikigai-highlight" style="font-size:16px; margin-top:16px;">If your heart wants to go, we wanna go ❤. Just let us know.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="teal-bar" style="margin:40px 0; justify-content:center; text-align:center;">
+        ✨ Our flagship service is ‘Travel’. However, life doesn't pause between big yatras. It has to move on, and we have you covered under ‘Daily Companionship’
+      </div>
+
+      <div class="services-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+        <div class="service-card" style="text-align:left;">
+          <h4 style="color:var(--orange); font-size:17px; margin-bottom:12px; display:flex; align-items:center; gap:8px;"><span style="font-size:24px">🩺</span> Health & Wellness</h4>
+          <ul class="clean-list">
+            <li>Planned Doctor Consultations</li>
+            <li>Periodic Health Check-ups</li>
+            <li>Laboratory Tests</li>
+          </ul>
+          <p style="font-size:13px; color:var(--text3); margin-top:12px;">From home to consultation to pharmacy to home. Sakhi demonstrates patience and care, takes key notes, and ensures you understand prescriptions.</p>
+        </div>
+        <div class="service-card" style="text-align:left;">
+          <h4 style="color:var(--orange); font-size:17px; margin-bottom:12px; display:flex; align-items:center; gap:8px;"><span style="font-size:24px">🛕</span> Social & Cultural</h4>
+          <ul class="clean-list">
+            <li>Temple Visits</li>
+            <li>Music Kutchery | Dance Drama</li>
+            <li>Art | Photography Exhibitions</li>
+          </ul>
+          <p style="font-size:13px; color:var(--text3); margin-top:12px;">Dharshan at Parthasarathy, or divine blessings at your local temple. Your Sakha handles the crowd and queue. You focus on prayer 🙏.</p>
+        </div>
+        <div class="service-card" style="text-align:left;">
+          <h4 style="color:var(--orange); font-size:17px; margin-bottom:12px; display:flex; align-items:center; gap:8px;"><span style="font-size:24px">🦋</span> Lifestyle & Leisure</h4>
+          <ul class="clean-list">
+            <li>Nature Walks</li>
+            <li>Beach Visits for Sunrise</li>
+            <li>Lunch or Movie Date</li>
+            <li>Shopping Malls</li>
+          </ul>
+          <p style="font-size:13px; color:var(--text3); margin-top:12px;">Morning walk surrounded by the chirps of birds. A movie at Sathyam. Companionship is not just for needs - it’s for joy.</p>
+        </div>
+        <div class="service-card" style="text-align:left;">
+          <h4 style="color:var(--orange); font-size:17px; margin-bottom:12px; display:flex; align-items:center; gap:8px;"><span style="font-size:24px">☕</span> Home Alone</h4>
+          <ul class="clean-list">
+            <li>Book reading 📖</li>
+            <li>Chai pe Charcha ☕</li>
+            <li>Play carrom or chess ♟</li>
+            <li>No agenda except presence 🫂</li>
+          </ul>
+          <p style="font-size:13px; color:var(--text3); margin-top:12px;">Let’s bring back the child’s innocence 🧸.</p>
+        </div>
+      </div>
+      
+      <div style="text-align:center; margin-top:40px;">
+        <button class="btn btn-primary btn-lg" onclick="startBooking()">Book a Companion</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Home View: HOW IT WORKS -->
+  <div id="home-view-how" class="home-view-section" style="display:none">
+    <div class="rich-header">
+      <div class="rich-badge">Easy Booking</div>
+      <h2>How Does It Work? | Book in 3 Simple Steps</h2>
+      <p class="rich-subtitle">We’ve made it easy for anyone to book a Sakha or a Sakhi. No apps to download. No tech headaches.</p>
+    </div>
+    
+    <div class="rich-section">
+      <div class="step-card-grid">
+        <div class="step-rich-card">
+          <div class="step-number">1</div>
+          <h3>Fill a Simple Form</h3>
+          <p>Tell us what you need - ‘Your wish is our command’. The form can be filled by:</p>
+          <ul class="clean-list" style="text-align:left; max-width:200px; margin:0 auto;">
+            <li><strong>A]</strong> The senior citizen</li>
+            <li><strong>B]</strong> Their children</li>
+            <li><strong>C]</strong> Their family/friend</li>
+          </ul>
+          <p style="font-size:13px; color:var(--text3); margin-top:12px;">We just need basic details like Who, When, Where, and What kind of service.</p>
+        </div>
+        
+        <div class="step-rich-card">
+          <div class="step-number">2</div>
+          <h3>Choose Your Companion</h3>
+          <p>You don’t get assigned a random person. Browse verified profiles of Sakha/ Sakhi. View their bio, interests, languages, trust badges, and reviews.</p>
+          <p style="font-size:13px; color:var(--text3); margin-top:12px;">Check their calendar for free time slots. Choose someone in line with your personality.</p>
+        </div>
+        
+        <div class="step-rich-card">
+          <div class="step-number">3</div>
+          <h3>Block Date & Experience</h3>
+          <p>Block the date and time in the respective calendar of your chosen Sakha / Sakhi. No task is considered too small.</p>
+          <p style="font-size:13px; color:var(--text3); margin-top:12px;">Choose the experience - travel, doctor visit, sunrise at the beach. Confirm the booking ✅.</p>
+        </div>
+      </div>
+      
+      <div class="teal-bar" style="margin:40px auto; max-width:700px; text-align:center; justify-content:center; line-height:1.6; display:block; padding:20px;">
+        We’ll send you the details of Sakha / Sakhi, and share the live location with family, on the day of service. After the Accompany experience, you’ll get a short update: "Reached home safely. Amma enjoyed the concert." 👵<br>
+        <strong style="font-size:18px; margin-top:12px; display:block; color:var(--teal-dark)">That’s it! Independence, secured in minutes.</strong>
+      </div>
+      
+      <div class="action-card-grid">
+        <div class="action-card">
+          <h4>For Travel</h4>
+          <p>Request for a 1:1 Accompany Yatra specifically for Sr. Citizens.</p>
+          <button class="btn btn-outline" style="width:100%; margin-top:14px;" onclick="startBooking()">Request Yatra</button>
+        </div>
+        <div class="action-card">
+          <h4>For Daily Companionship</h4>
+          <p>Book a Sakha / Sakhi using the form available on the website.</p>
+          <button class="btn btn-primary" style="width:100%; margin-top:14px;" onclick="startBooking()">Book Now</button>
+        </div>
+        <div class="action-card">
+          <h4>For Volunteering</h4>
+          <p>Be a Sakha / Sakhi for a couple of hours on a weekday or weekend.</p>
+          <button class="btn btn-teal" style="width:100%; margin-top:14px;" onclick="showScreen('screen-apply')">Join Us</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Home View: THE SAKHA & SAKHI ETHOS -->
+  <div id="home-view-ethos" class="home-view-section" style="display:none">
+    <div class="rich-header" style="background: linear-gradient(135deg, #FDF0E2, #F5EFE6);">
+      <div class="rich-badge">Our Heritage</div>
+      <h2>The Philosophy of Sakha & Sakhi</h2>
+      <p class="rich-subtitle">Deeply rooted in Indian heritage, trust, and selfless companionship.</p>
+    </div>
+    
+    <div class="rich-section">
+      <div class="ethos-row">
+        <div class="ethos-img">
+          <img src="images/arjuna_krishna.png" alt="Arjuna and Krishna in Chariot">
+        </div>
+        <div class="ethos-content">
+          <h3>The Sakha</h3>
+          <h4 class="sub-heading">The Guide, The Friend, The Presence</h4>
+          <p>In the epic Mahabharata, Lord Krishna acts as the <strong>Sakha</strong> (friend, guide, and charioteer) to Arjuna. Krishna does not fight the war himself; instead, he holds the reins of the horses, stands by Arjuna in moments of deep doubt, and guides him through every storm.</p>
+          <p>This is the essence of our <strong>Sakha</strong> service for elderly men. We do not take away our elders' independence; we hold the reins, guide them through the crowded temple steps, hospital visits, and travel, standing by them as trusted companions. We are simply present, deeply supportive, and empowering.</p>
+        </div>
+      </div>
+      
+      <div class="ethos-row reverse-row" style="margin-top:80px;">
+        <div class="ethos-img">
+          <img src="images/draupadi.png" alt="Draupadi's Divine Protection">
+        </div>
+        <div class="ethos-content">
+          <h3>The Sakhi</h3>
+          <h4 class="sub-heading">The Protective, Trustworthy Friend</h4>
+          <p>Draupadi's relationship with Krishna represents the ultimate bond of a <strong>Sakhi</strong>—a trustworthy, absolute support system. In her most challenging hour of need, when no one else stood by her, her Sakha, Krishna, was present instantly, offering infinite protection and restoring her dignity and strength.</p>
+          <p>This is the essence of our <strong>Sakhi</strong> service for elderly women and parents whose children are far away. A Sakhi is a daughter-like presence, holding their hand, protecting their comfort, and ensuring they are never alone in times of need. Her presence is a shield against loneliness and logistical hurdles.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    function switchHomeView(viewId, btnEl) {
+      document.querySelectorAll('.home-view-section').forEach(el => {
+        el.style.display = 'none';
+        el.classList.remove('active');
+      });
+      const target = document.getElementById('home-view-' + viewId);
+      if (target) {
+        target.style.display = 'block';
+        setTimeout(() => target.classList.add('active'), 10);
+      }
+      
+      document.querySelectorAll('.home-tab').forEach(btn => btn.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+    }
+  </script>
 
   <div class="footer"><p>© 2025 Accompany · Made with love for our elders · Chennai, India</p></div>
 </div>
