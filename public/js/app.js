@@ -26,7 +26,9 @@ const COLLECTIONS = {
   CAREGIVERS: "caregivers",
   BOOKINGS: "bookings",
   MEDIA: "media",
-  BLOCKED: "blocked_slots"
+  BLOCKED: "blocked_slots",
+  GROUP_TRIPS: "group_trips",
+  TRIP_INTERESTS: "trip_interests"
 };
 
 // ============================================================
@@ -557,7 +559,7 @@ async function confirmBooking() {
 // ─────────────────────────────────────────────
 async function loadDashboardData() {
   if (!State.currentUser) return;
-  await Promise.all([loadBookings(), loadBlockedSlots(), loadGallery()]);
+  await Promise.all([loadBookings(), loadBlockedSlots(), loadGallery(), loadGroupTrips()]);
   renderCalendar();
 }
 
@@ -777,8 +779,43 @@ async function handleMediaUpload(input) {
   const file = input.files[0];
   if (!file) return;
   showToast("Uploading...");
-  // Cloudinary logic omitted for brevity in unified script
-  showToast("Upload feature needs backend setup", "info");
+
+  const cfg = window.STORAGE_CONFIG || {};
+  const cloudName = cfg.CLOUDINARY_CLOUD_NAME;
+  const uploadPreset = cfg.CLOUDINARY_UPLOAD_PRESET;
+
+  if (!cloudName || !uploadPreset) {
+    showToast("Storage not configured. Add your Cloudinary details to js/storage-config.js", "error");
+    return;
+  }
+
+  const form = new FormData();
+  form.append('file', file);
+  form.append('upload_preset', uploadPreset);
+
+  try {
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
+      method: 'POST',
+      body: form
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || 'Upload failed');
+    const url = data.secure_url || data.url;
+
+    // Save media record in Firestore so gallery reads from the same collection
+    await db.collection(COLLECTIONS.MEDIA).add({
+      url,
+      uploadedBy: State.currentUser ? State.currentUser.uid : null,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    showToast("Uploaded successfully", "success");
+    // Refresh gallery
+    await loadGallery();
+  } catch (e) {
+    console.error('Upload error', e);
+    showToast("Upload failed", "error");
+  }
 }
 
 async function submitApplication() {
@@ -912,14 +949,16 @@ async function approveApplication(id, btn) {
 async function rejectApplication(id) { await db.collection("applications").doc(id).update({ status: "rejected" }); loadOwnerPanelData(); }
 
 function setDashTab(tab) {
-  ["requests","calendar","gallery","owner","settings"].forEach(t => {
+  ["requests","calendar","gallery","owner","settings", "group-trips"].forEach(t => {
     const el = document.getElementById(`tab-${t}`);
     if (el) el.style.display = t === tab ? "block" : "none";
   });
   // Update active tab style
   document.querySelectorAll(".tabs .tab").forEach(btn => {
     btn.classList.remove("active");
-    if (btn.innerText.toLowerCase().includes(tab)) btn.classList.add("active");
+    if (btn.getAttribute("onclick").includes(`'${tab}'`) || btn.getAttribute("onclick").includes(`"${tab}"`)) {
+      btn.classList.add("active");
+    }
   });
 }
 
@@ -952,17 +991,293 @@ async function loadPublicGallery() {
   } catch (e) { container.innerHTML = "Gallery failed to load"; }
 }
 
+// ============================================================
+//  PROACTIVE GROUP YATRAS — Caregiver & Public Signups
+// ============================================================
+async function loadGroupTrips() {
+  const container = document.getElementById("dashboard-group-trips-list");
+  if (!container) return;
+  container.innerHTML = `<div class="loading-spinner">Loading group trips…</div>`;
+  
+  try {
+    const snap = await db.collection(COLLECTIONS.GROUP_TRIPS).orderBy("date", "asc").get();
+    const trips = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    
+    if (trips.length === 0) {
+      container.innerHTML = `<div class="empty-state">No group trips proposed yet.</div>`;
+      return;
+    }
+
+    const tripsWithCounts = await Promise.all(trips.map(async trip => {
+      const interestsSnap = await db.collection(COLLECTIONS.TRIP_INTERESTS).where("tripId", "==", trip.id).get();
+      return {
+        ...trip,
+        interestCount: interestsSnap.size
+      };
+    }));
+
+    container.innerHTML = tripsWithCounts.map(t => {
+      const isMyTrip = State.currentUser && t.createdBy === State.currentUser.uid;
+      return `
+        <div class="request-card" style="margin-bottom:14px; border-left:4px solid var(--teal)">
+          <div class="req-body">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px">
+              <div class="req-title" style="font-size:17px; font-weight:700; color:var(--text)">${escHtml(t.title)}</div>
+              <span class="status-badge status-confirmed" style="background:var(--teal-light); color:var(--teal)">
+                👥 ${t.interestCount || 0} Interested
+              </span>
+            </div>
+            <div class="req-meta" style="margin-top:6px; color:var(--text2)">
+              📅 <strong>${formatDate(t.date)}</strong> &nbsp;·&nbsp; 👤 Proposed by: <strong>${escHtml(t.createdByName || "Accompany")}</strong>
+            </div>
+            <div class="req-meta" style="margin-top:6px; font-size:14px; color:var(--text2); line-height:1.5;">
+              ${escHtml(t.description || "")}
+            </div>
+            <div class="req-actions" style="margin-top:12px; display:flex; gap:8px;">
+              <button class="btn btn-teal btn-sm" onclick="loadTripInterests('${t.id}', '${escHtml(t.title)}')">🔍 View Interest Details</button>
+              ${isMyTrip ? `<button class="btn btn-ghost btn-sm" style="color:var(--red); border-color:rgba(192,57,43,0.3)" onclick="deleteGroupTrip('${t.id}')">🗑️ Delete</button>` : ""}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+  } catch (e) {
+    console.error("loadGroupTrips error:", e);
+    container.innerHTML = `<div class="error-msg">Error loading group trips.</div>`;
+  }
+}
+
+async function proposeGroupTrip() {
+  const title = document.getElementById("trip-title").value.trim();
+  const date = document.getElementById("trip-date").value;
+  const description = document.getElementById("trip-desc").value.trim();
+
+  if (!title || !date || !description) {
+    showToast("Please fill all fields to propose a trip", "error");
+    return;
+  }
+
+  const btn = document.getElementById("propose-trip-btn");
+  btn.textContent = "Proposing...";
+  btn.disabled = true;
+
+  try {
+    const trip = {
+      title,
+      date,
+      description,
+      createdBy: State.currentUser ? State.currentUser.uid : "auto",
+      createdByName: State.caregiverProfile ? State.caregiverProfile.name : "Companion",
+      status: "active",
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    await db.collection(COLLECTIONS.GROUP_TRIPS).add(trip);
+    showToast("Upcoming Group Yatra proposed successfully! 🎉", "success");
+    
+    document.getElementById("trip-title").value = "";
+    document.getElementById("trip-date").value = "";
+    document.getElementById("trip-desc").value = "";
+    
+    await loadGroupTrips();
+    await loadPublicGroupTrips();
+  } catch (e) {
+    console.error("proposeGroupTrip error:", e);
+    showToast("Failed to propose group trip", "error");
+  } finally {
+    btn.textContent = "🛫 Propose Group Yatra";
+    btn.disabled = false;
+  }
+}
+
+async function deleteGroupTrip(tripId) {
+  if (!confirm("Are you sure you want to delete this proposed group trip?")) return;
+  try {
+    await db.collection(COLLECTIONS.GROUP_TRIPS).doc(tripId).delete();
+    const interestsSnap = await db.collection(COLLECTIONS.TRIP_INTERESTS).where("tripId", "==", tripId).get();
+    const batch = db.batch();
+    interestsSnap.docs.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+
+    showToast("Trip deleted", "success");
+    await loadGroupTrips();
+    await loadPublicGroupTrips();
+  } catch (e) {
+    showToast("Failed to delete trip", "error");
+  }
+}
+
+async function loadTripInterests(tripId, tripTitle) {
+  const container = document.getElementById("trip-interests-details");
+  if (!container) return;
+  container.style.display = "block";
+  container.innerHTML = `<div class="loading-spinner">Loading interest list…</div>`;
+  
+  container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  try {
+    const snap = await db.collection(COLLECTIONS.TRIP_INTERESTS).where("tripId", "==", tripId).get();
+    const interests = snap.docs.map(d => d.data());
+
+    let html = `
+      <div style="background:var(--white); border:1.5px solid var(--border); border-radius:var(--radius-lg); padding:24px; margin-bottom:28px; box-shadow:var(--shadow);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; border-bottom:1.5px solid var(--border); padding-bottom:12px;">
+          <h4 style="font-family:var(--font-serif); font-size:18px; color:var(--text);">Signups for: <span style="color:var(--teal-dark)">${escHtml(tripTitle)}</span></h4>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('trip-interests-details').style.display='none'" style="padding:4px 10px;">Close ✗</button>
+        </div>
+    `;
+
+    if (interests.length === 0) {
+      html += `<div class="empty-state" style="padding:16px;">Nobody has registered interest yet.</div>`;
+    } else {
+      html += `
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          ${interests.map((int, idx) => `
+            <div style="background:var(--warm); border-radius:10px; padding:16px; border:1px solid var(--border)">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                <div style="font-weight:700; color:var(--text); font-size:16px;">${escHtml(int.name)}</div>
+                <div class="status-badge status-confirmed">👪 Joining: ${int.passengersCount || 1} people</div>
+              </div>
+              <div style="font-size:14px; margin-top:6px; font-weight:600; color:var(--teal)">📞 Phone: <a href="tel:${int.phone}" style="text-decoration:none;">${escHtml(int.phone)}</a></div>
+              ${int.notes ? `<div style="font-size:13px; margin-top:8px; background:white; padding:8px 12px; border-radius:6px; border:1.5px dashed var(--border); color:var(--text2);"><strong style="color:var(--orange-dark)">Preferences/Notes:</strong> ${escHtml(int.notes)}</div>` : ""}
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+    
+    html += `</div>`;
+    container.innerHTML = html;
+  } catch (e) {
+    console.error("loadTripInterests error:", e);
+    container.innerHTML = `<div class="error-msg">Error loading interest details.</div>`;
+  }
+}
+
+async function loadPublicGroupTrips() {
+  const container = document.getElementById("public-group-trips-container");
+  if (!container) return;
+  
+  const today = todayStr();
+
+  try {
+    const snap = await db.collection(COLLECTIONS.GROUP_TRIPS)
+      .where("date", ">=", today)
+      .get();
+      
+    const trips = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .filter(t => t.status === "active")
+      .sort((a,b) => a.date.localeCompare(b.date));
+    
+    if (trips.length === 0) {
+      container.innerHTML = `
+        <div style="grid-column: 1 / -1; background:var(--white); border:1.5px solid var(--border); border-radius:var(--radius-lg); padding:32px; text-align:center; color:var(--text2);">
+          👵 Currently, no group trips are scheduled. Check back soon for new caregiver-led tours!
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = trips.map(t => `
+      <div class="service-card" style="text-align:left; cursor:default; padding:24px; display:flex; flex-direction:column; justify-content:space-between; height:100%; border-color:var(--teal); background:linear-gradient(145deg, #ffffff, #F4FBFB); box-shadow:var(--shadow);">
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div style="background:var(--teal-light); color:var(--teal-dark); font-weight:700; font-size:12px; padding:4px 12px; border-radius:100px;">🚌 Group Yatra</div>
+            <div style="font-size:13px; color:var(--text3); font-weight:600;">📅 ${formatDate(t.date)}</div>
+          </div>
+          <h4 style="font-family:var(--font-serif); font-size:18px; color:var(--text); font-weight:600; margin-bottom:8px;">${escHtml(t.title)}</h4>
+          <p style="font-size:13px; color:var(--text2); line-height:1.5; margin-bottom:14px; min-height:60px;">${escHtml(t.description)}</p>
+        </div>
+        <div style="border-top:1px solid var(--border); padding-top:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div style="font-size:12px; color:var(--text3);">Proposed by:<br><strong style="color:var(--text2)">${escHtml(t.createdByName || "Accompany Caregiver")}</strong></div>
+          <button class="btn btn-teal btn-sm" onclick="openInterestModal('${t.id}', '${t.title.replace(/'/g, "\\'")}')">Register Interest</button>
+        </div>
+      </div>
+    `).join("");
+  } catch (e) {
+    console.error("loadPublicGroupTrips error:", e);
+    container.innerHTML = `<div class="error-msg" style="grid-column: 1 / -1;">Upcoming group trips failed to load.</div>`;
+  }
+}
+
+function openInterestModal(tripId, tripTitle) {
+  State.activeTripId = tripId;
+  const modal = document.getElementById("interest-modal");
+  const titleEl = document.getElementById("interest-trip-title");
+  
+  if (modal && titleEl) {
+    titleEl.textContent = tripTitle;
+    modal.style.display = "flex";
+    document.body.style.overflow = "hidden";
+  }
+}
+
+function closeInterestModal() {
+  const modal = document.getElementById("interest-modal");
+  if (modal) {
+    modal.style.display = "none";
+    document.body.style.overflow = "";
+    document.getElementById("interest-name").value = "";
+    document.getElementById("interest-phone").value = "";
+    document.getElementById("interest-passengers").value = "1";
+    document.getElementById("interest-notes").value = "";
+  }
+}
+
+async function submitTripInterest() {
+  const tripId = State.activeTripId;
+  const name = document.getElementById("interest-name").value.trim();
+  const phone = document.getElementById("interest-phone").value.trim();
+  const passengersCount = parseInt(document.getElementById("interest-passengers").value) || 1;
+  const notes = document.getElementById("interest-notes").value.trim();
+
+  if (!tripId || !name || !phone) {
+    showToast("Your Name and Phone Number are required to register interest", "error");
+    return;
+  }
+
+  const btn = document.getElementById("interest-submit-btn");
+  btn.textContent = "Submitting...";
+  btn.disabled = true;
+
+  try {
+    await db.collection(COLLECTIONS.TRIP_INTERESTS).add({
+      tripId,
+      name,
+      phone,
+      passengersCount,
+      notes,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    showToast("Interest registered successfully! We will coordinate with you. ✓", "success");
+    closeInterestModal();
+    await loadPublicGroupTrips();
+  } catch (e) {
+    console.error("submitTripInterest error:", e);
+    showToast("Failed to register interest", "error");
+  } finally {
+    btn.textContent = "Confirm & Register Interest ✓";
+    btn.disabled = false;
+  }
+}
+
 // ── EXPOSE TO WINDOW ───────────────────────────
 const GlobalActions = {
   showScreen, showToast, doLogin, doLogout, sendOTP, verifyOTP, resendOTP, skipOTPAndBook,
   toggleService, selectCaregiver: (id) => loadCaregivers(), selectSlot, onDurationChange,
   setBooker, goStep, confirmBooking, loadCaregivers, updateBookingStatus,
   triggerUpload, handleMediaUpload, submitApplication, loadOwnerDashboard, approveApplication, rejectApplication,
-  setDashTab, setOwnerTab, scrollToHow, loadPublicGallery, doChangePassword
+  setDashTab, setOwnerTab, scrollToHow, loadPublicGallery, doChangePassword,
+  
+  // Group Yatras
+  loadGroupTrips, proposeGroupTrip, deleteGroupTrip, loadTripInterests, loadPublicGroupTrips,
+  openInterestModal, closeInterestModal, submitTripInterest
 };
 for (const [k, v] of Object.entries(GlobalActions)) window[k] = v;
 
 document.addEventListener("DOMContentLoaded", () => {
   loadPublicGallery();
+  loadPublicGroupTrips();
   console.log("Saathi Unified App v3 Loaded");
 });

@@ -724,3 +724,204 @@ select.form-input   { appearance: none; background-image: url("data:image/svg+xm
   .ethos-row { flex-direction: column; }
   .reverse-row { flex-direction: column-reverse; }
 }
+
+/* ── FAQ Accordion ────────────────────────────────────────── */
+.faq-category-container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 860px;
+  margin: 0 auto;
+}
+.faq-category-section {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  border: 1.5px solid var(--border);
+  padding: 36px;
+  box-shadow: var(--shadow);
+}
+.faq-category-title {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  color: var(--teal-dark);
+  margin-bottom: 24px;
+  border-bottom: 2px solid var(--teal-light);
+  padding-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.faq-item {
+  border-bottom: 1.5px solid var(--border);
+  padding: 20px 0;
+  transition: all 0.25s ease;
+}
+.faq-item:last-child {
+  border-bottom: none;
+}
+.faq-question-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+  font-family: var(--font);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 0;
+  transition: color 0.2s;
+}
+.faq-question-btn:hover {
+  color: var(--orange);
+}
+.faq-question-btn .faq-icon {
+  font-size: 16px;
+  color: var(--text3);
+  transition: transform 0.3s ease, color 0.3s ease;
+  flex-shrink: 0;
+}
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, margin-top 0.3s ease;
+  opacity: 0;
+  margin-top: 0;
+  color: var(--text2);
+  font-size: 15px;
+  line-height: 1.7;
+}
+.faq-item.active .faq-answer {
+  opacity: 1;
+  margin-top: 14px;
+}
+.faq-item.active .faq-question-btn {
+  color: var(--orange-dark);
+}
+.faq-item.active .faq-question-btn .faq-icon {
+  transform: rotate(180deg);
+  color: var(--orange);
+}
+.faq-highlight-box {
+  background: var(--orange-light);
+  border: 1.5px solid rgba(232, 114, 42, 0.25);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-top: 16px;
+  color: var(--text2);
+}
+.faq-highlight-box strong {
+  color: var(--orange-dark);
+}
+.faq-sub-list {
+  list-style: none;
+  margin-top: 10px;
+  padding-left: 10px;
+}
+.faq-sub-list li {
+  position: relative;
+  padding-left: 20px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: var(--text2);
+}
+.faq-sub-list li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--orange);
+  font-size: 18px;
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .faq-category-section {
+    padding: 24px 18px;
+  }
+  .faq-category-title {
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+  .faq-question-btn {
+    font-size: 15px;
+  }
+  .faq-answer {
+    font-size: 14px;
+  }
+}
+
+/* ── Proactive Group Trips Landing Grid ────────────────── */
+.group-trips-section {
+  background: var(--warm);
+  padding: 56px 24px;
+}
+.group-trips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(285px, 1fr));
+  gap: 24px;
+  max-width: 980px;
+  margin: 28px auto 0;
+}
+
+/* ── Centered Modal Overlay & Box ──────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(44, 34, 24, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-content {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  border: 1.5px solid var(--border);
+  padding: 32px;
+  max-width: 520px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  animation: modalSlideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes modalSlideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1.5px solid var(--border);
+  padding-bottom: 14px;
+  margin-bottom: 20px;
+}
+.modal-title {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--teal-dark);
+}
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--text3);
+  cursor: pointer;
+  line-height: 1;
+}
+.modal-close:hover {
+  color: var(--red);
+}

@@ -58,5 +58,18 @@ service cloud.firestore {
         request.auth.uid == resource.data.caregiverId;
       allow update: if false;
     }
+    // ── GROUP TRIPS ───────────────────────────────────────────
+    match /group_trips/{tripId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.createdBy;
+    }
+
+    // ── TRIP INTERESTS ─────────────────────────────────────────
+    match /trip_interests/{interestId} {
+      allow create: if true;
+      allow read: if true;
+      allow update, delete: if false;
+    }
   }
 }

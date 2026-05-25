@@ -13,7 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- App CSS -->
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=2.0">
 
   <!-- Firebase SDKs (compat v9 — works without bundler) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -54,6 +54,7 @@
       <button class="home-tab" onclick="switchHomeView('services', this)">✨ Our Services</button>
       <button class="home-tab" onclick="switchHomeView('how', this)">📋 How It Works</button>
       <button class="home-tab" onclick="switchHomeView('ethos', this)">🤝 The Sakha & Sakhi Ethos</button>
+      <button class="home-tab" onclick="switchHomeView('faq', this)">❓ FAQ</button>
     </div>
   </div>
 
@@ -68,6 +69,17 @@
       <div class="hero-btns">
         <button class="btn btn-primary btn-lg" onclick="startBooking()">Book a Visit</button>
         <button class="btn btn-outline btn-lg" onclick="scrollToHow()">How It Works ↓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upcoming Group Yatras (Public View) -->
+  <div style="background:var(--warm);padding:50px 24px; border-bottom:1px solid rgba(0,0,0,0.05)">
+    <div style="max-width:980px;margin:0 auto">
+      <div class="section-title">Upcoming Group Yatras</div>
+      <div class="section-sub">Carefully curated group trips proposed by our Sakhas &amp; Sakhis</div>
+      <div class="services-grid" id="public-group-trips-container" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+        <div class="loading-spinner" style="grid-column: 1 / -1;">Loading upcoming trips…</div>
       </div>
     </div>
   </div>
@@ -396,6 +408,307 @@
       </div>
     </div>
   </div>
+
+  <!-- Home View: FAQ -->
+  <div id="home-view-faq" class="home-view-section" style="display:none">
+    <div class="rich-header" style="background: linear-gradient(135deg, #FDF0E2, #E8F5F5);">
+      <div class="rich-badge">Frequently Asked Questions</div>
+      <h2>FAQs | Accompany</h2>
+      <p class="rich-subtitle">Everything you need to know about our companion services, safety guidelines, and booking process.</p>
+    </div>
+
+    <div class="rich-section">
+      <div class="faq-category-container">
+        
+        <!-- Category: General -->
+        <div class="faq-category-section">
+          <h3 class="faq-category-title"><span>🌱</span> General</h3>
+          
+          <div class="faq-item">
+            <button class="faq-question-btn" onclick="toggleFaq(this)">
+              01. What exactly is Accompany?
+              <span class="faq-icon">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>Accompany provides trusted, background-verified Sakha / Sakhi for senior citizens. We’re not a cab service or medical caregivers. We’re the friends who accompany you during your travels, go with you for doctor visits, temples, beach, kutcheris, morning walks, shopping, or just for coffee. We stay, engage, and ensure you’re safe and comfortable.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question-btn" onclick="toggleFaq(this)">
+              02. Who are your companions?
+              <span class="faq-icon">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>Our companions are carefully selected individuals, trained in senior sensitivity and safety. Each profile shows their bio, interests, languages, trust badges, reviews and ratings. You choose whomever you want.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question-btn" onclick="toggleFaq(this)">
+              03. Which cities do you operate in?
+              <span class="faq-icon">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>We’re starting from ‘Namma Chennai’ with a pan-city coverage. If you love this noble thought, and do like our services, spread the word, and we will eventually cater to other cities as well.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category: Booking & Process -->
+        <div class="faq-category-section">
+          <h3 class="faq-category-title"><span>📅</span> Booking & Process</h3>
+
+          <div class="faq-item">
+            <button class="faq-question-btn" onclick="toggleFaq(this)">
+              04. How do I book a companion?
+              <span class="faq-icon">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>3 simple steps:</p>
+              <ol class="faq-sub-list">
+                <li>Fill a short form with date, time, and service you need.</li>
+                <li>Choose your Sakha / Sakhi from verified profiles and check their calendar before booking.</li>
+                <li>Confirm booking. We’ll send you details, and share the live location with the family.</li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question-btn" onclick="toggleFaq(this)">
+              05. Can my son/daughter book for me if they live abroad or in another city?
+              <span class="faq-icon">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>Yes. The form can be filled by the senior citizens themselves, their children living abroad or in another city, or a family friend or a neighbour. We’ll coordinate with everyone involved and keep the family updated.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question-btn" onclick="toggleFaq(this)">
+              06. How far in advance should I book?
+              <span class="faq-icon">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>For planned visits like doctor appointments, 24-48 hours is ideal. For emergencies or same-day needs, call us on our dedicated hotline, and we’ll do our best based on the availability of Sakha / Sakhi.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question-btn" onclick="toggleFaq(this)">
+              07. Can I book the same Sakha / Sakhi every week?
+              <span class="faq-icon">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>Absolutely! Many senior citizens prefer building a rapport. If your chosen Sakha / Sakhi is free, you can block recurring slots - for example, every Tuesday morning walk.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question-btn" onclick="toggleFaq(this)">
+              08. What about food, medicines, and bathroom breaks on long yatras?
+              <span class="faq-icon">▼</span>
+            </button>
+            <div class="faq-answer">
+              <div style="margin-bottom: 12px;">
+                <strong style="color:var(--orange-dark);">1. Food :</strong> Specify your requirement, and we will try to do everything we can! Jain, no onion-garlic, diabetic meals - just tell us. Strictly no roadside / unhygienic food joints. For our Athithi, we had arranged Maami’s Mess at Kashi, and Mama’s Mess at Shiv Mutt, Prayagraj.
+              </div>
+              <div style="margin-bottom: 12px;">
+                <strong style="color:var(--orange-dark);">2. Medicines :</strong> Sakha / Sakhi reminds you of daily meds at right intervals. Be it an Insulin injection or a BP tablet - don't worry, we set alarms for dose times.
+              </div>
+              <div>
+                <strong style="color:var(--orange-dark);">3. Bathrooms :</strong> We look for clean toilets every 2 hours on road trips. For yatras, we book hotels with western toilets even for day trips. A tour operator says “adjust maadi.” We say “first we find a toilet, then we adjust.”
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category: Safety & Trust -->
+        <div class="faq-category-section">
+          <h3 class="faq-category-title"><span>🛡️</span> Safety & Trust</h3>
+
+          <div class="faq-item">
+            <button class="faq-question-btn" onclick="toggleFaq(this)">
+              09. How are companions verified?
+              <span class="faq-icon">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>All Sakhas / Sakhis go through the rigor of background and reference checks, ID card verification, and interviews. They’re also given basic orientation and training in senior care, sensitivity and safety.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question-btn" onclick="toggleFaq(this)">
+              10. Will my family know where I am?
+              <span class="faq-icon">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>Yes. We share live location with the registered family contact when the travel or outing starts. After the visit, you get a short WhatsApp update: “Reached home safe. Amma enjoyed the temple.”</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question-btn" onclick="toggleFaq(this)">
+              11. What if there’s a medical emergency during the trip or outing?
+              <span class="faq-icon">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>Sakha / Sakhi are trained on basic first aid and will immediately try to reach out to the family and call 108 Ambulance Service, if needed. We also capture emergency contacts and medical notes, if any (for example, Amma has low sugar, or she takes an early dinner by 7:30 PM or she takes meds for Diabetes before and after dinner) during booking. Your safety is non-negotiable.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question-btn" onclick="toggleFaq(this)">
+              12. My parents use a wheelchair. Can they still do a temple yatra?
+              <span class="faq-icon">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p><strong>Short answer: Yes.</strong> If they can dream it, we can definitely plan it.</p>
+              <p style="margin-top: 8px;">We have helped senior citizens access wheelchairs and accompanied them in the age-old narrow gullies of Kashi, and in the busy streets of Bhavya Ram Mandir at Ayodhya. Your Sakha / Sakhi is trained in safe transfers and crowd navigation with wheelchairs. No false promises. If a temple truly isn’t accessible, we’ll tell you upfront and suggest alternatives.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question-btn" onclick="toggleFaq(this)">
+              13. Will my parents be clubbed with strangers on a group tour?
+              <span class="faq-icon">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>Never. Unless, they prefer to be. Accompany is 1:1 by default.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question-btn" onclick="toggleFaq(this)">
+              14. What if my parents fall sick during the yatra?
+              <span class="faq-icon">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>This is why Sakha Dharma exists. You are not alone in an emergency. We provide the first and immediate response in case of falls, BP or Sugar - spikes or drops. We have a Doctor MD and a Physiotherapist available on a video consultation from anywhere! We provide real-time family updates via WhatsApp - “Amma felt dizzy, we’re at the clinic, BP stable, Dr. says take rest.”. We don’t decide “it’s minor”. Any incident means hospital check plus family call.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question-btn" onclick="toggleFaq(this)">
+              15. Can the Sakha / Sakhi stay overnight with my parents on multi-day yatras?
+              <span class="faq-icon">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>Yes. For multi-day yatras, your Sakha or Sakhi stays. Same gender, always - Sakha with Thatha, Sakhi with Amma. Non-negotiable. If parents need privacy, we book two rooms next to each other. In that case Sakha / Sakhi is 10 steps away, even if needed at 2 AM. We follow night and early morning protocols. For example, “Amma had dinner, meds taken, room locked, I’m next door.” and “Good morning, BP normal.”. Sakha / Sakhi are with your parents and not sent with your parents!</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category: Conduct & Character -->
+        <div class="faq-category-section">
+          <h3 class="faq-category-title"><span>🤝</span> Conduct & Character</h3>
+
+          <div class="faq-item">
+            <button class="faq-question-btn" onclick="toggleFaq(this)">
+              16. What if there is inappropriate conduct or misconduct during service?
+              <span class="faq-icon">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p style="font-weight: 700; color: var(--red); font-size: 16px; margin-bottom: 12px;">Accompany has ‘Zero Tolerance’ for misconduct. By anyone. On either side.</p>
+              
+              <div style="background: rgba(192, 57, 43, 0.05); border-left: 4px solid var(--red); padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                <strong style="color: var(--red); display: block; font-size: 15px; margin-bottom: 6px;">A. If you feel unsafe or uncomfortable with your Sakha / Sakhi:</strong>
+                <p style="margin-bottom: 8px; font-size: 14px;">Your safety and dignity are non-negotiable. If a Sakha / Sakhi engages in unsolicited touch, dirty talk, disrespect, financial requests, or any behavior that makes you uncomfortable:</p>
+                <ol style="padding-left: 20px; font-size: 13px; line-height: 1.6;">
+                  <li><strong>Stop the service immediately.</strong> You are never obligated to continue.</li>
+                  <li><strong>Call our 24x7 helpline</strong> at +91-XXXXXXXXXX. Ask for “Urgent Conduct Issue.”</li>
+                  <li><strong>We act within 1 hour:</strong> We will remove the Sakha / Sakhi, ensure you are safe, and arrange alternate support if needed.</li>
+                  <li><strong>Investigation & Action:</strong> Every complaint is investigated. Verified misconduct leads to immediate termination, police complaint if applicable, and blacklisting from Accompany forever.</li>
+                </ol>
+              </div>
+
+              <div style="background: var(--teal-light); border-left: 4px solid var(--teal); padding: 16px; border-radius: 8px; margin-bottom: 16px; color: var(--text2);">
+                <strong style="color: var(--teal-dark); display: block; font-size: 15px; margin-bottom: 6px;">B. If a Sakha / Sakhi faces misconduct from a senior citizen or a family member:</strong>
+                <p style="margin-bottom: 8px; font-size: 14px;">Don't you agree? Our Sakhas / Sakhis deserve the same respect and safety. If they face verbal abuse, unsolicited touch, inappropriate requests, or harassment:</p>
+                <ol style="padding-left: 20px; font-size: 13px; line-height: 1.6; color: var(--text);">
+                  <li>They are instructed to exit immediately and report to us.</li>
+                  <li>We investigate within 24 hours. Verified misconduct by a senior citizen or a family member leads to immediate termination of service, no refunds, and blacklisting from Accompany.</li>
+                  <li>We protect our people. No Sakha / Sakhi will be sent back ever, to an unsafe environment.</li>
+                </ol>
+              </div>
+
+              <div class="faq-highlight-box" style="margin-bottom: 16px;">
+                <strong style="display: block; margin-bottom: 8px; font-size: 15px;">Our Safeguards:</strong>
+                <ul style="padding-left: 20px; font-size: 13px; line-height: 1.6; list-style: none;">
+                  <li style="margin-bottom: 6px;">📌 <strong>1. Code of Conduct:</strong> Every Sakha / Sakhi signs and is trained on Sakha Dharma + strict conduct code before their first assignment.</li>
+                  <li style="margin-bottom: 6px;">📌 <strong>2. Background Checks:</strong> Due diligence and reference checks combined with ID verification for all Sakhas and Sakhis.</li>
+                  <li style="margin-bottom: 6px;">📌 <strong>3. Live Check-ins:</strong> For 1:1 services, Sakhas and Sakhis check in with our team at start, mid-point, and end.</li>
+                  <li style="margin-bottom: 6px;">📌 <strong>4. Family Loop:</strong> For senior services, we keep one family member on WhatsApp updates.</li>
+                </ul>
+              </div>
+
+              <p style="font-size: 14px; font-style: italic; margin-bottom: 16px;">Please visit our page on Sakha Sakhi Ethos. The foundation of Sakha Sakhi Dharma is built on Maryada i.e. Dignity. We will fiercely protect it - for our senior citizens of course, but equally for our Sakhas and Sakhis.</p>
+              
+              <div class="info-bar" style="background: #FFEBEE; color: var(--red); justify-content: center; font-weight: 700;">
+                ⚠️ Concern, however small, is concerning! Report it to +91-XXXXXXXXXX
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category: Services & Pricing -->
+        <div class="faq-category-section">
+          <h3 class="faq-category-title"><span>💰</span> Services & Pricing</h3>
+
+          <div class="faq-item">
+            <button class="faq-question-btn" onclick="toggleFaq(this)">
+              17. What services do you NOT provide?
+              <span class="faq-icon">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>We don’t provide medical or nursing care, physiotherapy, cooking, or house cleaning. We also don’t run errands. We are companions - not caregivers or cab drivers or delivery agents.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question-btn" onclick="toggleFaq(this)">
+              18. How much does it cost?
+              <span class="faq-icon">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>Pricing is on an hourly basis, and rates vary based on the service provided. No hidden fees. You see the total before confirming the booking. Call us for a detailed rate card.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question-btn" onclick="toggleFaq(this)">
+              19. Do you provide women companions for elderly women?
+              <span class="faq-icon">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>Yes, if you wish. We understand comfort and cultural preferences matter. You can do a search on profiles of Sakhas / Sakhis, and choose a woman companion during booking.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question-btn" onclick="toggleFaq(this)">
+              20. Can the Sakha / Sakhi wait if my doctor appointment gets delayed?
+              <span class="faq-icon">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>Yes. We don’t clock-watch. If delays happen, your Sakha / Sakhi stays.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question-btn" onclick="toggleFaq(this)">
+              21. What if I need to cancel?
+              <span class="faq-icon">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>Free cancellation up to 4 hours before your slot. No questions, and no guilt. Plans do change. We will try to re-assign your Sakha / Sakhi for another senior who is waiting.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
   
   <script>
     function switchHomeView(viewId, btnEl) {
@@ -411,6 +724,38 @@
       
       document.querySelectorAll('.home-tab').forEach(btn => btn.classList.remove('active'));
       if (btnEl) btnEl.classList.add('active');
+
+      // Scroll smoothly to the top of the tabs view area to prevent scrolling issues or blank spaces
+      const tabsWrapper = document.querySelector('.home-tabs-wrapper');
+      if (tabsWrapper) {
+        tabsWrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function toggleFaq(btnEl) {
+      const item = btnEl.closest('.faq-item');
+      const isActive = item.classList.contains('active');
+      
+      // Close other active FAQs
+      document.querySelectorAll('.faq-item.active').forEach(activeItem => {
+        if (activeItem !== item) {
+          activeItem.classList.remove('active');
+          const ans = activeItem.querySelector('.faq-answer');
+          if (ans) ans.style.maxHeight = null;
+        }
+      });
+      
+      item.classList.toggle('active');
+      const answer = item.querySelector('.faq-answer');
+      if (answer) {
+        if (item.classList.contains('active')) {
+          answer.style.maxHeight = answer.scrollHeight + "px";
+        } else {
+          answer.style.maxHeight = null;
+        }
+      }
     }
   </script>
 
@@ -716,6 +1061,7 @@
       <button class="tab active" onclick="setDashTab('requests')">📋 Requests</button>
       <button class="tab" onclick="setDashTab('calendar')">🗓️ Calendar</button>
       <button class="tab" onclick="setDashTab('gallery')">📸 Gallery</button>
+      <button class="tab" onclick="setDashTab('group-trips')">🚌 Group Yatras</button>
       <button class="tab" onclick="setDashTab('settings')">⚙️ Settings</button>
     </div>
 
@@ -804,6 +1150,42 @@
       </div>
       <div class="media-grid" id="gallery-grid">
         <div class="loading-spinner">Loading photos…</div>
+      </div>
+    </div>
+
+    <!-- ── TAB: GROUP YATRAS ──────────────────────── -->
+    <div id="tab-group-trips" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-weight:700;font-size:18px;margin-bottom:4px">Manage Group Yatras</div>
+          <div style="color:var(--text2);font-size:14px">Propose new group trips and see who has registered interest.</div>
+        </div>
+      </div>
+
+      <div style="background:var(--white); border:1.5px solid var(--border); border-radius:var(--radius-lg); padding:24px; margin-bottom:28px">
+        <div style="font-weight:700; font-size:16px; margin-bottom:16px; color:var(--teal)">🛫 Propose a New Trip</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px">
+          <div>
+            <label class="form-label">Trip Title / Destination</label>
+            <input class="form-input" id="trip-title" placeholder="e.g. Kashi Yatra, Marina Beach Sunrise...">
+          </div>
+          <div>
+            <label class="form-label">Date</label>
+            <input type="date" class="form-input" id="trip-date">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description & Itinerary</label>
+          <textarea class="form-input" id="trip-desc" rows="3" placeholder="Briefly describe the trip, the plan, and any inclusions..."></textarea>
+        </div>
+        <button class="btn btn-teal" id="propose-trip-btn" onclick="proposeGroupTrip()">Propose Group Yatra</button>
+      </div>
+
+      <div id="trip-interests-details" style="display:none"></div>
+
+      <div style="font-weight:700; font-size:16px; margin-bottom:16px;">Active Proposed Trips</div>
+      <div id="dashboard-group-trips-list">
+        <div class="loading-spinner">Loading trips…</div>
       </div>
     </div>
 
@@ -935,9 +1317,47 @@
 
 
 <!-- ════════════════════════════════════════════════════════
-     APP SCRIPTS
+     INTEREST MODAL (Group Yatras)
 ═════════════════════════════════════════════════════════ -->
-<script src="js/app.js?v=4.2"></script>
+<div id="interest-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+  <div style="background:var(--white); width:100%; max-width:500px; border-radius:var(--radius-lg); padding:28px; position:relative; box-shadow:var(--shadow);">
+    <button onclick="closeInterestModal()" style="position:absolute; top:20px; right:20px; background:none; border:none; font-size:20px; cursor:pointer; color:var(--text3);">✗</button>
+    <div style="font-family:var(--font-serif); font-size:22px; font-weight:600; margin-bottom:8px; color:var(--teal)">Register Interest</div>
+    <div style="color:var(--text2); font-size:14px; margin-bottom:20px;">You are expressing interest in joining:<br><strong id="interest-trip-title" style="color:var(--text)"></strong></div>
+    
+    <div class="form-group">
+      <label class="form-label">Your Name</label>
+      <input class="form-input" id="interest-name" placeholder="e.g. Ramesh Kumar">
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+      <div class="form-group">
+        <label class="form-label">Phone Number</label>
+        <input class="form-input" id="interest-phone" type="tel" placeholder="+91...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Number of People</label>
+        <select class="form-input" id="interest-passengers">
+          <option value="1">1 Person</option>
+          <option value="2">2 People</option>
+          <option value="3">3 People</option>
+          <option value="4">4+ People</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Any specific needs or questions?</label>
+      <textarea class="form-input" id="interest-notes" rows="2" placeholder="e.g. Need wheelchair access..."></textarea>
+    </div>
+    <button class="btn btn-teal btn-block" id="interest-submit-btn" onclick="submitTripInterest()">Confirm & Register Interest ✓</button>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+  APP SCRIPTS
+═════════════════════════════════════════════════════════ -->
+<script src="js/storage-config.js"></script>
+<script src="js/app.js?v=4.4"></script>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     // Set today's date in dashboard header
