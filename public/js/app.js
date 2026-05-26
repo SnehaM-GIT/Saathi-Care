@@ -28,7 +28,9 @@ const COLLECTIONS = {
   MEDIA: "media",
   BLOCKED: "blocked_slots",
   GROUP_TRIPS: "group_trips",
-  TRIP_INTERESTS: "trip_interests"
+  TRIP_INTERESTS: "trip_interests",
+  PUBLIC_FEEDBACK: "public_feedback",
+  TRIP_REPORTS: "trip_reports"
 };
 
 // ============================================================
@@ -172,6 +174,19 @@ function injectOwnerTab() {
     ownerTabBtn.innerHTML  = "👑 Applications";
     ownerTabBtn.onclick    = () => setDashTab("owner");
     tabsEl.appendChild(ownerTabBtn);
+    
+    // Also re-render the gallery now that we know they are the owner
+    // so the delete buttons show up.
+    if (State.galleryItems && State.galleryItems.length > 0) {
+      renderGallery();
+    }
+    
+    const feedbackTabBtn = document.createElement("button");
+    feedbackTabBtn.className  = "tab";
+    feedbackTabBtn.id         = "tab-feedback-btn";
+    feedbackTabBtn.innerHTML  = "📝 Reports & Feedback";
+    feedbackTabBtn.onclick    = () => { setDashTab("feedback-reports"); loadOwnerFeedbackData(); };
+    tabsEl.appendChild(feedbackTabBtn);
   }
 
   const dashBody = document.querySelector("#screen-caregiver-dashboard .dash-body");
@@ -187,6 +202,21 @@ function injectOwnerTab() {
       </div>
     `;
     dashBody.appendChild(ownerPanel);
+    
+    const feedbackPanel = document.createElement("div");
+    feedbackPanel.id = "tab-feedback-reports";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.innerHTML = `
+      <div style="margin-bottom:32px">
+        <div style="font-weight:700;font-size:20px;margin-bottom:4px;color:var(--text)">Public Feedback</div>
+        <div id="owner-public-feedback-list"><div class="loading-spinner">Loading...</div></div>
+      </div>
+      <div style="margin-bottom:32px">
+        <div style="font-weight:700;font-size:20px;margin-bottom:4px;color:var(--text)">Caregiver Post-Trip Reports</div>
+        <div id="owner-trip-reports-list"><div class="loading-spinner">Loading...</div></div>
+      </div>
+    `;
+    dashBody.appendChild(feedbackPanel);
   }
 }
 
@@ -401,7 +431,9 @@ function renderCaregiverCards(container, targetDate) {
         }).join("")}
       </div>
       <div class="cg-details" style="padding-top:4px">
-        <div class="cg-bio" style="font-size:12px; color:var(--text3); line-height:1.4">${escHtml(cg.bio || "Companion")}</div>
+        <div class="cg-bio" style="font-size:12px; color:var(--text); line-height:1.4"><strong>About:</strong> ${escHtml(cg.bio || "Companion")}</div>
+        ${cg.langs ? `<div style="font-size:11px; color:var(--text3); margin-top:2px;"><strong>Languages:</strong> ${escHtml(cg.langs)}</div>` : ''}
+        ${cg.interest ? `<div style="font-size:11px; color:var(--text3); margin-top:2px;"><strong>Interests:</strong> ${escHtml(cg.interest)}</div>` : ''}
       </div>
     `;
     container.appendChild(card);
@@ -591,6 +623,8 @@ function renderBookingsList() {
         <div class="req-meta">👤 ${escHtml(b.elder?.name)}</div>
         <div class="req-actions">
           ${b.status === "pending" ? `<button class="btn btn-teal btn-sm" onclick="updateBookingStatus('${b.id}','confirmed')">Accept</button>` : ""}
+          ${b.status === "confirmed" ? `<button class="btn btn-outline btn-sm" onclick="openReportModal('${b.id}')">Finish & Report</button>` : ""}
+          ${b.status === "done" ? `<span class="status-badge status-confirmed" style="font-size:12px;">Completed</span>` : ""}
         </div>
       </div>
     </div>`).join("");
@@ -768,9 +802,22 @@ function renderGallery() {
   const grid = document.getElementById("gallery-grid");
   if (!grid) return;
   grid.innerHTML = State.galleryItems.map(item => `
-    <div class="media-item">
+    <div class="media-item" style="position:relative;">
       <img src="${item.url}" style="width:100%;height:100%;object-fit:cover">
+      ${State.isOwner ? `<button onclick="deleteMedia('${item.id}')" style="position:absolute;top:4px;right:4px;background:red;color:white;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:12px;z-index:10;" title="Delete image">✕</button>` : ''}
     </div>`).join("") + `<div class="upload-btn" onclick="triggerUpload()">+ Add</div>`;
+}
+
+async function deleteMedia(id) {
+  if (!confirm("Are you sure you want to delete this image?")) return;
+  try {
+    await db.collection(COLLECTIONS.MEDIA).doc(id).delete();
+    showToast("Image deleted", "success");
+    await loadGallery();
+  } catch (e) {
+    console.error(e);
+    showToast("Failed to delete image", "error");
+  }
 }
 
 function triggerUpload() { document.getElementById("media-upload-input").click(); }
@@ -819,21 +866,27 @@ async function handleMediaUpload(input) {
 }
 
 async function submitApplication() {
-  const name  = document.getElementById("app-name").value.trim();
-  const email = document.getElementById("app-email").value.trim();
-  const phone = document.getElementById("app-phone").value.trim();
-  const area  = document.getElementById("app-area").value.trim();
-  const langs = document.getElementById("app-langs").value.trim();
-  const bio   = document.getElementById("app-bio").value.trim();
+  const name     = document.getElementById("app-name")?.value.trim();
+  const age      = document.getElementById("app-age")?.value.trim();
+  const phone    = document.getElementById("app-phone")?.value.trim();
+  const email    = document.getElementById("app-email")?.value.trim();
+  const area     = document.getElementById("app-area")?.value.trim();
+  const occ      = document.getElementById("app-occ")?.value.trim();
+  const time     = document.getElementById("app-avail-time")?.value.trim();
+  const freq     = document.getElementById("app-avail-freq")?.value.trim();
+  const langs    = document.getElementById("app-langs")?.value.trim();
+  const interest = document.getElementById("app-interest")?.value.trim();
+  const skills   = document.getElementById("app-skills")?.value.trim();
+  const bio      = document.getElementById("app-bio")?.value.trim();
 
   if (!name || !email || !phone) { showToast("Name, Email and Phone are required", "error"); return; }
   
   const btn = document.getElementById("app-submit-btn");
-  btn.textContent = "Submitting..."; btn.disabled = true;
+  if(btn) { btn.textContent = "Submitting..."; btn.disabled = true; }
 
   try {
     await db.collection("applications").add({
-      name, email, phone, area, langs, bio,
+      name, age, phone, email, area, occ, time, freq, langs, interest, skills, bio,
       status: "pending",
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -841,7 +894,7 @@ async function submitApplication() {
   } catch (e) { 
     showToast("Submission failed", "error"); 
   } finally {
-    btn.textContent = "Submit Application 🙏"; btn.disabled = false;
+    if(btn) { btn.textContent = "Become a Volunteer Sakha/Sakhi 🙏"; btn.disabled = false; }
   }
 }
 
@@ -849,37 +902,168 @@ async function doChangePassword() {
   const newPw = document.getElementById("new-pw").value;
   const confirmPw = document.getElementById("confirm-pw").value;
 
-  if (!newPw || newPw.length < 6) {
-    showToast("Password must be at least 6 characters", "error");
-    return;
-  }
-  if (newPw !== confirmPw) {
-    showToast("Passwords do not match", "error");
-    return;
-  }
+  if (newPw !== confirmPw) { showToast("Passwords don't match", "error"); return; }
+  if (newPw.length < 6) { showToast("Password must be at least 6 characters", "error"); return; }
 
   const btn = document.getElementById("change-pw-btn");
-  btn.textContent = "Updating...";
-  btn.disabled = true;
+  btn.textContent = "Updating..."; btn.disabled = true;
 
   try {
-    const user = auth.currentUser;
-    await user.updatePassword(newPw);
-    showToast("Password updated successfully! ✅", "success");
+    await State.currentUser.updatePassword(newPw);
+    showToast("Password updated successfully!", "success");
     document.getElementById("new-pw").value = "";
     document.getElementById("confirm-pw").value = "";
-  } catch (error) {
-    console.error("Change password error:", error);
-    if (error.code === 'auth/requires-recent-login') {
-      showToast("Please log out and log in again to change password.", "error");
-    } else {
-      showToast(error.message, "error");
-    }
+  } catch (e) {
+    showToast("Failed to update password. You may need to login again.", "error");
   } finally {
-    btn.textContent = "Update Password";
-    btn.disabled = false;
+    btn.textContent = "Update Password"; btn.disabled = false;
   }
 }
+
+// ─────────────────────────────────────────────
+//  FEEDBACK & REPORTS SYSTEM
+// ─────────────────────────────────────────────
+
+function setStarRating(val) {
+  document.getElementById("feedback-rating").value = val;
+  const stars = document.querySelectorAll("#star-rating span");
+  stars.forEach((s, idx) => {
+    s.style.color = idx < val ? "#E8722A" : "#A08C7A";
+    s.innerHTML = idx < val ? "★" : "☆";
+  });
+  document.getElementById("star-rating-label").innerText = val + " Star" + (val > 1 ? "s" : "");
+}
+
+async function submitPublicFeedback() {
+  const name = document.getElementById("feedback-name").value.trim();
+  const rating = parseInt(document.getElementById("feedback-rating").value, 10);
+  const text = document.getElementById("feedback-text").value.trim();
+  
+  if (!name || !text) { showToast("Name and Review are required.", "error"); return; }
+  if (rating === 0 || isNaN(rating)) { showToast("Please select a star rating.", "error"); return; }
+  
+  try {
+    await db.collection(COLLECTIONS.PUBLIC_FEEDBACK).add({
+      name, rating, text,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showToast("Thank you for your feedback!", "success");
+    // Reset form
+    document.getElementById("feedback-name").value = "";
+    document.getElementById("feedback-text").value = "";
+    document.getElementById("feedback-rating").value = "0";
+    document.querySelectorAll("#star-rating span").forEach(s => s.innerHTML = "☆");
+    document.getElementById("star-rating-label").innerText = "Click a star to rate";
+    loadPublicFeedback();
+  } catch (e) {
+    showToast("Error submitting feedback.", "error");
+  }
+}
+
+async function loadPublicFeedback() {
+  const list = document.getElementById("public-feedback-list-home");
+  if (!list) return;
+  try {
+    const snap = await db.collection(COLLECTIONS.PUBLIC_FEEDBACK).orderBy("createdAt", "desc").limit(20).get();
+    const reviews = snap.docs.map(d => d.data());
+    if (reviews.length === 0) {
+      list.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text2);">No reviews yet. Be the first to share your experience!</div>`;
+      return;
+    }
+    list.innerHTML = reviews.map(r => `
+      <div style="background:white; padding:20px; border-radius:8px; border:1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.2s ease;">
+        <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:12px;">
+          <strong style="color:var(--text); font-size:16px;">${escHtml(r.name)}</strong>
+          <span style="font-size:16px; letter-spacing: 2px;">${"⭐".repeat(r.rating || 5)}</span>
+        </div>
+        <p style="color:var(--text2); font-size:14px; margin:0; line-height:1.6; font-style: italic;">"${escHtml(r.text)}"</p>
+      </div>
+    `).join("");
+  } catch (e) {
+    list.innerHTML = `<div class="error-msg" style="grid-column: 1 / -1; text-align: center; padding: 20px; color: var(--text2);">Could not load reviews.</div>`;
+  }
+}
+
+function openReportModal(bookingId) {
+  document.getElementById("report-booking-id").value = bookingId;
+  document.getElementById("report-summary").value = "";
+  document.getElementById("report-notes").value = "";
+  document.getElementById("caregiver-report-modal").style.display = "flex";
+}
+
+function closeReportModal() {
+  document.getElementById("caregiver-report-modal").style.display = "none";
+}
+
+async function submitTripReport() {
+  const bookingId = document.getElementById("report-booking-id").value;
+  const summary = document.getElementById("report-summary").value.trim();
+  const notes = document.getElementById("report-notes").value.trim();
+  
+  if (!summary) { showToast("Trip summary is required.", "error"); return; }
+  
+  const btn = document.getElementById("report-submit-btn");
+  btn.textContent = "Submitting..."; btn.disabled = true;
+  
+  try {
+    await db.collection(COLLECTIONS.TRIP_REPORTS).add({
+      bookingId,
+      caregiverId: State.currentUser.uid,
+      caregiverName: State.caregiverProfile?.name || "Unknown",
+      summary,
+      notes,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    // Mark booking as done
+    await db.collection(COLLECTIONS.BOOKINGS).doc(bookingId).update({ status: "done" });
+    
+    showToast("Report submitted successfully!", "success");
+    closeReportModal();
+    loadBookings();
+  } catch (e) {
+    showToast("Failed to submit report.", "error");
+  } finally {
+    btn.textContent = "Submit Report"; btn.disabled = false;
+  }
+}
+
+async function loadOwnerFeedbackData() {
+  const pubList = document.getElementById("owner-public-feedback-list");
+  const repList = document.getElementById("owner-trip-reports-list");
+  if (!pubList || !repList) return;
+  
+  try {
+    // Load Public
+    const pSnap = await db.collection(COLLECTIONS.PUBLIC_FEEDBACK).orderBy("createdAt", "desc").limit(20).get();
+    const pReviews = pSnap.docs.map(d => d.data());
+    pubList.innerHTML = pReviews.length === 0 ? `<div class="empty-state">No public reviews.</div>` : pReviews.map(r => `
+      <div class="request-card" style="margin-bottom:10px;">
+        <div class="req-body">
+          <div style="font-weight:700;">${escHtml(r.name)} - ${"⭐".repeat(r.rating || 5)}</div>
+          <div style="font-size:14px; color:var(--text2); margin-top:4px;">"${escHtml(r.text)}"</div>
+        </div>
+      </div>
+    `).join("");
+
+    // Load Trip Reports
+    const rSnap = await db.collection(COLLECTIONS.TRIP_REPORTS).orderBy("createdAt", "desc").limit(20).get();
+    const rReports = rSnap.docs.map(d => d.data());
+    repList.innerHTML = rReports.length === 0 ? `<div class="empty-state">No trip reports.</div>` : rReports.map(r => `
+      <div class="request-card" style="margin-bottom:10px;">
+        <div class="req-body">
+          <div style="font-weight:700;">Sakha/Sakhi: ${escHtml(r.caregiverName)}</div>
+          <div style="font-size:14px; color:var(--text2); margin-top:4px;"><strong>Summary:</strong> ${escHtml(r.summary)}</div>
+          <div style="font-size:14px; color:var(--text2); margin-top:4px;"><strong>Notes for Family:</strong> ${escHtml(r.notes || "None")}</div>
+        </div>
+      </div>
+    `).join("");
+  } catch (e) {
+    pubList.innerHTML = `<div class="error-msg">Error loading feedback.</div>`;
+    repList.innerHTML = `<div class="error-msg">Error loading reports.</div>`;
+  }
+}
+
 
 async function loadOwnerDashboard() { loadOwnerPanelData(); }
 async function approveApplication(id, btn) {
@@ -920,11 +1104,15 @@ async function approveApplication(id, btn) {
 
     // 3. Create/Update Caregiver Profile in Firestore
     await db.collection(COLLECTIONS.CAREGIVERS).doc(uid).set({
-      name: appData.name,
-      email: appData.email,
+      name: appData.name || "",
+      email: appData.email || "",
       phone: appData.phone || "",
+      age: appData.age || "",
       area: appData.area || "",
+      occ: appData.occ || "",
       langs: appData.langs || "",
+      interest: appData.interest || "",
+      skills: appData.skills || "",
       bio: appData.bio || "Companion",
       active: true,
       since: new Date().getFullYear(),
@@ -1279,5 +1467,6 @@ for (const [k, v] of Object.entries(GlobalActions)) window[k] = v;
 document.addEventListener("DOMContentLoaded", () => {
   loadPublicGallery();
   loadPublicGroupTrips();
+  loadPublicFeedback();
   console.log("Saathi Unified App v3 Loaded");
 });

@@ -110,6 +110,23 @@ img { max-width: 100%; }
 .toast-success  { background: var(--green); color: white; }
 .toast-error    { background: var(--red); color: white; }
 
+/* ── Dropdown Tabs ───────────────────────────────────────── */
+.dropdown { position: relative; display: inline-block; flex-shrink: 0; }
+.dropdown-content {
+  display: none; position: absolute; background-color: var(--white);
+  min-width: 180px; box-shadow: var(--shadow-lg); z-index: 100;
+  border-radius: 8px; overflow: hidden; top: 100%; left: 0;
+  border: 1px solid var(--border); margin-top: 5px;
+}
+.dropdown-content a {
+  color: var(--text2); padding: 12px 16px; text-decoration: none;
+  display: block; font-family: var(--font); font-size: 14px;
+  font-weight: 600; border-bottom: 1px solid var(--border);
+}
+.dropdown-content a:last-child { border-bottom: none; }
+.dropdown-content a:hover { background-color: var(--warm); color: var(--text); }
+.dropdown:hover .dropdown-content { display: block; }
+
 /* ── Hero ────────────────────────────────────────────────── */
 .hero {
   background: linear-gradient(135deg, #FDF0E2 0%, #FBE9D9 50%, #E8F5F5 100%);
@@ -258,13 +275,31 @@ select.form-input   { appearance: none; background-image: url("data:image/svg+xm
 .dash-header h2 { font-family: var(--font-serif); font-size: 24px; font-weight: 600; }
 .dash-body { padding: 28px; max-width: 980px; margin: 0 auto; width: 100%; flex: 1; }
 
-.tabs { display: flex; gap: 4px; background: var(--warm); border-radius: 100px; padding: 5px; margin-bottom: 30px; width: fit-content; }
+.dash-tabs-wrapper {
+  position: relative;
+  margin-bottom: 30px;
+  max-width: 100%;
+}
+.dash-tabs-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 40px;
+  background: linear-gradient(to right, transparent, var(--cream));
+  pointer-events: none;
+}
+.tabs {
+  display: flex; gap: 4px; background: var(--warm); border-radius: 100px; padding: 5px; width: max-content; min-width: 100%;
+  overflow-x: auto; scrollbar-width: none; padding-right: 40px;
+}
+.tabs::-webkit-scrollbar { display: none; }
 .tab  {
   padding: 9px 22px; border-radius: 100px; font-size: 14px; font-weight: 700;
-  cursor: pointer; color: var(--text2); transition: all 0.2s; border: none;
-  background: transparent; font-family: var(--font);
+  cursor: pointer; color: var(--text2); transition: all 0.2s; border: 1.5px solid transparent;
+  background: transparent; font-family: var(--font); flex-shrink: 0;
 }
-.tab.active { background: var(--white); color: var(--teal); box-shadow: var(--shadow); }
+.tab.active { background: var(--white); color: var(--teal); box-shadow: var(--shadow); border-color: var(--teal-light); }
+.tab:hover:not(.active) { background: var(--white); color: var(--text); }
 
 /* ── Request Cards ───────────────────────────────────────── */
 .request-card {
@@ -407,13 +442,16 @@ select.form-input   { appearance: none; background-image: url("data:image/svg+xm
 
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 640px) {
+  .hide-mobile   { display: none; }
   .hero          { padding: 48px 16px 68px; }
   .section       { padding: 36px 16px; }
   .dash-body     { padding: 18px 16px; }
   .login-card    { padding: 30px 22px; }
   .booking-form  { padding: 22px 18px; }
-  .nav           { padding: 13px 16px; }
-  .nav-actions .btn-ghost { display: none; }
+  .nav           { padding: 10px 12px; gap: 8px; }
+  .nav-actions   { gap: 8px; }
+  .nav-actions .btn { padding: 8px 12px; font-size: 14px; }
+  .logo          { font-size: 18px; }
   .caregiver-grid, .services-grid { grid-template-columns: 1fr; }
   .slot-grid     { grid-template-columns: repeat(3, 1fr); }
   .tabs          { width: 100%; }
@@ -436,35 +474,35 @@ select.form-input   { appearance: none; background-image: url("data:image/svg+xm
   background: var(--white);
   border-bottom: 1px solid var(--border);
   position: sticky;
-  top: 63px; /* Right below the main nav */
+  top: 63px;
   z-index: 90;
   box-shadow: 0 2px 10px rgba(0,0,0,0.03);
 }
 .home-tabs {
   display: flex;
-  gap: 8px;
-  padding: 12px 24px;
+  gap: 4px;
+  padding: 10px 24px;
   max-width: 980px;
   margin: 0 auto;
-  overflow-x: auto;
-  scrollbar-width: none;
+  flex-wrap: wrap; /* allow wrapping if screens are very small */
 }
-.home-tabs::-webkit-scrollbar { display: none; }
 .home-tab {
-  padding: 10px 18px;
+  padding: 9px 16px;
   border-radius: 100px;
-  border: none;
+  border: 1.5px solid transparent;
   background: transparent;
   color: var(--text2);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   font-family: var(--font);
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s;
+  flex-shrink: 0;
 }
-.home-tab:hover { background: var(--warm); color: var(--text); }
-.home-tab.active { background: var(--orange-light); color: var(--orange-dark); box-shadow: 0 0 0 1.5px var(--orange); }
+.home-tab:hover { background: var(--warm); color: var(--text); border-color: var(--border); }
+.home-tab.active { background: var(--orange-light); color: var(--orange-dark); border-color: var(--orange); }
+
 
 /* ── Rich Views & Layouts ────────────────────────────────── */
 .home-view-section {
