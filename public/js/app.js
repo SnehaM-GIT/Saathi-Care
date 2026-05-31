@@ -84,6 +84,47 @@ function showScreen(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   const el = document.getElementById(id);
   if (el) { el.classList.add("active"); window.scrollTo(0, 0); }
+  // Close drawer whenever we navigate to a new screen
+  closeDrawer();
+}
+
+// ─────────────────────────────────────────────
+//  HAMBURGER DRAWER
+// ─────────────────────────────────────────────
+function openDrawer() {
+  document.getElementById("drawer-nav").classList.add("open");
+  document.getElementById("drawer-overlay").classList.add("open");
+  document.getElementById("hamburger-btn").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeDrawer() {
+  const nav = document.getElementById("drawer-nav");
+  const overlay = document.getElementById("drawer-overlay");
+  const btn = document.getElementById("hamburger-btn");
+  if (nav) nav.classList.remove("open");
+  if (overlay) overlay.classList.remove("open");
+  if (btn) btn.classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+function toggleDrawerGroup(headerEl) {
+  headerEl.classList.toggle("expanded");
+  const sub = headerEl.nextElementSibling;
+  if (sub && sub.classList.contains("drawer-sub-menu")) {
+    sub.classList.toggle("open");
+  }
+}
+
+function navigateDrawer(view) {
+  closeDrawer();
+  showScreen("screen-home");
+  // Small delay so drawer close animation completes before content switches
+  setTimeout(() => switchHomeView(view, null), 50);
+  // Highlight active drawer item
+  document.querySelectorAll(".drawer-item").forEach(el => el.classList.remove("active"));
+  const activeItem = document.getElementById("dnav-home");
+  if (view === "main" && activeItem) activeItem.classList.add("active");
 }
 
 function showToast(msg, type = "info") {
@@ -825,34 +866,26 @@ function triggerUpload() { document.getElementById("media-upload-input").click()
 async function handleMediaUpload(input) {
   const file = input.files[0];
   if (!file) return;
-  showToast("Uploading...");
 
-  const cfg = window.STORAGE_CONFIG || {};
-  const cloudName = cfg.CLOUDINARY_CLOUD_NAME;
-  const uploadPreset = cfg.CLOUDINARY_UPLOAD_PRESET;
-
-  if (!cloudName || !uploadPreset) {
-    showToast("Storage not configured. Add your Cloudinary details to js/storage-config.js", "error");
+  if (!State.currentUser) {
+    showToast("You must be logged in to upload", "error");
     return;
   }
 
-  const form = new FormData();
-  form.append('file', file);
-  form.append('upload_preset', uploadPreset);
+  showToast("Uploading to Firebase Storage...");
 
   try {
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
-      method: 'POST',
-      body: form
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error?.message || 'Upload failed');
-    const url = data.secure_url || data.url;
+    const ext = file.name.split('.').pop() || "jpg";
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
+    const storageRef = firebase.storage().ref(`gallery/${State.currentUser.uid}/${fileName}`);
+    
+    await storageRef.put(file);
+    const url = await storageRef.getDownloadURL();
 
     // Save media record in Firestore so gallery reads from the same collection
     await db.collection(COLLECTIONS.MEDIA).add({
       url,
-      uploadedBy: State.currentUser ? State.currentUser.uid : null,
+      uploadedBy: State.currentUser.uid,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
@@ -1216,7 +1249,7 @@ async function loadGroupTrips() {
               </span>
             </div>
             <div class="req-meta" style="margin-top:6px; color:var(--text2)">
-              📅 <strong>${formatDate(t.date)}</strong> &nbsp;·&nbsp; 👤 Proposed by: <strong>${escHtml(t.createdByName || "Accompany")}</strong>
+              📅 <strong>${formatDate(t.date)}${t.endDate && t.endDate !== t.date ? ' to ' + formatDate(t.endDate) : ''}</strong> &nbsp;·&nbsp; 👤 Proposed by: <strong>${escHtml(t.createdByName || "Accompany")}</strong>
             </div>
             <div class="req-meta" style="margin-top:6px; font-size:14px; color:var(--text2); line-height:1.5;">
               ${escHtml(t.description || "")}
@@ -1238,10 +1271,16 @@ async function loadGroupTrips() {
 async function proposeGroupTrip() {
   const title = document.getElementById("trip-title").value.trim();
   const date = document.getElementById("trip-date").value;
+  const endDate = document.getElementById("trip-end-date").value || date;
   const description = document.getElementById("trip-desc").value.trim();
 
   if (!title || !date || !description) {
     showToast("Please fill all fields to propose a trip", "error");
+    return;
+  }
+
+  if (new Date(endDate) < new Date(date)) {
+    showToast("End date cannot be before start date", "error");
     return;
   }
 
@@ -1253,6 +1292,7 @@ async function proposeGroupTrip() {
     const trip = {
       title,
       date,
+      endDate,
       description,
       createdBy: State.currentUser ? State.currentUser.uid : "auto",
       createdByName: State.caregiverProfile ? State.caregiverProfile.name : "Companion",
@@ -1260,11 +1300,35 @@ async function proposeGroupTrip() {
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
-    await db.collection(COLLECTIONS.GROUP_TRIPS).add(trip);
-    showToast("Upcoming Group Yatra proposed successfully! 🎉", "success");
+    const tripRef = await db.collection(COLLECTIONS.GROUP_TRIPS).add(trip);
+
+    // Block the caregiver's schedule for the duration of the trip
+    let currentDate = new Date(date);
+    let stopDate = new Date(endDate);
+    
+    // Safety check against infinite loops
+    if (currentDate <= stopDate) {
+      const batch = db.batch();
+      while (currentDate <= stopDate) {
+        let isoDate = currentDate.toISOString().split('T')[0];
+        const newBlockRef = db.collection(COLLECTIONS.BLOCKED).doc();
+        batch.set(newBlockRef, {
+          caregiverId: State.currentUser.uid,
+          date: isoDate,
+          time: "All Day",
+          reason: `Group Yatra: ${title}`,
+          tripId: tripRef.id,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+      await batch.commit();
+    }
+    showToast("Upcoming Group Yatra proposed & schedule blocked! 🎉", "success");
     
     document.getElementById("trip-title").value = "";
     document.getElementById("trip-date").value = "";
+    document.getElementById("trip-end-date").value = "";
     document.getElementById("trip-desc").value = "";
     
     await loadGroupTrips();
@@ -1282,9 +1346,13 @@ async function deleteGroupTrip(tripId) {
   if (!confirm("Are you sure you want to delete this proposed group trip?")) return;
   try {
     await db.collection(COLLECTIONS.GROUP_TRIPS).doc(tripId).delete();
+    
     const interestsSnap = await db.collection(COLLECTIONS.TRIP_INTERESTS).where("tripId", "==", tripId).get();
+    const blocksSnap = await db.collection(COLLECTIONS.BLOCKED).where("tripId", "==", tripId).get();
+    
     const batch = db.batch();
     interestsSnap.docs.forEach(doc => batch.delete(doc.ref));
+    blocksSnap.docs.forEach(doc => batch.delete(doc.ref));
     await batch.commit();
 
     showToast("Trip deleted", "success");
@@ -1371,7 +1439,7 @@ async function loadPublicGroupTrips() {
         <div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <div style="background:var(--teal-light); color:var(--teal-dark); font-weight:700; font-size:12px; padding:4px 12px; border-radius:100px;">🚌 Group Yatra</div>
-            <div style="font-size:13px; color:var(--text3); font-weight:600;">📅 ${formatDate(t.date)}</div>
+            <div style="font-size:13px; color:var(--text3); font-weight:600;">📅 ${formatDate(t.date)}${t.endDate && t.endDate !== t.date ? ' - ' + formatDate(t.endDate) : ''}</div>
           </div>
           <h4 style="font-family:var(--font-serif); font-size:18px; color:var(--text); font-weight:600; margin-bottom:8px;">${escHtml(t.title)}</h4>
           <p style="font-size:13px; color:var(--text2); line-height:1.5; margin-bottom:14px; min-height:60px;">${escHtml(t.description)}</p>
@@ -1460,7 +1528,10 @@ const GlobalActions = {
   
   // Group Yatras
   loadGroupTrips, proposeGroupTrip, deleteGroupTrip, loadTripInterests, loadPublicGroupTrips,
-  openInterestModal, closeInterestModal, submitTripInterest
+  openInterestModal, closeInterestModal, submitTripInterest,
+
+  // Hamburger Drawer
+  openDrawer, closeDrawer, toggleDrawerGroup, navigateDrawer
 };
 for (const [k, v] of Object.entries(GlobalActions)) window[k] = v;
 
