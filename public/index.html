@@ -41,43 +41,94 @@
   <!-- Side Drawer Navigation -->
   <nav class="drawer-nav" id="drawer-nav" aria-label="Site navigation drawer">
     <div class="drawer-header">
-      <span class="drawer-brand">Accompany</span>
+      <a href="#" onclick="navigateDrawer('main'); return false;" style="display:inline-flex; align-items:center;">
+        <img src="images/logo.png" alt="Accompany" style="height:48px; width:auto; object-fit:contain; display:block;">
+      </a>
       <button class="drawer-close" onclick="closeDrawer()" aria-label="Close menu">&#x2715;</button>
     </div>
 
-    <div class="drawer-section-label">Navigate</div>
-    <a class="drawer-item" id="dnav-home" onclick="navigateDrawer('main')">&#127968; Home</a>
+    <a class="drawer-item" id="dnav-home" onclick="navigateDrawer('main')">HOME</a>
 
-    <div class="drawer-section-label">About Us</div>
     <div class="drawer-group-header" onclick="toggleDrawerGroup(this)">
-      &#128214; Accompany <span class="drawer-arrow">&#8250;</span>
+      ACCOMPANY <span class="drawer-arrow">&#8250;</span>
     </div>
     <div class="drawer-sub-menu">
       <a class="drawer-sub-item" onclick="navigateDrawer('purpose')">Our Purpose</a>
       <a class="drawer-sub-item" onclick="navigateDrawer('value')">Our Value Proposition</a>
       <a class="drawer-sub-item" onclick="navigateDrawer('dharma')">Our Guiding Compass</a>
       <a class="drawer-sub-item" onclick="navigateDrawer('faq')">FAQs</a>
-      <a class="drawer-sub-item" onclick="navigateDrawer('blog')">Blogs</a>
     </div>
 
-    <div class="drawer-section-label">Services</div>
     <div class="drawer-group-header" onclick="toggleDrawerGroup(this)">
-      &#10024; Services &amp; Booking <span class="drawer-arrow">&#8250;</span>
+      SERVICES AND BOOKINGS <span class="drawer-arrow">&#8250;</span>
     </div>
     <div class="drawer-sub-menu">
       <a class="drawer-sub-item" onclick="navigateDrawer('services')">Our Services</a>
       <a class="drawer-sub-item" onclick="navigateDrawer('how')">How It Works</a>
+      <a class="drawer-sub-item" onclick="navigateDrawer('yatras')">Upcoming Yatras</a>
     </div>
 
-    <div class="drawer-section-label">Community</div>
-    <a class="drawer-item" onclick="navigateDrawer('feedback')">&#128172; Testimonials</a>
+    <div class="drawer-group-header" onclick="toggleDrawerGroup(this)">
+      COMMUNITY <span class="drawer-arrow">&#8250;</span>
+    </div>
+    <div class="drawer-sub-menu">
+      <a class="drawer-sub-item"
+        onclick="navigateDrawer('main'); setTimeout(() => document.getElementById('public-feedback-list-home').scrollIntoView(), 100);">Hearts We've Touched ❤️</a>
+      <a class="drawer-sub-item" onclick="navigateDrawer('googlereview')">Leave a Review</a>
+      <a class="drawer-sub-item"
+        onclick="closeDrawer(); showScreen('screen-volunteer'); setVolunteerTab('apply');">Volunteer Circle</a>
+      <a class="drawer-sub-item" onclick="navigateDrawer('blog')">Accompany Diaries</a>
+    </div>
+
+    <div class="drawer-group-header" onclick="toggleDrawerGroup(this)">
+      CONTACT US <span class="drawer-arrow">&#8250;</span>
+    </div>
+    <div class="drawer-sub-menu contact-socials-menu">
+      <a class="drawer-sub-item contact-social-item contact-social-phone" href="tel:+917339339323"
+        style="border: 1px solid var(--teal); border-radius: 6px; padding: 6px 10px; display: inline-block; margin-bottom: 8px;">
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z" />
+        </svg> Phone
+      </a>
+      <a class="drawer-sub-item contact-social-item contact-social-whatsapp" href="https://wa.me/917339339323"
+        target="_blank">
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M12.031 0C5.385 0 0 5.385 0 12.031c0 2.115.548 4.183 1.594 5.998L.15 23.284l5.395-1.415A11.967 11.967 0 0 0 12.031 24c6.645 0 12.031-5.385 12.031-12.031S18.677 0 12.031 0zm6.541 17.135c-.276.778-1.597 1.503-2.195 1.536-.596.033-1.077.26-3.411-.708-2.8-1.162-4.607-4.041-4.743-4.225-.136-.184-1.134-1.507-1.134-2.873 0-1.366.708-2.039.957-2.316.249-.276.544-.346.726-.346.182 0 .363 0 .524.009.167.009.394-.065.596.425.212.513.726 1.771.794 1.908.068.136.113.298.023.48-.09.182-.136.298-.272.457-.136.159-.286.345-.408.481-.136.136-.282.286-.123.562.159.277.708 1.173 1.523 1.898 1.053.935 1.933 1.226 2.213 1.363.281.136.444.113.612-.068.168-.182.726-.84 .918-1.127.193-.286.386-.239.636-.148.249.091 1.58.746 1.852.883.272.136.453.204.521.318.068.113.068.655-.208 1.433z" />
+        </svg> WhatsApp
+      </a>
+      <a class="drawer-sub-item contact-social-item contact-social-mail"
+        onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'"
+        style="cursor:pointer;">
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z" />
+        </svg> Mail ▾
+      </a>
+      <div
+        style="display:none; padding-left: 16px; margin-bottom: 8px; border-left: 2px solid var(--teal); margin-left: 4px;">
+        <a class="drawer-sub-item" style="cursor:pointer;"
+          onclick="window.open('https://mail.google.com/mail/?view=cm&fs=1&to=hello.accompany@gmail.com', '_blank')">Gmail</a>
+        <a class="drawer-sub-item" style="cursor:pointer;"
+          onclick="window.open('https://compose.mail.yahoo.com/?to=hello.accompany@gmail.com', '_blank')">Yahoo</a>
+        <a class="drawer-sub-item" style="cursor:pointer;"
+          onclick="window.open('https://outlook.live.com/mail/0/deeplink/compose?to=hello.accompany@gmail.com', '_blank')">Outlook</a>
+      </div>
+      <a class="drawer-sub-item contact-social-item contact-social-insta" href="#" target="_blank">
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+        </svg> Instagram
+      </a>
+    </div>
 
     <div class="drawer-divider"></div>
+    <!-- HIDDEN: Volunteer Login button — restore when internal login is re-enabled
     <div class="drawer-section-label">Account</div>
     <button class="btn btn-ghost drawer-action-btn"
       onclick="closeDrawer(); showScreen('screen-volunteer'); setVolunteerTab('login');">Volunteer Login</button>
-    <button class="btn btn-primary drawer-action-btn" onclick="closeDrawer(); startBooking();">&#128197; Book a
-      Visit</button>
+    -->
     <div style="height: 32px;"></div>
   </nav>
 
@@ -123,142 +174,79 @@
           <p>We connect caring volunteers with elderly parents so no wish goes unfulfilled &mdash; temple visits,
             hospital check-ups, breakfast outings &amp; more.</p>
           <div class="hero-btns">
+            <!-- HIDDEN: startBooking() previously opened screen-book — restore when self-booking is re-enabled
             <button class="btn btn-primary btn-lg" onclick="startBooking()">Book a Visit</button>
+            -->
+            <button class="btn btn-primary btn-lg" onclick="startBooking()">&#128222; Book via WhatsApp</button>
             <button class="btn btn-outline btn-lg" onclick="scrollToHow()">How It Works &darr;</button>
           </div>
         </div>
       </div>
 
-      <!-- Upcoming Group Yatras (Public View) -->
-      <div style="background:var(--warm);padding:50px 24px; border-bottom:1px solid rgba(0,0,0,0.05)">
-        <div style="max-width:980px;margin:0 auto">
-          <div class="section-title">Upcoming Group Yatras</div>
-          <div class="section-sub">Carefully curated group trips proposed by our Sakhas &amp; Sakhis</div>
-          <div class="services-grid" id="public-group-trips-container"
-            style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
-            <div class="loading-spinner" style="grid-column: 1 / -1;">Loading upcoming trips…</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- How It Works -->
-      <div class="section" id="how-it-works" style="background:var(--white)">
-        <div class="section-title">How Accompany Works</div>
-        <div class="section-sub">Three simple steps to get care for your loved one</div>
-        <div class="hiw-grid">
-          <div class="hiw-step">
-            <div class="hiw-icon">📋</div>
-            <div class="hiw-title">1. Choose a Service</div>
-            <div class="hiw-desc">Select what kind of help your parent needs — from temple visits to hospital
-              appointments.</div>
-          </div>
-          <div class="hiw-step">
-            <div class="hiw-icon">🗓️</div>
-            <div class="hiw-title">2. Pick a Companion</div>
-            <div class="hiw-desc">View available caregivers and their free time slots. Book with who you trust.</div>
-          </div>
-          <div class="hiw-step">
-            <div class="hiw-icon">🤝</div>
-            <div class="hiw-title">3. We Show Up</div>
-            <div class="hiw-desc">Your Companion arrives, spends quality time, and makes sure every need is met with
-              warmth.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Services Preview -->
-      <div style="background:var(--warm);padding:50px 24px">
-        <div style="max-width:980px;margin:0 auto">
-          <div class="section-title">Our Services</div>
-          <div class="section-sub">What your Companion can help with</div>
-          <div class="services-grid">
-            <div class="service-card">
-              <div class="service-icon">🛕</div>
-              <div class="service-name">Temple Visit</div>
-              <div class="service-desc">Accompany for darshan &amp; prayer</div>
-            </div>
-            <div class="service-card">
-              <div class="service-icon">🍽️</div>
-              <div class="service-name">Outing &amp; Meal</div>
-              <div class="service-desc">Breakfast, lunch or evening out</div>
-            </div>
-            <div class="service-card">
-              <div class="service-icon">🏥</div>
-              <div class="service-name">Hospital Visit</div>
-              <div class="service-desc">Checkups, tests &amp; consultations</div>
-            </div>
-            <div class="service-card">
-              <div class="service-icon">🛍️</div>
-              <div class="service-name">Shopping Help</div>
-              <div class="service-desc">Groceries, medicines &amp; more</div>
-            </div>
-            <div class="service-card">
-              <div class="service-icon">💬</div>
-              <div class="service-name">Companionship</div>
-              <div class="service-desc">Conversation, games &amp; company</div>
-            </div>
-            <div class="service-card">
-              <div class="service-icon">✨</div>
-              <div class="service-name">Any Other Wish</div>
-              <div class="service-desc">Describe any specific need</div>
-            </div>
-          </div>
-          <div style="text-align:center;margin-top:32px">
-            <button class="btn btn-primary btn-lg" onclick="startBooking()">Book a Visit Now</button>
-          </div>
-        </div>
-      </div>
-
       <!-- Gallery preview -->
-      <div style="background:var(--teal);padding:54px 24px;text-align:center">
-        <div style="font-family:var(--font-serif);font-size:30px;color:white;font-weight:600;margin-bottom:12px">Moments
+      <div style="background:var(--teal-light);padding:54px 24px;text-align:center">
+        <div
+          style="font-family:var(--font-serif);font-size:30px;color:var(--teal-dark);font-weight:600;margin-bottom:12px">
+          Moments
           of Care</div>
-        <div style="color:rgba(255,255,255,0.8);margin-bottom:32px;font-size:16px">Real visits. Real smiles. Real
+        <div style="color:var(--text2);margin-bottom:32px;font-size:16px">Real visits. Real smiles. Real
           connections.</div>
         <div
           style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;max-width:680px;margin:0 auto"
           id="home-gallery-preview">
           <!-- Images will be injected here via JS -->
-          <div style="grid-column: 1 / -1; color: rgba(255,255,255,0.7)">Loading latest moments...</div>
+          <div style="grid-column: 1 / -1; color: var(--text3)">Loading latest moments...</div>
         </div>
       </div>
 
-      <!-- Reassurance -->
-      <div class="section" style="max-width:780px">
-        <div class="section-title" style="text-align:center">Why families trust Accompany</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;margin-top:28px">
-          <div style="text-align:center">
-            <div style="font-size:36px;margin-bottom:10px">🔒</div>
-            <div style="font-weight:700;font-size:16px;margin-bottom:6px">Verified Companions</div>
-            <div style="color:var(--text2);font-size:14px">Every caregiver is personally known and background-checked.
+      <!-- Quick Actions -->
+      <div style="padding: 40px 24px 0 24px; background:var(--white);">
+        <div style="max-width:1200px; margin:0 auto;">
+          <div class="action-card-grid" style="align-items: stretch;">
+            <div class="action-card"
+              style="display: flex; flex-direction: column; height: auto !important; min-height: 260px; padding-bottom: 24px;">
+              <h4>For Travel</h4>
+              <p style="flex-grow: 1; margin-bottom: 24px;">View upcoming Group Accompany Yatra or Request for a 1:1
+                Accompany Yatra designed specifically for Sr. Citizens.</p>
+              <button class="btn btn-outline" style="width:100%; margin-top:auto;"
+                onclick="navigateDrawer('yatras');">accompany.in/yatra</button>
+            </div>
+            <div class="action-card"
+              style="display: flex; flex-direction: column; height: auto !important; min-height: 260px; padding-bottom: 24px;">
+              <h4>For Daily Companionship</h4>
+              <p style="flex-grow: 1; margin-bottom: 24px;">WhatsApp us at +91-7339339323 and we will assign the perfect
+                Sakha / Sakhi for your loved one.</p>
+              <button class="btn btn-primary" style="width:100%; margin-top:auto;" onclick="startBooking()">&#128222;
+                WhatsApp to Book</button>
+            </div>
+            <div class="action-card"
+              style="display: flex; flex-direction: column; height: auto !important; min-height: 260px; padding-bottom: 24px;">
+              <h4>For Volunteering</h4>
+              <p style="flex-grow: 1; margin-bottom: 24px;">Be a Sakha / Sakhi for couple of hours on a weekday or
+                during
+                the weekends.</p>
+              <button class="btn btn-teal" style="width:100%; margin-top:auto;"
+                onclick="showScreen('screen-volunteer'); setVolunteerTab('apply');">accompany.in/volunteer</button>
             </div>
           </div>
-          <div style="text-align:center">
-            <div style="font-size:36px;margin-bottom:10px">📸</div>
-            <div style="font-weight:700;font-size:16px;margin-bottom:6px">Photo Updates</div>
-            <div style="color:var(--text2);font-size:14px">Caregivers share pictures so families abroad can see their
-              parents happy.</div>
-          </div>
-          <div style="text-align:center">
-            <div style="font-size:36px;margin-bottom:10px">💙</div>
-            <div style="font-weight:700;font-size:16px;margin-bottom:6px">With Warmth</div>
-            <div style="color:var(--text2);font-size:14px">Every Companion brings genuine care to every visit.</div>
-          </div>
         </div>
       </div>
 
-      <!-- Reviews / Testimonials on Home -->
-      <div style="background: var(--cream); padding: 60px 24px;">
-        <div style="max-width: 980px; margin: 0 auto;">
-          <div class="section-title" style="text-align:center;">What Families Say</div>
-          <div class="section-sub" style="text-align:center;">Real stories from families who found comfort through
-            Accompany.</div>
+
+      <!-- Testimonials -->
+      <div style="padding: 0 0 40px 0; background: var(--warm);">
+        <div class="rich-header" style="background: linear-gradient(135deg, #FDF0E2, #E8F5F5);">
+          <h2>Hearts We've Touched ❤️ | From Our Extended Family ❤️</h2>
+          <p class="rich-subtitle">Unfiltered Family Notes</p>
+        </div>
+        <div style="max-width:980px; margin:0 auto; padding: 40px 24px 0 24px;">
           <div id="public-feedback-list-home"
-            style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 32px;">
-            <div class="loading-spinner" style="grid-column: 1 / -1;">Loading reviews...</div>
+            style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap:20px;">
+            <div style="color:var(--text3); text-align:center; grid-column:1/-1;">Loading testimonials...</div>
           </div>
-          <div style="text-align:center; margin-top:32px;">
-            <button class="btn btn-outline" onclick="switchHomeView('feedback', null)">Leave a Review →</button>
+          <div style="text-align: right; margin-top: 40px; padding-top: 20px;">
+            <a href="#" style="font-size: 16px; text-decoration: underline; color: var(--teal); font-weight: 600;"
+              onclick="window.scrollTo({top:0,behavior:'smooth'}); return false;">&#8593; Back to Home Page</a>
           </div>
         </div>
       </div>
@@ -273,7 +261,7 @@
       </div>
 
       <div class="rich-section">
-        <div class="ikigai-card">
+        <div class="ikigai-card highlight-card">
           <p class="lead-text">At Accompany, we believe growing older should mean growing richer - richer in terms of
             experiences, conversations, and joy.</p>
           <p>But very often, the simple logistics of stepping out keep our elders from living their lives fully and
@@ -282,8 +270,7 @@
             sunrise by the beach missed, a music kutcheri or a movie or a dance drama skipped because there's no support
             system - literally, no one to go with!</p>
 
-          <div class="ikigai-highlight"
-            style="display:block; margin-top:28px; padding-top:20px; border-top:1px solid rgba(232,114,42,0.2);">That's
+          <div class="ikigai-highlight" style="display:block; margin-top:28px;">That's
             Accompany - a company in need; indeed ❤️.</div>
         </div>
 
@@ -297,7 +284,7 @@
               style="font-family:var(--font-serif); font-size:20px; font-weight:600; color:var(--text); margin-bottom:10px;">
               We are not cab drivers.</p>
             <p
-              style="font-family:var(--font-serif); font-size:20px; font-weight:600; color:var(--text); margin-bottom:20px;">
+              style="font-family:var(--font-serif); font-size:20px; font-weight:600; color:var(--orange-dark); margin-bottom:20px;">
               We are companions.</p>
             <p class="diff-meta">(Thoughtful, Trustworthy and Present)</p>
 
@@ -306,31 +293,33 @@
               <li>The daughter who holds your hand on a temple step.</li>
               <li>The grandson who waits patiently while you finish shopping.</li>
             </ul>
-            <div class="ikigai-highlight"
-              style="display:block; margin-top:28px; padding-top:20px; border-top:1px solid rgba(232,114,42,0.2);">
+            <div class="ikigai-highlight" style="display:block; margin-top:28px;">
               Our Ikigai* is simple: Restore independence through companionship.
             </div>
             <div style="margin-top:16px; font-size:13px; color:var(--text3); line-height:1.5;">
-              * Ikigai in Japanese means ‘a reason for living’.<br>
-              At Accompany, it's a bit more - ‘a reason for giving’.
+              * Ikigai in Japanese means ‘a reason for living’. At Accompany, it's a bit more - ‘a reason for giving’.
             </div>
           </div>
         </div>
 
-        <div class="section-title" style="margin-top:60px; text-align:center;">Our Value Proposition | Sakhas and Sakhis
+        <div style="text-align: right; margin-top: 40px; padding-top: 20px;">
+          <a href="#" style="font-size: 16px; text-decoration: underline; color: var(--teal); font-weight: 600;"
+            onclick="switchHomeView('value', null); window.scrollTo(0,0); return false;">Click here to see Our Value
+            Proposition</a>
         </div>
-        <p style="text-align:center; color:var(--teal); font-weight:600; cursor:pointer;"
-          onclick="switchHomeView('value', document.querySelectorAll('.home-tab')[1])"></p>
       </div>
     </div>
 
     <!-- Home View: OUR VALUE PROPOSITION -->
     <div id="home-view-value" class="home-view-section" style="display:none">
       <div class="rich-header">
-        <h2>Our Value Proposition | Why Choose Us?</h2>
-        <p class="rich-subtitle">
-          Ensuring safety, reliability, and heartfelt connection for your loved ones.
-        </p>
+        <h2>Our Value Proposition | Sakhas and Sakhis</h2>
+        <h3
+          style="text-align:center; font-family:var(--font-serif); color:var(--text2); font-size:24px; font-weight:600; margin-top:16px;">
+          Why should you choose Accompany?</h3>
+        <h4
+          style="text-align:center; font-family:var(--font); color:var(--text2); font-size:18px; font-weight:500; margin-top:8px; margin-bottom:16px;">
+          What makes it unique for your loved ones?</h4>
       </div>
 
       <div class="rich-section">
@@ -341,7 +330,8 @@
                 style="width:100%; height:220px; object-fit:contain; border-radius:12px; margin-bottom: 8px;">
             </div>
             <div class="vp-card-title">Sakhas &amp; Sakhis</div>
-            <div class="vp-card-desc">Our team is trained in senior sensitivity, safety, and emotional presence. There
+            <div class="vp-card-desc">Our team is trained in senior sensitivity, safety, and
+              emotional presence. There
               is no rush, and they don't look at their watches.</div>
           </div>
           <div class="vp-pastel-card" style="background:#F0F8FF; border-color:#A0C8F5;">
@@ -350,7 +340,8 @@
                 style="width:100%; height:220px; object-fit:contain; border-radius:12px; margin-bottom: 8px;">
             </div>
             <div class="vp-card-title">Verified &amp; Trusted</div>
-            <div class="vp-card-desc">Background-checked Sakhas and Sakhis. Live location sharing with family.
+            <div class="vp-card-desc">Background-checked Sakhas and Sakhis. Live location
+              sharing with family.
               Post-visit updates and pictures filled with memories.</div>
           </div>
           <div class="vp-pastel-card" style="background:#F5FFF0; border-color:#A0D8A0;">
@@ -359,26 +350,26 @@
                 style="width:100%; height:220px; object-fit:contain; border-radius:12px; margin-bottom: 8px;">
             </div>
             <div class="vp-card-title">Flexible &amp; Personal</div>
-            <div class="vp-card-desc">One-time need or weekly routine - it's your call! We connect with you and assign a
+            <div class="vp-card-desc">One-time need or weekly routine - it's your call! We
+              connect with you and assign a
               Sakha or Sakhi that matches your personality, interests and comfort.</div>
           </div>
           <div class="vp-pastel-card" style="background:#FFF5F0; border-color:#F5B0A0;">
             <div class="vp-card-icon vp-card-icon-img">
-              <img src="images/care.png" alt="Beyond Pick and Drop"
+              <img src="images/care.png" alt="Beyond Pick & Drop"
                 style="width:100%; height:220px; object-fit:contain; border-radius:12px; margin-bottom: 8px;">
             </div>
-            <div class="vp-card-title">Beyond Pick and Drop</div>
-            <div class="vp-card-desc">We don’t just pick and drop. We stay. We engage. We ensure you are comfortable,
+            <div class="vp-card-title">Beyond Pick & Drop</div>
+            <div class="vp-card-desc">We don’t just pick and drop. We stay. We engage. We
+              ensure you are comfortable,
               heard, and safe. Your Sakha or Sakhi is with you always - in your taxi, by your side in the queue, holding
               your arm where you need it.</div>
           </div>
         </div>
-
-        <div class="sms-benefits"
-          style="margin-top:40px; display:flex; gap:20px; flex-wrap:wrap; justify-content:center;">
-          <div class="info-bar"> SMS to Family : Peace of mind knowing your loved ones are not alone.🕊️😇</div>
-          <div class="info-bar" style="background:var(--teal-light); color:var(--teal-dark)">💃🕺 SMS to Elderly : Live
-            your life and say "Yes" to freedom again.</div>
+        <div style="text-align: right; margin-top: 40px; padding-top: 20px;">
+          <a href="#" style="font-size: 16px; text-decoration: underline; color: var(--teal); font-weight: 600;"
+            onclick="switchHomeView('dharma', null); window.scrollTo(0,0); return false;">Click here to see Our Guiding
+            Compass</a>
         </div>
       </div>
     </div>
@@ -386,128 +377,199 @@
     <!-- Home View: OUR SERVICES -->
     <div id="home-view-services" class="home-view-section" style="display:none">
       <div class="rich-header" style="background: linear-gradient(135deg, #E8F5F5, #FDF0E2);">
-        <div class="rich-badge">What We Do</div>
-        <h2>Our Service</h2>
-        <p class="rich-subtitle">Accompany provides trusted companions for senior citizens across communities, families,
-          and social circles. Think of us as your extended family member, available when you need someone by your side.
-          While it’s designed specifically to cater to the needs of the elderly, we also welcome requests by exception,
-          if someone could benefit from the services of Accompany.</p>
+
+        <h2>Our Services | What We Do</h2>
+        <p class="rich-subtitle"> Think of us as your extended family member ❤️</p>
       </div>
 
       <div class="rich-section">
-        <div class="ikigai-card" style="text-align:center; margin-bottom:40px;">
-          <p class="lead-text">In the last 5 years, we have travelled alongside and accompanied many of them to not just
+        <div class="ikigai-card highlight-card" style="margin-bottom:40px;">
+          <p style="text-align:justify;">Accompany provides trusted companions for senior citizens across communities,
+            families,
+            and social circles. Think of us as your extended family member, available when you need someone by your
+            side.
+            While it’s designed specifically to cater to the needs of the elderly, we also welcome requests by
+            exception,
+            if someone could benefit from the services of Accompany.</p>
+
+          <div class="ikigai-highlight"
+            style="display:block; margin-top:28px; text-align:justify; font-size:14px; font-weight:500;">In
+            the last 5 years, we have
+            travelled alongside and accompanied many of them to not just
             pilgrimage destinations, but also explored the ‘Incredible India’ from Kanyakumari to Kashmir. Our flagship
             trips include one-day senior citizen special dharshan at Tirupati, Ayodhya, Kashi Rameshwaram Yatra,
             Mathura-Vrindavan-Govardhan, Pandharpur, Jyotirlingas, Shakthi Peethas, Divya Desams, UNESCO World Heritage
             Sites, Wildlife Sanctuaries and many other places. We have also supported them with various other services
-            like local temple visits, walks in the nearby parks, coffee conversations and taking them to hospitals.</p>
+            like local temple visits, walks in the nearby parks, coffee conversations and taking them to hospitals.
+          </div>
         </div>
 
-        <div class="service-category">
-          <div class="cat-header" style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
-            <div class="cat-icon" style="font-size:32px;">🛫</div>
-            <h3 style="font-family:var(--font-serif); font-size:28px;">Travel</h3>
-          </div>
-          <div class="differentiator-grid">
-            <div class="diff-card">
-              <h4 style="color:var(--orange-dark); font-size:18px; margin-bottom:10px;">1:1 Accompany Yatra (Sr.
-                Citizens)</h4>
-              <p style="color:var(--text2); font-size:14px; margin-bottom:16px;">Designed specifically for senior
-                citizens, to support families who want 1:1 care for parents or grandparents on their tirth yatras or
-                vacay to any other destinations. Curated for senior citizens, who love to travel on their dates, at
-                their pace, with undivided attention.</p>
-              <ul class="custom-list">
-                <li><strong>1. Totally Customized :</strong> You choose the place, dates, and duration. Kashi or your
-                  Kuladeivam, Mathura or Mantralayam. Want only one temple per day? Done.</li>
-                <li><strong>2. Dedicated Sakha / Sakhi :</strong> One companion (1:1) travels along from home to home.
-                  Allow them to manage everything - tickets, hotel, food, dharshan queues, meds, wheelchair, and a
-                  helping hand.</li>
+        <div class="service-card highlight-card"
+          style="margin-bottom: 24px; transition: transform 0.2s, box-shadow 0.2s;"
+          onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow-lg)';"
+          onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 20px rgba(232, 114, 42, 0.1)';">
+          <h4
+            style="color:var(--orange); font-size:18px; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+            <span style="font-size:24px">🛫</span> Travel
+          </h4>
+          <div class="differentiator-grid"
+            style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+            <div
+              style="background:rgba(232, 114, 42, 0.05); padding:20px; border-radius:8px; border:1px solid rgba(232, 114, 42, 0.2); text-align:justify;">
+              <h5 style="color:var(--orange-dark); font-size:15px; margin-bottom:8px;">1:1 Accompany Yatra (Sr.
+                Citizens)</h5>
+              <p style="color:var(--text2); font-size:14px; margin-bottom:12px; text-align:justify;">Designed
+                specifically
+                for senior citizens, to support families who want 1:1 care for parents or grandparents on their tirth
+                yatras or vacay to any other destinations. Curated for senior citizens, who love to travel on their
+                dates, at their pace, with undivided attention.</p>
+              <ul class="custom-list" style="text-align:justify; padding: 0;">
+                <li style="margin-bottom: 8px;"><strong>1. Totally Customized :</strong> You choose the place, dates,
+                  and duration. Kashi or your Kuladeivam, Ganga Ghat or Govardhan, Mathura or Mantralayam, Ayodhya or
+                  Annamalaiyaar. Want only one temple per day? Done. Need 5 AM dharshan, followed by rest in the
+                  afternoon? Done.</li>
+                <li style="margin-bottom: 8px;"><strong>2. Dedicated Sakha / Sakhi :</strong> One companion (1:1)
+                  travels along from home to home. Allow them to manage everything - tickets, hotel, food, dharshan
+                  queues, meds, wheelchair, and offer you a helping hand whenever you need.</li>
                 <li><strong>3. Comfort First :</strong> Senior-friendly hotels, ground floor rooms, healthy diet, and
                   extra rest days. Your comfort and health guides the itinerary.</li>
               </ul>
             </div>
-            <div class="diff-card">
-              <h4 style="color:var(--teal-dark); font-size:18px; margin-bottom:10px;">Group Accompany Yatra (Open-2-All)
-              </h4>
-              <p style="color:var(--text2); font-size:14px; margin-bottom:16px;">Designed specifically for anyone who
-                wants to explore ‘Incredible India' in good company. Other than the pilgrimage trips designed for Sr.
-                Citizens, we also travel from Kanyakumari to Kashmir, the forts of Rajasthan, the backwaters of Kerala,
-                the beaches of Andaman and the North-east circuits! Curated Group Trips, open to all ages - solo
-                travelers, friends and families.</p>
-              <div class="ikigai-highlight" style="font-size:16px; margin-top:16px;">If your heart wants to go, we wanna
-                go ❤. Just let us know.</div>
+            <div
+              style="background:rgba(232, 114, 42, 0.05); padding:20px; border-radius:8px; border:1px solid rgba(232, 114, 42, 0.2); text-align:justify;">
+              <h5 style="color:var(--orange-dark); font-size:15px; margin-bottom:8px;">Group Accompany Yatra
+                (Open-2-All)</h5>
+              <p style="color:var(--text2); font-size:14px; margin-bottom:12px; text-align:justify;">Designed
+                specifically
+                for anyone who wants to explore ‘Incredible India' in good company. Other than the pilgrimage trips
+                designed for Sr. Citizens, we also travel from Kanyakumari to Kashmir, the forts of Rajasthan, the
+                backwaters of Kerala, the beaches of Andaman and the North-east circuits! Curated Group Trips, open to
+                all ages - solo travelers, friends and families.</p>
+              <div class="ikigai-highlight"
+                style="font-size:14px; margin-top:16px; display:inline-block; padding: 8px 12px;">If your heart wants to
+                go, we wanna go <span style="color:red;">❤</span>.</div>
             </div>
           </div>
         </div>
 
-        <div class="teal-bar" style="margin:40px 0; justify-content:center; text-align:center;">
-          ✨ Our flagship service is ‘Travel’. However, life doesn't pause between big yatras. It has to move on, and we
-          have you covered under ‘Daily Companionship’
+        <div class="teal-bar" style="margin:40px 0; justify-content:flex-start; text-align:justify; font-weight:bold;">
+          Our flagship service is ‘Travel’. However, life doesn't pause between big yatras. It has to move on, and we
+          have you covered under ‘Daily Companionship’.
         </div>
 
         <div class="services-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
-          <div class="service-card" style="text-align:left;">
+          <div class="service-card highlight-card"
+            style="text-align:justify; display:flex; flex-direction:column; height:100%;">
             <h4
               style="color:var(--orange); font-size:17px; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
               <span style="font-size:24px">🩺</span> Health & Wellness
             </h4>
             <ul class="clean-list">
               <li>Planned Doctor Consultations 🩺</li>
-              <li>Periodic Health Check-ups 🩺</li>
-              <li>Laboratory Tests 🩺</li>
+              <li>Periodic Health Check-ups 🏥</li>
+              <li>Laboratory Tests 🧪</li>
             </ul>
-            <p style="font-size:13px; color:var(--text3); margin-top:12px;">From home to consultation to pharmacy to
+            <p style="font-size:13px; color:var(--text3); margin-top:auto; padding-top:12px; text-align:justify;">From
+              home to
+              consultation to pharmacy to
               home. Sakhi demonstrates patience and care, takes key notes from the doctor, and ensures you understand
               prescriptions.</p>
           </div>
-          <div class="service-card" style="text-align:left;">
+          <div class="service-card highlight-card"
+            style="text-align:justify; display:flex; flex-direction:column; height:100%;">
             <h4
               style="color:var(--orange); font-size:17px; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
               <span style="font-size:24px">🛕</span> Social & Cultural
             </h4>
             <ul class="clean-list">
               <li>Temple Visits 🛕</li>
-              <li>Music Kutchery | Dance Drama</li>
+              <li>Music Kutchery | Dance Drama 🎶</li>
               <li>Art | Photography | Painting Exhibitions 🖼️</li>
             </ul>
-            <p style="font-size:13px; color:var(--text3); margin-top:12px;">Dharshan at Parthasarathy, or Pradosham at
+            <p style="font-size:13px; color:var(--text3); margin-top:auto; padding-top:12px; text-align:justify;">
+              Dharshan at
+              Parthasarathy, or Pradosham at
               Kapaleeshwarar, or divine blessings at your local temple. Your Sakha handles the crowd, queue, and
               prasadam. You focus on prayer 🙏.</p>
           </div>
-          <div class="service-card" style="text-align:left;">
+          <div class="service-card highlight-card"
+            style="text-align:justify; display:flex; flex-direction:column; height:100%;">
             <h4
               style="color:var(--orange); font-size:17px; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-              <span style="font-size:24px">🦋</span> Lifestyle & Leisure
+              <span style="font-size:24px">🌿</span> Lifestyle & Leisure
             </h4>
             <ul class="clean-list">
-              <li>Nature Walks 🦋🌼</li>
+              <li>Nature Walks 🌿🌼</li>
               <li>Beach Visits for Sunrise 🌅</li>
               <li>Lunch or Dinner or Movie Date 🍿🎬</li>
               <li>Shopping Malls - Groceries to Gifts 🛒🛍</li>
             </ul>
-            <p style="font-size:13px; color:var(--text3); margin-top:12px;">Morning or evening walk surrounded by the
+            <p style="font-size:13px; color:var(--text3); margin-top:auto; padding-top:12px; text-align:justify;">
+              Morning or evening walk
+              surrounded by the
               chirps of birds and nature. A movie at Sathyam. Because companionship is not just for needs - it’s for
               joy.</p>
           </div>
-          <div class="service-card" style="text-align:left;">
+          <div class="service-card highlight-card"
+            style="text-align:justify; display:flex; flex-direction:column; height:100%;">
             <h4
               style="color:var(--orange); font-size:17px; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
               <span style="font-size:24px">☕</span> Home Alone
             </h4>
             <ul class="clean-list">
+              <li>Tea Time ☕</li>
               <li>Book reading 📖</li>
-              <li>Chai pe Charcha ☕</li>
-              <li>Play carrom or chess ♟</li>
-              <li>No agenda except presence 🫂</li>
+              <li>Play board games 🎲</li>
+              <li>No agenda except presence ❤️</li>
             </ul>
-            <p style="font-size:13px; color:var(--text3); margin-top:12px;">Let’s bring back the child’s innocence 🧸.
+            <p style="font-size:13px; color:var(--text3); margin-top:auto; padding-top:12px; text-align:justify;">Let’s
+              bring back the
+              child’s innocence 🧸.
             </p>
           </div>
         </div>
 
-        <div style="text-align:center; margin-top:40px;">
-          <button class="btn btn-primary btn-lg" onclick="startBooking()">Book a Companion</button>
+        <div
+          style="text-align:center; margin-top:40px; display:flex; justify-content:center; gap:16px; flex-wrap:wrap;">
+          <a href="tel:+917339339323" class="btn btn-lg"
+            style="text-decoration:none; background:transparent; border:2px solid var(--teal-dark); color:var(--teal-dark); font-weight:700;">📞
+            Call to Book</a>
+          <button class="btn btn-lg"
+            style="display:flex; align-items:center; gap:8px; background:transparent; border:2px solid #25D366; color:#25D366; font-weight:700;"
+            onclick="startBooking()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+              <path
+                d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z" />
+            </svg> WhatsApp to Book
+          </button>
+        </div>
+        <div style="text-align: right; margin-top: 40px; padding-top: 20px;">
+          <a href="#" style="font-size: 16px; text-decoration: underline; color: var(--teal); font-weight: 600;"
+            onclick="switchHomeView('how', null); window.scrollTo(0,0); return false;">Click here to see How It
+            Works</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Home View: YATRAS -->
+    <div id="home-view-yatras" class="home-view-section" style="display:none">
+      <div class="rich-header" style="background: linear-gradient(135deg, #E8F5F5, #FDF0E2);">
+        <h2>Upcoming Yatras | With Accompany</h2>
+        <p class="rich-subtitle">Customized Curated Trips Accompanied by Sakha / Sakhi</p>
+      </div>
+      <div class="rich-section">
+        <div style="background:var(--warm);padding:50px 24px; border-radius:12px; margin-bottom:40px;">
+          <div style="max-width:980px;margin:0 auto">
+            <div class="services-grid" id="public-group-trips-container"
+              style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+              <div class="loading-spinner" style="grid-column: 1 / -1;">Loading upcoming trips…</div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align: right; margin-top: 40px; padding-top: 20px; padding-right: 24px;">
+          <a href="#" style="font-size: 16px; text-decoration: underline; color: var(--teal); font-weight: 600;"
+            onclick="switchHomeView('main', null); setTimeout(() => document.getElementById('public-feedback-list-home').scrollIntoView({behavior: 'smooth'}), 100); return false;">Click
+            here to see Our Testimonials</a>
         </div>
       </div>
     </div>
@@ -515,80 +577,93 @@
     <!-- Home View: HOW IT WORKS -->
     <div id="home-view-how" class="home-view-section" style="display:none">
       <div class="rich-header">
-        <div class="rich-badge">Easy Booking</div>
-        <h2>How Does It Work? | Book in 3 Simple Steps</h2>
-        <p class="rich-subtitle">We’ve made it easy for anyone to book a Sakha or a Sakhi. No apps to download. No tech
-          headaches.</p>
+        <h2>How Does It Work? | Book in 4 Simple Steps</h2>
+        <h1
+          style="text-align:center; font-family:var(--font-serif); color:var(--text); font-size:26px; font-weight:700; margin-top:20px; margin-bottom:8px;">
+          Anyone can book a Sakha or a Sakhi
+        </h1>
+        <h2
+          style="text-align:center; font-family:var(--font-serif); color:var(--text2); font-size:20px; font-weight:600; margin-top:0; margin-bottom:8px;">
+          No apps. No forms. No tech headaches
+        </h2>
+        <h3
+          style="text-align:center; font-family:var(--font); color:var(--teal-dark); font-size:18px; font-weight:600; margin-top:0; margin-bottom:16px;">
+          Just WhatsApp or Call us
+        </h3>
       </div>
 
       <div class="rich-section">
-        <div class="step-card-grid">
-          <div class="step-rich-card">
+        <div class="step-card-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+
+          <!-- Step 1 -->
+          <div
+            style="background:#FFF8F0; border:1.5px solid #F5C9A0; border-radius:var(--radius-lg); padding:28px; display:flex; flex-direction:column; gap:14px;">
             <div class="step-number">1</div>
-            <h3>Fill a Simple Form</h3>
-            <p>Tell us what you need - ‘Your wish is our command’. The form can be filled by:</p>
-            <ul class="clean-list" style="text-align:left; max-width:250px; margin:0 auto; padding-left:10px;">
-              <li><strong>A)</strong> The senior citizen</li>
-              <li><strong>B)</strong> Their children</li>
-              <li><strong>C)</strong> Their family/friend</li>
-            </ul>
-            <p style="font-size:13px; color:var(--text3); margin-top:12px;">We just need basic details like Who, When,
-              Where, and What kind of service.</p>
+            <h3 style="font-size:18px; font-family:var(--font-serif); font-weight:700; color:var(--text); margin:0;">
+              Message
+              or Call Us</h3>
+            <p style="font-size:15px; color:var(--text2); line-height:1.75; text-align:justify; margin:0;">
+              Save our dedicated number: <strong>+91-7339339323</strong>. Tell us what you need &mdash; a doctor visit,
+              airport pickup, or just someone to sit with Uncle / Aunty for an evening. We're here when you need us, and
+              generally respond within 30 minutes.
+            </p>
           </div>
 
-          <div class="step-rich-card">
+          <!-- Step 2 -->
+          <div
+            style="background:#F0F8FF; border:1.5px solid #A0C8F5; border-radius:var(--radius-lg); padding:28px; display:flex; flex-direction:column; gap:14px;">
             <div class="step-number">2</div>
-            <h3>Choose Your Companion</h3>
-            <p>You don’t get assigned a random person. Browse verified profiles of Sakha/ Sakhi. View their bio,
-              interests, languages, trust badges, and reviews.</p>
-            <p style="font-size:13px; color:var(--text3); margin-top:12px;">Check their calendar for free time slots.
-              Choose someone in line with your personality.</p>
+            <h3 style="font-size:18px; font-family:var(--font-serif); font-weight:700; color:var(--text); margin:0;">We
+              Don't
+              Make You Scroll Profiles</h3>
+            <p style="font-size:15px; color:var(--text2); line-height:1.75; text-align:justify; margin:0;">
+              Accompany hand-picks a Sakha or Sakhi based on your loved one's personality, interests, and language.
+              You'll also get to see their bio and trust badges before the visit.
+            </p>
           </div>
 
-          <div class="step-rich-card">
+          <!-- Step 3 -->
+          <div
+            style="background:#F5FFF0; border:1.5px solid #A0D8A0; border-radius:var(--radius-lg); padding:28px; display:flex; flex-direction:column; gap:14px;">
             <div class="step-number">3</div>
-            <h3>Block Date & Experience</h3>
-            <p>Block the date and time in the respective calendar of your chosen Sakha / Sakhi. No task is considered
-              too small.</p>
-            <p style="font-size:13px; color:var(--text3); margin-top:12px;">Choose the experience - travel, doctor
-              visit, sunrise at the beach. Confirm the booking ✅.</p>
+            <h3 style="font-size:18px; font-family:var(--font-serif); font-weight:700; color:var(--text); margin:0;">For
+              Travel &amp; Outings</h3>
+            <p style="font-size:15px; color:var(--text2); line-height:1.75; text-align:justify; margin:0;">
+              Our Sakha / Sakhi visits your home first to meet your parents or grandparents, calls you on video, and
+              plans the travel together. We book tickets, work out a customized itinerary, route, breaks, medicines, and
+              meals &mdash; so everyone feels safe before stepping out. On the day of service, we share the live
+              location of your Sakha / Sakhi with the family.
+            </p>
           </div>
+
+          <!-- Step 4 -->
+          <div
+            style="background:#FFF5F0; border:1.5px solid #F5B0A0; border-radius:var(--radius-lg); padding:28px; display:flex; flex-direction:column; gap:14px;">
+            <div class="step-number">4</div>
+            <h3 style="font-size:18px; font-family:var(--font-serif); font-weight:700; color:var(--text); margin:0;">
+              Confirm
+              &amp; Relax</h3>
+            <p style="font-size:15px; color:var(--text2); line-height:1.75; text-align:justify; margin:0;">
+              Once you say yes, we lock the date. During travel or outing, your Sakha / Sakhi is with them &mdash; in
+              the taxi, in the queue, holding their arm where needed. After the Accompany experience, you'll get a short
+              update: <em>&ldquo;Reached home safely. Amma enjoyed the concert.&rdquo; &#128117;</em> &mdash; along with
+              a photo filled with the moments.
+            </p>
+          </div>
+
         </div>
 
+        <!-- Closing teal highlight -->
         <div class="teal-bar"
-          style="margin:40px auto; max-width:700px; text-align:center; justify-content:center; line-height:1.6; display:block; padding:20px;">
-          We’ll send you the details of Sakha / Sakhi, and share the live location with family, on the day of service.
-          After the Accompany experience, you’ll get a short update: "Reached home safely. Amma enjoyed the concert."
-          👵<br>
-          <strong style="font-size:18px; margin-top:12px; display:block; color:var(--teal-dark)">That’s it!
-            Independence, secured in minutes.</strong>
+          style="margin:40px auto; max-width:700px; text-align:center; justify-content:center; line-height:1.6; display:block; padding:24px;">
+          <strong style="font-size:20px; display:block; color:var(--teal-dark);">That's Accompany. Independence, secured
+            in minutes!</strong>
         </div>
 
-        <div class="action-card-grid" style="align-items: stretch;">
-          <div class="action-card"
-            style="display: flex; flex-direction: column; height: auto !important; min-height: 260px; padding-bottom: 24px;">
-            <h4>For Travel</h4>
-            <p style="flex-grow: 1; margin-bottom: 24px;">View upcoming Group Accompany Yatra or Request for a 1:1
-              Accompany Yatra designed specifically for Sr. Citizens.</p>
-            <button class="btn btn-outline" style="width:100%; margin-top:auto;"
-              onclick="window.location.href='accompany.in/yatra'">accompany.in/yatra</button>
-          </div>
-          <div class="action-card"
-            style="display: flex; flex-direction: column; height: auto !important; min-height: 260px; padding-bottom: 24px;">
-            <h4>For Daily Companionship</h4>
-            <p style="flex-grow: 1; margin-bottom: 24px;">Book a Sakha / Sakhi using the form available on the website
-              or WhatsApp us at +91-7339339323.</p>
-            <button class="btn btn-primary" style="width:100%; margin-top:auto;"
-              onclick="startBooking()">accompany.in/book</button>
-          </div>
-          <div class="action-card"
-            style="display: flex; flex-direction: column; height: auto !important; min-height: 260px; padding-bottom: 24px;">
-            <h4>For Volunteering</h4>
-            <p style="flex-grow: 1; margin-bottom: 24px;">Be a Sakha / Sakhi for couple of hours on a weekday or during
-              the weekends.</p>
-            <button class="btn btn-teal" style="width:100%; margin-top:auto;"
-              onclick="showScreen('screen-volunteer'); setVolunteerTab('apply');">accompany.in/volunteer</button>
-          </div>
+        <div style="text-align: right; margin-top: 40px; padding-top: 20px;">
+          <a href="#" style="font-size: 16px; text-decoration: underline; color: var(--teal); font-weight: 600;"
+            onclick="switchHomeView('yatras', null); window.scrollTo(0,0); return false;">Click here to see our Upcoming
+            Yatras</a>
         </div>
       </div>
     </div>
@@ -598,82 +673,72 @@
       <div class="rich-header" style="background: linear-gradient(135deg, #FDF0E2, #F5EFE6);">
 
         <h2>Our Guiding Compass | Sakha Sakhi Dharma</h2>
-        <p class="rich-subtitle"> Five Tenets that guide every action
+        <p class="rich-subtitle"> Five tenets that guides our daily actions
         </p>
       </div>
 
       <div class="rich-section" style="max-width:1200px;">
-        <div class="dharma-landscape-grid">
-
-          <div class="dharma-tenet-card" style="background:#FFF8F0; border-color:#F5C9A0;">
-            <div class="dharma-tenet-header" style="color:#C05A1A; text-align: center;">UPASTITHI</div>
-            <div class="dharma-tenet-sub" style="text-align: center;">(Presence)</div>
-            <div class="dharma-tenet-body">
-              <p>We're with them, and not for them. We're fully present. Not on a phone, and definitely not with a
-                bigger group! When Amma needs a hand on a temple step, a Sakhi's hand is already hovering. <span
-                  class="dharma-tenet-italic" style="font-size: 15.5px; color:#C05A1A;">You can't outsource love. But,
-                  you can hire
-                  presence.</span></p>
-            </div>
+        <div style="display:flex; flex-direction:column; gap:24px;">
+          <div class="ikigai-card" style="background:#FFF8F0; border-color:#F5C9A0; text-align:left; padding: 30px;">
+            <h3 style="color:#C05A1A; font-size:20px; margin-bottom:12px;">UPASTITHI (Presence)</h3>
+            <p style="text-align:justify; margin:0; line-height:1.7;">We're with them, and not for them. We're fully
+              present. Not on a phone, and definitely not with a
+              bigger group! When Amma needs a hand on a temple step, a Sakhi's hand is already hovering. <span
+                style="font-size: 15.5px; font-weight:600; font-style:italic; color:#C05A1A;">You can't outsource love.
+                But,
+                you can hire
+                presence.</span></p>
           </div>
 
-          <div class="dharma-tenet-card" style="background:#F5F0FF; border-color:#C8A0F5;">
-            <div class="dharma-tenet-header" style="color:#6B3FA8; text-align: center;">DHAIRYA</div>
-            <div class="dharma-tenet-sub" style="text-align: center;">(Patience)</div>
-            <div class="dharma-tenet-body">
-              <p>We match their pace, and do not demand the other way around. One temple is enough, if that's their
-                pace. We don't "cover" yatras. We <em>live</em> them. If Thatha needs to sit, we sit down too! <span
-                  class="dharma-tenet-italic" style="font-size: 15.5px; color:#6B3FA8;">Their comfort decides the plan,
-                  not the plan
-                  decides their comfort.</span></p>
-            </div>
+          <div class="ikigai-card" style="background:#F5F0FF; border-color:#C8A0F5; text-align:left; padding: 30px;">
+            <h3 style="color:#6B3FA8; font-size:20px; margin-bottom:12px;">DHAIRYA (Patience)</h3>
+            <p style="text-align:justify; margin:0; line-height:1.7;">We match their pace, and do not demand the other
+              way around. One temple is enough, if that's their
+              pace. We don't "cover" yatras. We <em>live</em> them. If Thatha needs to sit, we sit down too! <span
+                style="font-size: 15.5px; font-weight:600; font-style:italic; color:#6B3FA8;">Their comfort decides the
+                plan,
+                not the plan
+                decides their comfort.</span></p>
           </div>
 
-          <div class="dharma-tenet-card" style="background:#F0FFF5; border-color:#A0D8B0;">
-            <div class="dharma-tenet-header" style="color:#1A6B3F; text-align: center;">MARYADA</div>
-            <div class="dharma-tenet-sub" style="text-align: center;">(Dignity)</div>
-            <div class="dharma-tenet-body">
-              <p>Absolutely zero tolerance for inappropriate conduct. We have absolute financial boundaries, and we
-                don't cross
-                them. No religious or political preaching. Clean and modest clothing. <span class="dharma-tenet-italic"
-                  style="font-size: 15.5px; color:#1A6B3F;">Respect privacy - what happens on yatra, stays on
-                  yatra.</span></p>
-            </div>
+          <div class="ikigai-card" style="background:#F0FFF5; border-color:#A0D8B0; text-align:left; padding: 30px;">
+            <h3 style="color:#1A6B3F; font-size:20px; margin-bottom:12px;">MARYADA (Dignity)</h3>
+            <p style="text-align:justify; margin:0; line-height:1.7;">Absolutely zero tolerance for inappropriate
+              conduct. We have absolute financial boundaries, and we
+              don't cross
+              them. No religious or political preaching. Clean and modest clothing. <span
+                style="font-size: 15.5px; font-weight:600; font-style:italic; color:#1A6B3F;">Respect privacy - what
+                happens on yatra, stays on
+                yatra.</span></p>
           </div>
 
-          <div class="dharma-tenet-card" style="background:#FFF0F0; border-color:#F5A0A0;">
-            <div class="dharma-tenet-header" style="color:#A82020; text-align: center;">SURAKSHA</div>
-            <div class="dharma-tenet-sub" style="text-align: center;">(Safety)</div>
-            <div class="dharma-tenet-body">
-              <p>Safety of elders is our #1 priority. We act as their physical barrier. We pre-walk every route. We
-                sleep next door during travel. 2 AM emergencies don't hit voicemail, but a human answers the call. <span
-                  class="dharma-tenet-italic" style="font-size: 15.5px; color:#A82020;">Because trust takes time and
-                  effort, and isn't built on
-                  apps.</span></p>
-            </div>
+          <div class="ikigai-card" style="background:#FFF0F0; border-color:#F5A0A0; text-align:left; padding: 30px;">
+            <h3 style="color:#A82020; font-size:20px; margin-bottom:12px;">SURAKSHA (Safety)</h3>
+            <p style="text-align:justify; margin:0; line-height:1.7;">Safety of elders is our #1 priority. We act as
+              their physical barrier. We pre-walk every route. We
+              sleep next door during travel. 2 AM emergencies don't hit voicemail, but a human answers the call. <span
+                style="font-size: 15.5px; font-weight:600; font-style:italic; color:#A82020;">Because trust takes time
+                and
+                effort, and it is not built on
+                apps.</span></p>
           </div>
 
-          <div class="dharma-tenet-card" style="background:#F0F8FF; border-color:#A0C8F0;">
-            <div class="dharma-tenet-header" style="color:#1A4F8A; text-align: center;">SAMBANDH</div>
-            <div class="dharma-tenet-sub" style="text-align: center;">(Relationship)</div>
-            <div class="dharma-tenet-body">
-              <p>We call your parent by name. We remember they take filter coffee with no sugar. We send you the one
-                photo that matters: them, smiling, not in a crowd. <span class="dharma-tenet-italic"
-                  style="font-size: 15.5px; color:#1A4F8A;">We stay by their side, during the entire booking
-                  duration, and do not leave
-                  them alone!</span></p>
-            </div>
+          <div class="ikigai-card" style="background:#F0F8FF; border-color:#A0C8F0; text-align:left; padding: 30px;">
+            <h3 style="color:#1A4F8A; font-size:20px; margin-bottom:12px;">SAMBANDH (Relationship)</h3>
+            <p style="text-align:justify; margin:0; line-height:1.7;">We call your parent by name. We remember they take
+              filter coffee with no sugar. We send you the one
+              photo that matters: them, smiling, not in a crowd. <span
+                style="font-size: 15.5px; font-weight:600; font-style:italic; color:#1A4F8A;">We stay by their side,
+                during the entire booking
+                duration, and do not leave
+                them alone!</span></p>
           </div>
-
         </div>
 
-        <div style="text-align:center; margin-top:50px;">
-          <h3 style="font-family:var(--font-serif); font-size:26px; font-weight:600; margin-bottom:12px;">Become a
-            Volunteer Sakha or Sakhi</h3>
-          <p style="color:var(--text2); font-size:16px; margin-bottom:24px;">Give 3 Hours. Change Someone’s Week
-            Forever.</p>
-          <button class="btn btn-primary btn-lg"
-            onclick="showScreen('screen-volunteer'); setVolunteerTab('apply');">Join the Volunteer Circle</button>
+
+        <div style="text-align: right; margin-top: 40px; padding-top: 20px;">
+          <a href="#" style="font-size: 16px; text-decoration: underline; color: var(--teal); font-weight: 600;"
+            onclick="switchHomeView('faq', null); window.scrollTo(0,0); return false;">Click here to see FAQs</a>
         </div>
       </div>
     </div>
@@ -681,16 +746,50 @@
     <!-- Home View: FAQ -->
     <div id="home-view-faq" class="home-view-section" style="display:none">
       <div class="rich-header" style="background: linear-gradient(135deg, #FDF0E2, #E8F5F5);">
-        <h2>For Anxious Questions (FAQs) | Before you ask, we thought of it</h2>
-        <p class="rich-subtitle">Heart-led and Family-first</p>
+        <h2>For Anxious Questions | (FAQs) </h2>
+        <p class="rich-subtitle">Before you ask, we thought of it</p>
       </div>
 
       <div class="rich-section">
+        <div style="max-width:860px; margin: 0 auto 24px auto;">
+          <input type="text" id="faqSearchInput" onkeyup="filterFaq()" placeholder="🔍 Search FAQs..."
+            style="width: 100%; padding: 14px 20px; font-size: 16px; border: 1.5px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); outline: none; transition: border-color 0.2s;"
+            onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <script>
+          function filterFaq() {
+            var input = document.getElementById('faqSearchInput');
+            var filter = input.value.toUpperCase();
+            var faqContainer = document.querySelector('.faq-category-container');
+            var categories = faqContainer.querySelectorAll('.faq-category-section');
+
+            categories.forEach(function (category) {
+              var items = category.querySelectorAll('.faq-item');
+              var categoryHasVisibleItems = false;
+
+              items.forEach(function (item) {
+                var textValue = item.textContent || item.innerText;
+                if (textValue.toUpperCase().indexOf(filter) > -1) {
+                  item.style.display = "";
+                  categoryHasVisibleItems = true;
+                } else {
+                  item.style.display = "none";
+                }
+              });
+
+              if (categoryHasVisibleItems) {
+                category.style.display = "";
+              } else {
+                category.style.display = "none";
+              }
+            });
+          }
+        </script>
         <div class="faq-category-container">
 
           <!-- Category: General -->
-          <div class="faq-category-section">
-            <h3 class="faq-category-title"><span>🌱</span> General</h3>
+          <div class="faq-category-section" style="background-color: #F0F8FF; border-color: #DDEEFF;">
+            <h3 class="faq-category-title" style="text-transform: uppercase;">GENERAL</h3>
 
             <div class="faq-item">
               <button class="faq-question-btn" onclick="toggleFaq(this)">
@@ -712,7 +811,10 @@
               </button>
               <div class="faq-answer">
                 <p>Our companions are carefully selected individuals, trained in senior sensitivity and safety. Each
-                  profile shows their bio, interests, languages, trust badges, reviews and ratings. Accompany assigns the closest matching Sakha or Sakhi based on personality, interests, and language — so conversations flow naturally and companionship feels genuine, not forced. That way, every visit is meaningful, and every moment together is enjoyable.</p>
+                  profile shows their bio, interests, languages, trust badges, reviews and ratings. Accompany assigns
+                  the closest matching Sakha or Sakhi based on personality, interests, and language — so conversations
+                  flow naturally and companionship feels genuine, not forced. That way, every visit is meaningful, and
+                  every moment together is enjoyable.</p>
               </div>
             </div>
 
@@ -740,7 +842,8 @@
                   <strong>5. Sambandh | Relationship:</strong> They are not transactional. They are your companion for
                   the journey - and often, beyond.
                 </p>
-                <p>We call them Sakha / Sakhi because that’s what they are: A friend or a companion <span style="color:red;">❤</span>.</p>
+                <p>We call them Sakha / Sakhi because that’s what they are: A friend or a companion <span
+                    style="color:red;">❤</span>.</p>
               </div>
             </div>
 
@@ -757,8 +860,8 @@
           </div>
 
           <!-- Category: Booking & Process -->
-          <div class="faq-category-section">
-            <h3 class="faq-category-title"><span>📅</span> Booking & Process</h3>
+          <div class="faq-category-section" style="background-color: #FFF8F0; border-color: #FFEEDD;">
+            <h3 class="faq-category-title" style="text-transform: uppercase;">BOOKING & PROCESS</h3>
 
             <div class="faq-item">
               <button class="faq-question-btn" onclick="toggleFaq(this)">
@@ -769,13 +872,20 @@
                 <p>Just WhatsApp us. We’ll handle the rest. No forms. No logins.</p>
                 <p style="margin-top: 8px;"><strong>Step 1: Message or Call Us</strong><br>
                   Save our dedicated number for Accompany: +91-7339339323<br>
-                  Tell us what you need — a doctor visit, airport pickup, or just someone to sit with Uncle / Aunty for an evening. We’re here when you need us, and generally respond within 30 mins.</p>
-                <p style="margin-top: 8px;"><strong>Step 2: We don’t make you scroll profiles.</strong><br>
-                  Accompany hand-picks a Sakha or Sakhi based on your loved one’s personality, interests, and language. You’ll also get to see their bio, trust badges, reviews and ratings.</p>
-                <p style="margin-top: 8px;"><strong>Step 3: For Travel & Outings —</strong><br>
-                  Our Sakha / Sakhi visits your home first to meet your parents or grandparents, call you on video, and plan the travel together. We work out the custom itinerary — route, breaks, medicines, meals — so everyone feels safe before stepping out.</p>
-                <p style="margin-top: 8px;"><strong>Step 4: Confirm & Relax —</strong><br>
-                  Once you say yes, we lock the date, and share live location with family. During travel or outing, your Sakha/Sakhi is with them — in the taxi, in the queue, holding their arm where needed. And after, you get a photo + update filled with the moments.</p>
+                  Tell us what you need — a doctor visit, airport pickup, or just someone to sit with Uncle / Aunty for
+                  an evening. We’re here when you need us, and generally respond within 30 mins.</p>
+                <p style="margin-top: 8px;"><strong>Step 2: We don’t make you scroll profiles</strong><br>
+                  Accompany hand-picks a Sakha or Sakhi based on your loved one’s personality, interests, and language.
+                  You’ll also get to see their bio, trust badges, reviews and ratings.</p>
+                <p style="margin-top: 8px;"><strong>Step 3: For Travel & Outings</strong><br>
+                  Our Sakha / Sakhi visits your home first to meet your parents or grandparents, call you on video, and
+                  plan the travel together. We book tickets for the outing or travel, work out customized
+                  itinerary, route, breaks, medicines and meals so
+                  everyone feels safe before stepping out.</p>
+                <p style="margin-top: 8px;"><strong>Step 4: Confirm & Relax</strong><br>
+                  Once you say yes, we lock the date, and share live location with family. During travel or outing, your
+                  Sakha/Sakhi is with them — in the taxi, in the queue, holding their arm where needed. And later, you
+                  get a photo + update filled with the moments.</p>
               </div>
             </div>
 
@@ -785,7 +895,9 @@
                 <span class="faq-icon">▼</span>
               </button>
               <div class="faq-answer">
-                <p>Yes. It can be the senior citizens themselves, their children living abroad or in another city, or a family friend or a neighbour. Just call or Whatsapp to +91-7339339323.</p>
+                <p>Yes. It can be booked by senior citizens themselves, their children living abroad or in another city,
+                  or a family friend or a neighbour. Booking is via Call or Whatsapp on <strong>+91-7339339323</strong>.
+                </p>
               </div>
             </div>
 
@@ -833,8 +945,8 @@
           </div>
 
           <!-- Category: Safety & Trust -->
-          <div class="faq-category-section">
-            <h3 class="faq-category-title"><span>🛡️</span> Safety & Trust</h3>
+          <div class="faq-category-section" style="background-color: #F5FFF0; border-color: #DDFFDD;">
+            <h3 class="faq-category-title" style="text-transform: uppercase;">SAFETY & TRUST</h3>
 
             <div class="faq-item">
               <button class="faq-question-btn" onclick="toggleFaq(this)">
@@ -865,7 +977,12 @@
                 <span class="faq-icon">▼</span>
               </button>
               <div class="faq-answer">
-                <p>Medical emergencies can happen, even with the best planning. That’s why we take utmost care before confirming any booking. We first check if your loved one is healthy and fit for the planned visit or travel. During booking, we capture emergency contacts and key medical notes — for example: “Amma has low sugar,” “Dinner by 7:30 PM sharp,” or “Diabetes meds before and after meals.” Your safety is non-negotiable. If an emergency occurs, your Sakha or Sakhi will immediately call the family, and then 108 Ambulance Service if needed. We stay with them, and with you, until help arrives.</p>
+                <p>Medical emergencies can happen, even with the best planning. That’s why we take utmost care before
+                  confirming any booking. We first check if your loved one is healthy and fit for the planned visit or
+                  travel. During booking, we capture emergency contacts and key medical notes — for example: “Amma has
+                  low sugar,” “Dinner by 7:30 PM sharp,” or “Diabetes meds before and after meals.” Your safety is
+                  non-negotiable. If an emergency occurs, your Sakha or Sakhi will immediately call the family, and then
+                  108 Ambulance Service if needed. We stay with them, and with you, until help arrives.</p>
               </div>
             </div>
 
@@ -896,7 +1013,8 @@
               </button>
               <div class="faq-answer">
                 <p>This is why Sakha Dharma exists. You are not alone in an emergency. We provide the first and
-                  immediate response in case of falls, BP or Sugar - spikes or drops. We provide real-time family updates
+                  immediate response in case of falls, BP or Sugar - spikes or drops. We provide real-time family
+                  updates
                   via WhatsApp - “Amma felt dizzy, we’re at the clinic, BP stable, Dr. says take rest.”. We don’t decide
                   “it’s minor”. Any incident means hospital check plus family call.</p>
               </div>
@@ -918,8 +1036,8 @@
           </div>
 
           <!-- Category: Conduct & Character -->
-          <div class="faq-category-section">
-            <h3 class="faq-category-title"><span>🤝</span> Conduct & Character</h3>
+          <div class="faq-category-section" style="background-color: #FFF0F5; border-color: #FFDDFF;">
+            <h3 class="faq-category-title" style="text-transform: uppercase;">CONDUCT & CHARACTER</h3>
 
             <div class="faq-item">
               <button class="faq-question-btn" onclick="toggleFaq(this)">
@@ -990,8 +1108,8 @@
           </div>
 
           <!-- Category: Services & Pricing -->
-          <div class="faq-category-section">
-            <h3 class="faq-category-title"><span>💰</span> Services & Pricing</h3>
+          <div class="faq-category-section" style="background-color: #FFF8DC; border-color: #FFEEDD;">
+            <h3 class="faq-category-title" style="text-transform: uppercase;">SERVICES & PRICING</h3>
 
             <div class="faq-item">
               <button class="faq-question-btn" onclick="toggleFaq(this)">
@@ -1010,7 +1128,8 @@
                 <span class="faq-icon">▼</span>
               </button>
               <div class="faq-answer">
-                <p>Pricing is on an hourly basis, and rates vary based on the service provided. No hidden fees. Call or chat with us via Whatsapp on +91-7339339323.</p>
+                <p>Pricing is on an hourly basis, and rates vary based on the service provided. No hidden fees. Call or
+                  chat with us via Whatsapp on +91-7339339323.</p>
               </div>
             </div>
 
@@ -1020,7 +1139,8 @@
                 <span class="faq-icon">▼</span>
               </button>
               <div class="faq-answer">
-                <p>Yes, if you wish. We understand comfort and cultural preferences matter. Just let us know, and we will try and assign a Sakhi matching your personality and preference.</p>
+                <p>Yes, if you wish. We understand comfort and cultural preferences matter. Just let us know, and we
+                  will try and assign a Sakhi matching your personality and preference.</p>
               </div>
             </div>
 
@@ -1040,48 +1160,46 @@
                 <span class="faq-icon">▼</span>
               </button>
               <div class="faq-answer">
-                <p>No questions, and no guilt. Plans do change. We will try to re-assign your Sakha / Sakhi for another senior who is waiting.</p>
+                <p>No questions, and no guilt. Plans do change. We will try to re-assign your Sakha / Sakhi for another
+                  senior who is waiting.</p>
               </div>
             </div>
           </div>
 
         </div>
+        <div style="font-size: 13px; text-align: center; margin-top: 24px; color: var(--text3);">
+          If there is an anxious question, and you want it featured here, drop us a text on WhatsApp +91 - 7339339323
+        </div>
+        <div style="text-align: right; margin-top: 40px; padding-top: 20px;">
+          <a href="#" style="font-size: 16px; text-decoration: underline; color: var(--teal); font-weight: 600;"
+            onclick="switchHomeView('services', null); window.scrollTo(0,0); return false;">Click here to see Our
+            Services</a>
+        </div>
       </div>
     </div>
 
-    <!-- Home View: FEEDBACK -->
-    <div id="home-view-feedback" class="home-view-section" style="display:none">
+    <!-- Home View: GOOGLE REVIEW -->
+    <div id="home-view-googlereview" class="home-view-section" style="display:none">
       <div class="rich-header">
-        <div class="rich-badge">Leave a Review</div>
-        <h2>Share Your Experience</h2>
-        <p class="rich-subtitle">Your feedback helps us improve and helps other families find the right care.</p>
+        <h2>Your Words Matter to Other Families</h2>
       </div>
-      <div class="rich-section" style="max-width:600px; margin:0 auto;">
-        <div
-          style="background:white; padding:24px; border-radius:12px; border:1px solid var(--border); margin-bottom:40px; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
-          <h3 style="margin-bottom:16px;">Leave Feedback</h3>
-          <div class="form-group">
-            <label class="form-label">Your Name</label>
-            <input type="text" id="feedback-name" class="form-input" placeholder="Enter your name">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Your Rating</label>
-            <div id="star-rating" style="display:flex; gap:8px; font-size:36px; cursor:pointer; margin-bottom:4px;">
-              <span data-val="1" onclick="setStarRating(1)" style="transition:transform 0.1s;">☆</span>
-              <span data-val="2" onclick="setStarRating(2)" style="transition:transform 0.1s;">☆</span>
-              <span data-val="3" onclick="setStarRating(3)" style="transition:transform 0.1s;">☆</span>
-              <span data-val="4" onclick="setStarRating(4)" style="transition:transform 0.1s;">☆</span>
-              <span data-val="5" onclick="setStarRating(5)" style="transition:transform 0.1s;">☆</span>
-            </div>
-            <input type="hidden" id="feedback-rating" value="0">
-            <div id="star-rating-label" style="font-size:13px; color:var(--text3); margin-top:4px;">Click a star to rate
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Review</label>
-            <textarea id="feedback-text" class="form-input" rows="3" placeholder="Share your experience..."></textarea>
-          </div>
-          <button class="btn btn-primary" style="width:100%;" onclick="submitPublicFeedback()">Submit Feedback</button>
+      <div class="rich-section" style="max-width:800px; margin:0 auto; text-align:center;">
+        <div class="ikigai-card highlight-card" style="text-align:left; margin-bottom:32px;">
+          <p style="font-size:17px; line-height:1.8; color:var(--text2);">
+            If a Sakha or Sakhi brought 'presence' to your home, would you share that story? Your Google Review helps
+            another son or daughter abroad breathe easier. It tells them: "You're not alone. Someone will show up for
+            your
+            parents, too." It takes 30 seconds. But for a family still deciding, it means everything. We read every
+            word.
+            We train our Sakhas / Sakhis with your feedback. Thank you 🙏.
+          </p>
+        </div>
+        <div class="teal-bar"
+          style="display:flex; align-items:center; justify-content:center; gap:16px; padding:24px; flex-wrap:wrap;">
+          <span style="font-size:16px; font-weight:600; color:var(--teal-dark);">Share your experience on Google
+            ⭐</span>
+          <button class="btn btn-teal btn-lg" onclick="window.open('#', '_blank')">Share Your Experience on
+            Google</button>
         </div>
       </div>
     </div>
@@ -1089,224 +1207,249 @@
     <!-- Home View: BLOG -->
     <div id="home-view-blog" class="home-view-section" style="display:none">
       <div class="rich-header">
-        <div class="rich-badge">Heartwarming Stories</div>
-        <h2>A Delivery of Presence</h2>
+
+        <h2>Accompany Diaries | Heartwarming Stories</h2>
       </div>
-      <div class="rich-section" style="max-width:700px; margin:0 auto; padding: 0 24px;">
-        <div
-          style="background:white; padding:40px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.05); font-size:16px; line-height:1.8; color:var(--text); font-family:var(--font-serif);">
+      <div class="rich-section" style="max-width:800px; margin:0 auto; padding: 0 24px;">
+        <div class="faq-category-container">
+          <div class="faq-category-section">
+            <div class="diary-post" style="padding: 20px 0; border-bottom: 1.5px solid var(--border);">
+              <h3 style="font-size: 18px; color: var(--teal-dark); margin-bottom: 16px; line-height: 1.5;">Delivery
+                Boy's Presence | Upastithi | 18-Jun-2026 | WhatsApp ⏩</h3>
+              <div style="font-size:15px; line-height:1.7; color:var(--text2); font-family:var(--font-serif);">
+                <p>I am a delivery boy. I mostly work the evening shift.</p>
+                <p>That day, around 9 PM at night, I picked up the last order.<br>When I took the packet from the
+                  restaurant, I noticed—it was a small order, just plain khichdi, curd, and two bananas.</p>
 
-          <p>I am a delivery boy. I mostly work the evening shift.</p>
-          <p>That day, around 9 PM at night, I picked up the last order.<br>When I took the packet from the restaurant,
-            I noticed—it was a small order, just plain khichdi, curd, and two bananas.</p>
-          <p>The address was in the old part of the city.<br>A rundown building. Third floor up.<br>I pressed the
-            doorbell.</p>
+                <button onclick="this.nextElementSibling.style.display='block'; this.style.display='none';"
+                  style="background:none; border:none; color:var(--orange-dark); font-weight:700; cursor:pointer; padding:0; margin-top:8px; font-size:15px; text-decoration:underline;">Read
+                  More...</button>
+                <div style="display:none; margin-top: 16px;">
+                  <p>The address was in the old part of the city.<br>A rundown building. Third floor up.<br>I pressed
+                    the
+                    doorbell.</p>
 
-          <p>An elderly woman opened the door.<br>White hair, trembling hands, thick glasses on her eyes.<br>Her face
-            showed fatigue, but her voice had a sweetness—</p>
+                  <p>An elderly woman opened the door.<br>White hair, trembling hands, thick glasses on her eyes.<br>Her
+                    face
+                    showed fatigue, but her voice had a sweetness—</p>
 
-          <blockquote
-            style="font-style:italic; font-size:18px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
-            "Son, put it inside, please… my hands shake."
-          </blockquote>
+                  <blockquote
+                    style="font-style:italic; font-size:16px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
+                    "Son, put it inside, please… my hands shake."
+                  </blockquote>
 
-          <p>I set the food on the table and turned to leave when she asked—</p>
+                  <p>I set the food on the table and turned to leave when she asked—</p>
 
-          <blockquote
-            style="font-style:italic; font-size:18px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
-            "Will you sit for two minutes?<br>Eating alone doesn't feel good."
-          </blockquote>
+                  <blockquote
+                    style="font-style:italic; font-size:16px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
+                    "Will you sit for two minutes?<br>Eating alone doesn't feel good."
+                  </blockquote>
 
-          <p>I checked my watch.<br>My shift was over.<br>I was a bit tired.<br>But for some reason, I sat down.</p>
+                  <p>I checked my watch.<br>My shift was over.<br>I was a bit tired.<br>But for some reason, I sat down.
+                  </p>
 
-          <p>The room was silent.<br>An old clock ticked on the wall.<br>In one corner, a small picture of God.<br>And
-            on the opposite wall, dozens of photos.</p>
+                  <p>The room was silent.<br>An old clock ticked on the wall.<br>In one corner, a small picture of
+                    God.<br>And
+                    on the opposite wall, dozens of photos.</p>
 
-          <p>She opened the plate.<br>Started eating the khichdi slowly.<br>After every two bites, she'd look at me and
-            smile.</p>
+                  <p>She opened the plate.<br>Started eating the khichdi slowly.<br>After every two bites, she'd look at
+                    me and
+                    smile.</p>
 
-          <p>Then she said—</p>
+                  <p>Then she said—</p>
 
-          <blockquote
-            style="font-style:italic; font-size:18px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
-            "You know, son, I don't order food from outside every day.<br>Today, I just felt like it… to hear a human
-            voice."
-          </blockquote>
+                  <blockquote
+                    style="font-style:italic; font-size:16px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
+                    "You know, son, I don't order food from outside every day.<br>Today, I just felt like it… to hear a
+                    human
+                    voice."
+                  </blockquote>
 
-          <p>I stayed quiet.</p>
-          <p>She pointed to a picture on the wall.</p>
+                  <p>I stayed quiet.</p>
+                  <p>She pointed to a picture on the wall.</p>
 
-          <blockquote
-            style="font-style:italic; font-size:18px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
-            "This is my husband. He worked in the railways.<br>He passed away five years ago."
-          </blockquote>
+                  <blockquote
+                    style="font-style:italic; font-size:16px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
+                    "This is my husband. He worked in the railways.<br>He passed away five years ago."
+                  </blockquote>
 
-          <p>Then another picture—</p>
+                  <p>Then another picture—</p>
 
-          <blockquote
-            style="font-style:italic; font-size:18px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
-            "This is my son. Lives in Canada.<br>He's doing very well… sends money every month."
-          </blockquote>
+                  <blockquote
+                    style="font-style:italic; font-size:16px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
+                    "This is my son. Lives in Canada.<br>He's doing very well… sends money every month."
+                  </blockquote>
 
-          <p>Then she fell silent for a bit.<br>She smiled, but this time her eyes welled up—</p>
+                  <p>Then she fell silent for a bit.<br>She smiled, but this time her eyes welled up—</p>
 
-          <blockquote
-            style="font-style:italic; font-size:18px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
-            "It's just… he doesn't have time to send."
-          </blockquote>
+                  <blockquote
+                    style="font-style:italic; font-size:16px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
+                    "It's just… he doesn't have time to send."
+                  </blockquote>
 
-          <p>Suddenly, the clock's ticking in the room sounded very loud.</p>
-          <p>She took another bite.</p>
+                  <p>Suddenly, the clock's ticking in the room sounded very loud.</p>
+                  <p>She took another bite.</p>
 
-          <blockquote
-            style="font-style:italic; font-size:18px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
-            "This is my daughter. In Bengaluru.<br>She's happy in her own world.<br>She should be.<br>If children don't
-            fly, what was the point of raising them?"
-          </blockquote>
+                  <blockquote
+                    style="font-style:italic; font-size:16px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
+                    "This is my daughter. In Bengaluru.<br>She's happy in her own world.<br>She should be.<br>If
+                    children don't
+                    fly, what was the point of raising them?"
+                  </blockquote>
 
-          <p>As she spoke, her voice cracked.<br>But there was no complaint on her face.<br>Just emptiness.</p>
+                  <p>As she spoke, her voice cracked.<br>But there was no complaint on her face.<br>Just emptiness.</p>
 
-          <p>She asked me—</p>
+                  <p>She asked me—</p>
 
-          <blockquote
-            style="font-style:italic; font-size:18px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
-            "Do you have a mother?"
-          </blockquote>
+                  <blockquote
+                    style="font-style:italic; font-size:16px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
+                    "Do you have a mother?"
+                  </blockquote>
 
-          <p>I said—<br>"Yes."</p>
+                  <p>I said—<br>"Yes."</p>
 
-          <blockquote
-            style="font-style:italic; font-size:18px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
-            "Do you call her every day?"
-          </blockquote>
+                  <blockquote
+                    style="font-style:italic; font-size:16px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
+                    "Do you call her every day?"
+                  </blockquote>
 
-          <p>I went quiet.<br>The truth was, I too went days without calling home.<br>Fatigue, work, the rush…<br>Every
-            time, I'd put it off thinking I'd do it tomorrow.</p>
+                  <p>I went quiet.<br>The truth was, I too went days without calling home.<br>Fatigue, work, the
+                    rush…<br>Every
+                    time, I'd put it off thinking I'd do it tomorrow.</p>
 
-          <p>She read my silence.<br>She said softly—</p>
+                  <p>She read my silence.<br>She said softly—</p>
 
-          <blockquote
-            style="font-style:italic; font-size:18px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
-            "Parents don't count money, son…<br>They count voices."
-          </blockquote>
+                  <blockquote
+                    style="font-style:italic; font-size:16px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
+                    "Parents don't count money, son…<br>They count voices."
+                  </blockquote>
 
-          <p>Something inside me quietly broke.</p>
+                  <p>Something inside me quietly broke.</p>
 
-          <p>The meal ended.<br>She drank some water.<br>Then she took 500 rupees from her purse and held it out to me.
-          </p>
+                  <p>The meal ended.<br>She drank some water.<br>Then she took 500 rupees from her purse and held it out
+                    to me.
+                  </p>
 
-          <blockquote
-            style="font-style:italic; font-size:18px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
-            "This isn't a tip.<br>This is the price for that half hour, when you didn't let me eat alone."
-          </blockquote>
+                  <blockquote
+                    style="font-style:italic; font-size:16px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
+                    "This isn't a tip.<br>This is the price for that half hour, when you didn't let me eat alone."
+                  </blockquote>
 
-          <p>I refused immediately—<br>"No, Amma, I can't take this."</p>
+                  <p>I refused immediately—<br>"No, Amma, I can't take this."</p>
 
-          <p>She smiled—</p>
+                  <p>She smiled—</p>
 
-          <blockquote
-            style="font-style:italic; font-size:18px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
-            "Take it.<br>You didn't deliver food today…<br>You delivered company."
-          </blockquote>
+                  <blockquote
+                    style="font-style:italic; font-size:16px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
+                    "Take it.<br>You didn't deliver food today…<br>You delivered company."
+                  </blockquote>
 
-          <p>I took the money.<br>But I didn't put it in my pocket.<br>I held it in my hand.</p>
+                  <p>I took the money.<br>But I didn't put it in my pocket.<br>I held it in my hand.</p>
 
-          <p>As I was leaving, she said—</p>
+                  <p>As I was leaving, she said—</p>
 
-          <blockquote
-            style="font-style:italic; font-size:18px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
-            "And yes—<br>Go home today and call your mother for sure."
-          </blockquote>
+                  <blockquote
+                    style="font-style:italic; font-size:16px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
+                    "And yes—<br>Go home today and call your mother for sure."
+                  </blockquote>
 
-          <p>That night, I didn't start my bike at the bottom of the building.<br>I called my mother first.</p>
+                  <p>That night, I didn't start my bike at the bottom of the building.<br>I called my mother first.</p>
 
-          <p>From the other end came her voice—</p>
+                  <p>From the other end came her voice—</p>
 
-          <blockquote
-            style="font-style:italic; font-size:18px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
-            "Calling suddenly today? Everything's okay, right?"
-          </blockquote>
+                  <blockquote
+                    style="font-style:italic; font-size:16px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
+                    "Calling suddenly today? Everything's okay, right?"
+                  </blockquote>
 
-          <p>Just hearing that choked me up.</p>
+                  <p>Just hearing that choked me up.</p>
 
-          <p>I said—<br>"Yes, Mom…<br>I just wanted to hear your voice."</p>
+                  <p>I said—<br>"Yes, Mom…<br>I just wanted to hear your voice."</p>
 
-          <p>There was silence for a few seconds on the other end.<br>Then Mom said—</p>
+                  <p>There was silence for a few seconds on the other end.<br>Then Mom said—</p>
 
-          <blockquote
-            style="font-style:italic; font-size:18px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
-            "Have you eaten?"
-          </blockquote>
+                  <blockquote
+                    style="font-style:italic; font-size:16px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
+                    "Have you eaten?"
+                  </blockquote>
 
-          <p>And I stood by the roadside and broke down crying.</p>
+                  <p>And I stood by the roadside and broke down crying.</p>
 
-          <p>After that night, I started calling Mom every day.<br>And not just Mom—<br>Every delivery stopped being
-            just an order for me.</p>
+                  <p>After that night, I started calling Mom every day.<br>And not just Mom—<br>Every delivery stopped
+                    being
+                    just an order for me.</p>
 
-          <p style="font-weight:600; margin:32px 0; padding:16px; background:#f9fbfc; border-radius:8px;">
-            Some homes need medicine.<br>
-            Some homes need relief from loneliness.<br>
-            Some homes need waiting to end.<br>
-            Some homes just need a voice.
-          </p>
+                  <p style="font-weight:600; margin:32px 0; padding:16px; background:#f9fbfc; border-radius:8px;">
+                    Some homes need medicine.<br>
+                    Some homes need relief from loneliness.<br>
+                    Some homes need waiting to end.<br>
+                    Some homes just need a voice.
+                  </p>
 
-          <p>Now, when the door opens, I don't rush.<br>I look at the face.<br>I listen to the voice.<br>Sometimes I
-            ask—<br>"And everything else okay?"</p>
+                  <p>Now, when the door opens, I don't rush.<br>I look at the face.<br>I listen to the
+                    voice.<br>Sometimes I
+                    ask—<br>"And everything else okay?"</p>
 
-          <p>Most people just say "Yes."<br>Some smile.<br>And some faces tell me they haven't spoken to anyone all day.
-          </p>
+                  <p>Most people just say "Yes."<br>Some smile.<br>And some faces tell me they haven't spoken to anyone
+                    all day.
+                  </p>
 
-          <hr style="border:none; border-top:1px solid #ddd; margin:40px 0;">
+                  <hr style="border:none; border-top:1px solid #ddd; margin:40px 0;">
 
-          <p>Two months later, an order came from the same address.<br>I rushed over.</p>
+                  <p>Two months later, an order came from the same address.<br>I rushed over.</p>
 
-          <p>Someone else opened the door.<br>It was the neighbor aunty.</p>
+                  <p>Someone else opened the door.<br>It was the neighbor aunty.</p>
 
-          <p>She said softly—</p>
+                  <p>She said softly—</p>
 
-          <blockquote
-            style="font-style:italic; font-size:18px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
-            "Amma passed away last week."
-          </blockquote>
+                  <blockquote
+                    style="font-style:italic; font-size:16px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0;">
+                    "Amma passed away last week."
+                  </blockquote>
 
-          <p>I stood at the door for a few seconds.<br>My hands were empty, but something heavy had fallen inside me.
-          </p>
+                  <p>I stood at the door for a few seconds.<br>My hands were empty, but something heavy had fallen
+                    inside me.
+                  </p>
 
-          <p>She brought out a small envelope from inside.<br>"She left this for you."</p>
+                  <p>She brought out a small envelope from inside.<br>"She left this for you."</p>
 
-          <p>My hands shaking, I opened it.<br>Inside were 500 rupees.<br>And a small note.</p>
+                  <p>My hands shaking, I opened it.<br>Inside were 500 rupees.<br>And a small note.</p>
 
-          <p>It said—</p>
+                  <p>It said—</p>
 
-          <blockquote
-            style="font-style:italic; font-size:18px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0; background:#fefdf8; padding:16px;">
-            "Son,<br>
-            If you're reading this, I've gone.<br>
-            Thank you for eating with me that night.<br>
-            You didn't give me food—you gave me respect.<br>
-            And yes—keep calling your mother.<br>
-            - Amma"
-          </blockquote>
+                  <blockquote
+                    style="font-style:italic; font-size:16px; color:var(--teal-dark); border-left:4px solid var(--teal); padding-left:16px; margin:24px 0; background:#fefdf8; padding:16px;">
+                    "Son,<br>
+                    If you're reading this, I've gone.<br>
+                    Thank you for eating with me that night.<br>
+                    You didn't give me food—you gave me respect.<br>
+                    And yes—keep calling your mother.<br>
+                    - Amma"
+                  </blockquote>
 
-          <p>Even today, those 500 rupees are in the inner pocket of my bag.<br>I haven't spent them.</p>
+                  <p>Even today, those 500 rupees are in the inner pocket of my bag.<br>I haven't spent them.</p>
 
-          <p>Because that night, I understood for the first time—</p>
+                  <p>Because that night, I understood for the first time—</p>
 
-          <p style="font-weight:600; font-size:18px; line-height:1.6; margin-top:32px; color:var(--teal-dark);">
-            Behind every door isn't just a customer.<br>
-            Sometimes it's a mother.<br>
-            Sometimes it's a wait.<br>
-            Sometimes it's a last conversation.
-          </p>
+                  <p style="font-weight:600; font-size:16px; line-height:1.6; margin-top:32px; color:var(--teal-dark);">
+                    Behind every door isn't just a customer.<br>
+                    Sometimes it's a mother.<br>
+                    Sometimes it's a wait.<br>
+                    Sometimes it's a last conversation.
+                  </p>
 
-          <p style="font-weight:600; font-size:18px; line-height:1.6; margin-top:16px; color:var(--teal-dark);">
-            We're all living with our own hungers—<br>
-            Some need bread,<br>
-            Some need medicine,<br>
-            And some just need two minutes of company.<br>
-            Humans don't always need a delivery of money—<br>
-            Sometimes, they just need a delivery of presence.
-          </p>
+                  <p style="font-weight:600; font-size:16px; line-height:1.6; margin-top:16px; color:var(--teal-dark);">
+                    We're all living with our own hungers—<br>
+                    Some need bread,<br>
+                    Some need medicine,<br>
+                    And some just need two minutes of company.<br>
+                    Humans don't always need a delivery of money—<br>
+                    Sometimes, they just need a delivery of presence.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1411,10 +1554,10 @@
   </div>
 
 
-  <!-- ════════════════════════════════════════════════════════
-     SCREEN: PHONE OTP — Family verifies number before booking
+  <!-- ═══════════════════════════════════════════════════════
+     SCREEN: PHONE OTP — HIDDEN: restore when OTP/login flow is re-enabled
      Created accounts let families see their past visits.
-═════════════════════════════════════════════════════════ -->
+  ═══════════════════════════════════════════════════════════
   <div class="screen" id="screen-phone-otp">
     <nav class="nav">
       <a class="logo" href="#" onclick="showScreen('screen-home');return false">
@@ -1422,265 +1565,22 @@
       </a>
       <button class="btn btn-ghost btn-sm" onclick="showScreen('screen-home')">← Back</button>
     </nav>
-
   </div>
+  -->
 
 
-  <!-- ════════════════════════════════════════════════════════
-     SCREEN 2: BOOKING FLOW
-═════════════════════════════════════════════════════════ -->
+  <!-- ═══════════════════════════════════════════════════════
+     SCREEN 2: BOOKING FLOW — HIDDEN: restore when self-booking is re-enabled
+  ═══════════════════════════════════════════════════════════
   <div class="screen" id="screen-book">
-    <nav class="nav">
-      <a class="logo" href="#" onclick="showScreen('screen-home');return false">
-        <div class="logo-icon">A</div>Accompany
-      </a>
-      <button class="btn btn-ghost btn-sm" onclick="showScreen('screen-home')">← Back to Home</button>
-    </nav>
-
-    <div class="section">
-      <div style="margin-bottom:30px">
-        <div style="font-family:var(--font-serif);font-size:28px;font-weight:600;margin-bottom:6px">Book a Visit</div>
-        <div style="color:var(--text2);font-size:15px">For families abroad or elders booking directly</div>
-      </div>
-
-      <!-- Step indicators -->
-      <div class="steps" id="booking-steps">
-        <div class="step">
-          <div class="step-num active" id="step1-num">1</div><span class="step-label active"
-            id="step1-lbl">Service</span>
-        </div>
-        <div class="step-line" id="line1"></div>
-        <div class="step">
-          <div class="step-num" id="step2-num">2</div><span class="step-label" id="step2-lbl">Caregiver</span>
-        </div>
-        <div class="step-line" id="line2"></div>
-        <div class="step">
-          <div class="step-num" id="step3-num">3</div><span class="step-label" id="step3-lbl">Details</span>
-        </div>
-        <div class="step-line" id="line3"></div>
-        <div class="step">
-          <div class="step-num" id="step4-num">4</div><span class="step-label" id="step4-lbl">Confirm</span>
-        </div>
-      </div>
-
-      <!-- ── STEP 1: SERVICE SELECTION ─────────────── -->
-      <div id="booking-step1">
-        <div style="font-family:var(--font-serif);font-size:22px;font-weight:600;margin-bottom:6px">What kind of help is
-          needed?</div>
-        <div style="color:var(--text2);font-size:15px;margin-bottom:22px">You can select more than one.</div>
-        <div class="services-grid" id="service-select">
-          <div class="service-card" onclick="toggleService(this,'Temple Visit')">
-            <div class="service-icon">🛕</div>
-            <div class="service-name">Temple Visit</div>
-            <div class="service-desc">Accompany for darshan &amp; prayer</div>
-          </div>
-          <div class="service-card" onclick="toggleService(this,'Outing &amp; Meal')">
-            <div class="service-icon">🍽️</div>
-            <div class="service-name">Outing &amp; Meal</div>
-            <div class="service-desc">Breakfast, lunch or evening out</div>
-          </div>
-          <div class="service-card" onclick="toggleService(this,'Hospital Visit')">
-            <div class="service-icon">🏥</div>
-            <div class="service-name">Hospital Visit</div>
-            <div class="service-desc">Checkups, tests &amp; consultations</div>
-          </div>
-          <div class="service-card" onclick="toggleService(this,'Shopping Help')">
-            <div class="service-icon">🛍️</div>
-            <div class="service-name">Shopping Help</div>
-            <div class="service-desc">Groceries, medicines &amp; more</div>
-          </div>
-          <div class="service-card" onclick="toggleService(this,'Companionship')">
-            <div class="service-icon">💬</div>
-            <div class="service-name">Companionship</div>
-            <div class="service-desc">Conversation, games &amp; company</div>
-          </div>
-          <div class="service-card" onclick="toggleService(this,'Other')">
-            <div class="service-icon">✨</div>
-            <div class="service-name">Other</div>
-            <div class="service-desc">Any specific request</div>
-          </div>
-        </div>
-        <div id="other-desc-wrap" style="display:none;margin-top:18px">
-          <label class="form-label">Please describe the request</label>
-          <textarea class="form-input" id="other-desc"
-            placeholder="e.g. Help my mother water her plants and sit with her for a couple of hours..."></textarea>
-        </div>
-        <button class="btn btn-primary" style="margin-top:28px;font-size:17px;padding:14px 32px"
-          onclick="goStep(2)">Next: Choose Caregiver →</button>
-        <!-- Past visits panel injected here by renderFamilyPastBookings() after OTP verify -->
-      </div>
-
-      <!-- ── STEP 2: CAREGIVER SELECTION ───────────── -->
-      <div id="booking-step2" style="display:none">
-        <div style="font-family:var(--font-serif);font-size:22px;font-weight:600;margin-bottom:6px">Choose a Companion
-          &amp; Time</div>
-        <div style="color:var(--text2);font-size:15px;margin-bottom:16px">Pick a date first, then choose a caregiver and
-          available slot.</div>
-
-        <!-- Date picker — onchange reloads caregivers for that date -->
-        <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap">
-          <div>
-            <label class="form-label" style="margin-bottom:6px">Visit Date</label>
-            <input class="form-input" id="book-date" type="date" style="font-size:16px;width:auto"
-              onchange="loadCaregivers(this.value)">
-          </div>
-          <div style="padding-top:28px;color:var(--text3);font-size:13px">
-            ← Change date to see availability
-          </div>
-        </div>
-
-        <!-- Duration selector -->
-        <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap">
-          <div>
-            <label class="form-label" style="margin-bottom:6px">Duration (hours)</label>
-            <select class="form-input" id="book-duration" style="font-size:16px;width:auto;min-width:120px"
-              onchange="onDurationChange()">
-              <option value="2">2 hours</option>
-              <option value="4">4 hours</option>
-              <option value="6">6 hours</option>
-              <option value="8">8 hours</option>
-              <option value="10">10 hours</option>
-              <option value="12">Full day (12 hours)</option>
-            </select>
-          </div>
-          <div style="padding-top:28px;color:var(--text3);font-size:13px">
-            ⏱ Consecutive slots will be blocked based on duration
-          </div>
-        </div>
-
-        <div class="assign-banner">
-          <div style="font-size:26px">✨</div>
-          <div style="font-size:15px;color:var(--teal);font-weight:600">We'll auto-assign the best available Companion —
-            or pick one below.</div>
-        </div>
-        <div class="caregiver-grid" id="caregiver-grid">
-          <div class="loading-spinner">Loading caregivers…</div>
-        </div>
-        <div style="display:flex;gap:12px;margin-top:26px;flex-wrap:wrap">
-          <button class="btn btn-ghost" onclick="goStep(1)">← Back</button>
-          <button class="btn btn-primary" style="font-size:17px;padding:14px 32px" onclick="goStep(3)">Next: Your
-            Details →</button>
-        </div>
-      </div>
-
-      <!-- ── STEP 3: ELDER DETAILS ──────────────────── -->
-      <div id="booking-step3" style="display:none">
-        <div class="booking-form">
-          <div style="font-family:var(--font-serif);font-size:22px;font-weight:600;margin-bottom:22px">Elder's Details
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="elder-name">Elder's Full Name *</label>
-            <input class="form-input" id="elder-name" placeholder="e.g. Kamala Subramaniam" autocomplete="name"
-              style="font-size:18px">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="elder-phone">Elder's Phone Number *</label>
-            <input class="form-input" id="elder-phone" type="tel" placeholder="+91 98765 43210" autocomplete="tel"
-              style="font-size:18px">
-            <div class="auto-fill-note">📱 Auto-filled if you verified your number — please confirm it's correct</div>
-          </div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-            <div class="form-group">
-              <label class="form-label" for="elder-age">Age</label>
-              <input class="form-input" id="elder-age" type="number" min="50" max="120" placeholder="e.g. 72"
-                style="font-size:18px">
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="book-date-step3">Preferred Date *</label>
-              <input class="form-input" id="book-date-step3" type="date" style="font-size:16px" readonly
-                onclick="goStep(2)" title="Go back to Step 2 to change date">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="elder-address">Address / Location</label>
-            <input class="form-input" id="elder-address" placeholder="Street, landmark, area..."
-              autocomplete="street-address">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Who is booking?</label>
-            <div class="radio-group">
-              <div class="radio-btn active" onclick="setBooker(this,'Son/Daughter (abroad)')">Son/Daughter (abroad)
-              </div>
-              <div class="radio-btn" onclick="setBooker(this,'Self (elder)')">Self (elder)</div>
-              <div class="radio-btn" onclick="setBooker(this,'Other family')">Other family</div>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="booker-name">Your Name (person booking)</label>
-            <input class="form-input" id="booker-name" placeholder="Your name" autocomplete="name">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="booker-phone">Your Phone (for caregiver to reach you)</label>
-            <input class="form-input" id="booker-phone" type="tel" placeholder="+91 or country code..."
-              autocomplete="tel">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="elder-notes">Any special notes for the Companion?</label>
-            <textarea class="form-input" id="elder-notes"
-              placeholder="e.g. She needs a wheelchair. He prefers a female companion..."></textarea>
-          </div>
-
-          <div style="display:flex;gap:12px;flex-wrap:wrap">
-            <button class="btn btn-ghost" onclick="goStep(2)">← Back</button>
-            <button class="btn btn-primary" style="font-size:17px;padding:14px 32px" onclick="goStep(4)">Review Booking
-              →</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── STEP 4: CONFIRM ────────────────────────── -->
-      <div id="booking-step4" style="display:none">
-        <div style="max-width:580px">
-          <div style="font-family:var(--font-serif);font-size:22px;font-weight:600;margin-bottom:20px">Review &amp;
-            Confirm</div>
-          <div class="summary-card">
-            <div style="font-weight:700;font-size:16px;color:var(--text);margin-bottom:16px">Booking Summary</div>
-            <div class="summary-row"><span class="summary-label">Service(s)</span><span class="summary-val"
-                id="sum-service">—</span></div>
-            <div class="summary-row"><span class="summary-label">Companion</span><span class="summary-val"
-                id="sum-caregiver">—</span></div>
-            <div class="summary-row"><span class="summary-label">Date &amp; Time</span><span class="summary-val"
-                id="sum-slot">—</span></div>
-            <div class="summary-row"><span class="summary-label">Elder's Name</span><span class="summary-val"
-                id="sum-elder">—</span></div>
-            <div class="summary-row"><span class="summary-label">Elder's Phone</span><span class="summary-val"
-                id="sum-phone">—</span></div>
-            <div class="summary-row"><span class="summary-label">Age</span><span class="summary-val"
-                id="sum-age">—</span></div>
-            <div class="summary-row"><span class="summary-label">Location</span><span class="summary-val"
-                id="sum-address">—</span></div>
-            <div class="summary-row"><span class="summary-label">Booked by</span><span class="summary-val"
-                id="sum-booker">—</span></div>
-            <div class="summary-row"><span class="summary-label">Notes</span><span class="summary-val"
-                id="sum-notes">—</span></div>
-          </div>
-
-          <div class="teal-bar" style="margin-bottom:22px">
-            ℹ️ Your Companion will call to confirm the visit within 30 minutes. For questions: hello@accompany.in
-          </div>
-
-          <div style="display:flex;gap:12px;flex-wrap:wrap">
-            <button class="btn btn-ghost" onclick="goStep(3)">← Edit Details</button>
-            <button class="btn btn-primary btn-lg" id="confirm-btn" onclick="confirmBooking()">Confirm Booking
-              ✓</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    ... (full booking flow preserved below for restoration) ...
   </div>
+  -->
 
 
-  <!-- ════════════════════════════════════════════════════════
-     SCREEN 3: BOOKING SUCCESS
-═════════════════════════════════════════════════════════ -->
+  <!-- ═══════════════════════════════════════════════════════
+     SCREEN 3: BOOKING SUCCESS — HIDDEN: restore when self-booking is re-enabled
+  ═══════════════════════════════════════════════════════════
   <div class="screen" id="screen-success">
     <nav class="nav">
       <a class="logo" href="#" onclick="showScreen('screen-home');return false">
@@ -1709,6 +1609,7 @@
       </div>
     </div>
   </div>
+  -->
 
 
   <!-- ════════════════════════════════════════════════════════
@@ -1945,13 +1846,28 @@
 
     <div class="dash-body">
       <!-- Tabs (owner tab injected here dynamically if owner logs in) -->
-      <div class="dash-tabs-wrapper">
-        <div class="tabs">
-          <button class="tab active" onclick="setDashTab('requests')">📋 Requests</button>
-          <button class="tab" onclick="setDashTab('calendar')">🗓️ Calendar</button>
-          <button class="tab" onclick="setDashTab('gallery')">📸 Gallery</button>
-          <button class="tab" onclick="setDashTab('group-trips')">🚌 Group Yatras</button>
-          <button class="tab" onclick="setDashTab('settings')">⚙️ Settings</button>
+      <div class="dash-tabs-wrapper" style="position: relative; margin-bottom: 20px;">
+        <button id="dash-nav-toggle" onclick="document.getElementById('dash-nav-menu').classList.toggle('open')"
+          style="display: flex; align-items: center; justify-content: space-between; width: 100%; background: white; border: 1.5px solid var(--border); padding: 12px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; color: var(--text);">
+          <span>☰ Dashboard Menu</span>
+          <span style="font-size: 12px;">▼</span>
+        </button>
+        <div id="dash-nav-menu" class="tabs">
+          <button class="tab active"
+            onclick="setDashTab('requests'); document.getElementById('dash-nav-menu').classList.remove('open')">📋
+            Requests</button>
+          <button class="tab"
+            onclick="setDashTab('calendar'); document.getElementById('dash-nav-menu').classList.remove('open')">🗓️
+            Calendar</button>
+          <button class="tab"
+            onclick="setDashTab('gallery'); document.getElementById('dash-nav-menu').classList.remove('open')">📸
+            Gallery</button>
+          <button class="tab"
+            onclick="setDashTab('group-trips'); document.getElementById('dash-nav-menu').classList.remove('open')">🚌
+            Group Yatras</button>
+          <button class="tab"
+            onclick="setDashTab('settings'); document.getElementById('dash-nav-menu').classList.remove('open')">⚙️
+            Settings</button>
         </div>
       </div>
 
@@ -2292,11 +2208,15 @@
       }
     });
 
-    // startBooking: go straight to booking (OTP bypassed to avoid billing)
+    // startBooking: redirects to WhatsApp for booking
+    // HIDDEN: previous self-booking flow opened screen-book — restore below when re-enabling
+    // function startBookingOLD() {
+    //   const dateVal = document.getElementById("book-date")?.value;
+    //   showScreen("screen-book");
+    //   if (typeof loadCaregivers === "function") loadCaregivers(dateVal);
+    // }
     function startBooking() {
-      const dateVal = document.getElementById("book-date")?.value;
-      showScreen("screen-book");
-      if (typeof loadCaregivers === "function") loadCaregivers(dateVal);
+      window.open('https://wa.me/917339339323?text=Hi%2C%20I%20would%20like%20to%20book%20a%20Sakha%20%2F%20Sakhi%20for%20my%20loved%20one.', '_blank');
     }
   </script>
 

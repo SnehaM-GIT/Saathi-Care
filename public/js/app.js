@@ -65,7 +65,6 @@ const State = {
 
 const OWNER_EMAILS = [
   "snehatest29@gmail.com",
-  "snehstest29@gmail.com", // Handle common typo
   "owner2@saathicare.in"
 ];
 
@@ -213,7 +212,7 @@ function injectOwnerTab() {
     ownerTabBtn.className  = "tab";
     ownerTabBtn.id         = "tab-owner-btn";
     ownerTabBtn.innerHTML  = "👑 Applications";
-    ownerTabBtn.onclick    = () => setDashTab("owner");
+    ownerTabBtn.onclick    = () => { setDashTab("owner"); const menu = document.getElementById('dash-nav-menu'); if(menu) menu.classList.remove('open'); };
     tabsEl.appendChild(ownerTabBtn);
     
     // Also re-render the gallery now that we know they are the owner
@@ -226,7 +225,7 @@ function injectOwnerTab() {
     feedbackTabBtn.className  = "tab";
     feedbackTabBtn.id         = "tab-feedback-btn";
     feedbackTabBtn.innerHTML  = "📝 Reports & Feedback";
-    feedbackTabBtn.onclick    = () => { setDashTab("feedback-reports"); loadOwnerFeedbackData(); };
+    feedbackTabBtn.onclick    = () => { setDashTab("feedback-reports"); loadOwnerFeedbackData(); const menu = document.getElementById('dash-nav-menu'); if(menu) menu.classList.remove('open'); };
     tabsEl.appendChild(feedbackTabBtn);
   }
 
@@ -1099,6 +1098,111 @@ async function loadOwnerFeedbackData() {
 
 
 async function loadOwnerDashboard() { loadOwnerPanelData(); }
+
+// ── Credentials modal ─────────────────────────────────────
+function showCredentialsModal(name, email, password, phone) {
+  // Remove any existing modal
+  const existing = document.getElementById("credentials-modal");
+  if (existing) existing.remove();
+
+  const waPhone = (phone || "").replace(/\D/g, "");
+  const fullMsg =
+    `🙏 Hi ${name},\n\nYour Saathi Care Companion account has been approved!\n\n` +
+    `📧 Email: ${email}\n🔑 Password: ${password}\n\n` +
+    `Please log in at https://saathi-care-a8525.web.app and change your password in Settings after your first login.\n\nWelcome to the Saathi family! 💚`;
+  const waUrl = waPhone
+    ? `https://wa.me/91${waPhone}?text=${encodeURIComponent(fullMsg)}`
+    : `https://wa.me/?text=${encodeURIComponent(fullMsg)}`;
+
+  const modal = document.createElement("div");
+  modal.id = "credentials-modal";
+  modal.style.cssText = `
+    position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;
+    display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;
+  `;
+  modal.innerHTML = `
+    <div style="
+      background:#fff;border-radius:18px;padding:32px 28px;max-width:460px;width:100%;
+      box-shadow:0 24px 60px rgba(0,0,0,0.22);position:relative;font-family:var(--font-sans,sans-serif);
+    ">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="font-size:44px;margin-bottom:8px;">✅</div>
+        <div style="font-size:20px;font-weight:800;color:#1a2e2a;margin-bottom:4px;">Account Created!</div>
+        <div style="font-size:14px;color:#6b7280;">Share these login details with <strong>${name}</strong></div>
+      </div>
+
+      <div style="background:#F0FDF9;border:1.5px solid #A7F3D0;border-radius:12px;padding:18px;margin-bottom:16px;">
+        <div style="margin-bottom:12px;">
+          <div style="font-size:11px;font-weight:700;color:#047857;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">📧 Email</div>
+          <div style="font-size:15px;font-weight:600;color:#1a2e2a;word-break:break-all;user-select:all;">${email}</div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#047857;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">🔑 Temporary Password</div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="font-size:18px;font-weight:800;color:#1a2e2a;letter-spacing:2px;font-family:monospace;user-select:all;">${password}</div>
+            <button onclick="
+              navigator.clipboard.writeText('${password}');
+              this.textContent='✓ Copied';
+              setTimeout(()=>this.textContent='Copy',1500);
+            " style="
+              background:#047857;color:#fff;border:none;border-radius:8px;
+              padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;
+            ">Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">💬 Full Message — Tap to select all, or copy below</div>
+        <textarea id="cred-full-msg" readonly onclick="this.select()" style="
+          width:100%;box-sizing:border-box;height:150px;
+          background:#F9FAFB;border:1.5px solid #D1FAE5;border-radius:10px;
+          padding:12px;font-size:13px;color:#1a2e2a;line-height:1.6;
+          resize:none;font-family:inherit;outline:none;cursor:text;user-select:all;
+        ">${fullMsg.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</textarea>
+        <button id="copy-full-msg-btn" onclick="
+          const ta = document.getElementById('cred-full-msg');
+          ta.select();
+          navigator.clipboard.writeText(ta.value).then(() => {
+            const b = document.getElementById('copy-full-msg-btn');
+            b.innerHTML = '✓ Copied!';
+            b.style.background = '#047857';
+            setTimeout(() => { b.innerHTML = '📋 Copy Full Message'; b.style.background = '#1f2937'; }, 2000);
+          });
+        " style="
+          margin-top:8px;width:100%;background:#1f2937;color:#fff;border:none;
+          border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;
+        ">📋 Copy Full Message</button>
+      </div>
+
+      <div style="font-size:12px;color:#6b7280;background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;padding:10px 14px;margin-bottom:20px;">
+        ⚠️ Ask <strong>${name}</strong> to change this password after their first login in <em>Settings → Change Password</em>.
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <a href="${waUrl}" target="_blank" style="
+          display:flex;align-items:center;justify-content:center;gap:10px;
+          background:#25D366;color:#fff;text-decoration:none;
+          border-radius:12px;padding:14px;font-size:15px;font-weight:700;
+          box-shadow:0 4px 14px rgba(37,211,102,0.35);
+        ">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Open WhatsApp & Send
+        </a>
+        <button onclick="document.getElementById('credentials-modal').remove()" style="
+          background:#F3F4F6;color:#374151;border:none;border-radius:12px;
+          padding:13px;font-size:14px;font-weight:600;cursor:pointer;
+        ">Close</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  // Close on backdrop click
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.remove();
+  });
+}
+
 async function approveApplication(id, btn) {
   if (btn) {
     btn.disabled = true;
@@ -1116,50 +1220,53 @@ async function approveApplication(id, btn) {
       return;
     }
 
-    const randomPassword = Math.random().toString(36).slice(-10) + "A1!";
+    // Generate a memorable random password
+    const randomPassword = Math.random().toString(36).slice(-8).toUpperCase() +
+                           Math.floor(10 + Math.random() * 90) + "!";
     let uid = id;
 
     showToast("Creating account...", "info");
 
     try {
-      // Create Auth account using secondary instance (to stay logged in as owner)
+      // Use secondary auth instance so owner stays logged in
       const userCred = await secondaryAuth.createUserWithEmailAndPassword(appData.email, randomPassword);
       uid = userCred.user.uid;
       await secondaryAuth.signOut();
     } catch (authErr) {
-      if (authErr.code !== "auth/email-already-in-use") {
+      if (authErr.code === "auth/email-already-in-use") {
+        showToast("Account already exists for this email — updating profile only.", "info");
+      } else {
         throw new Error("Auth Error: " + authErr.message);
       }
     }
 
-    // 2. Mark application as approved
+    // Mark application as approved
     await appRef.update({ status: "approved" });
 
-    // 3. Create/Update Caregiver Profile in Firestore
+    // Create / update caregiver profile in Firestore
+    // (Firestore rules now allow owners to write caregivers docs)
     await db.collection(COLLECTIONS.CAREGIVERS).doc(uid).set({
-      name: appData.name || "",
-      email: appData.email || "",
-      phone: appData.phone || "",
-      age: appData.age || "",
-      area: appData.area || "",
-      occ: appData.occ || "",
-      langs: appData.langs || "",
-      interest: appData.interest || "",
-      skills: appData.skills || "",
-      bio: appData.bio || "Companion",
-      active: true,
-      since: new Date().getFullYear(),
-      rating: 5.0,
+      name     : appData.name     || "",
+      email    : appData.email    || "",
+      phone    : appData.phone    || "",
+      age      : appData.age      || "",
+      area     : appData.area     || "",
+      occ      : appData.occ      || "",
+      langs    : appData.langs    || "",
+      interest : appData.interest || "",
+      skills   : appData.skills   || "",
+      bio      : appData.bio      || "Companion",
+      active   : true,
+      since    : new Date().getFullYear(),
+      rating   : 5.0,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
 
     showToast("Application Approved! ✅", "success");
-    
-    // Show credentials to owner
-    setTimeout(() => {
-      alert(`Success! Account created for ${appData.name}.\n\nCredentials to share:\n📧 Email: ${appData.email}\n🔑 Password: ${randomPassword}\n\nPlease ask them to change their password in Settings after logging in.`);
-    }, 100);
-    
+
+    // Show styled modal with credentials + WhatsApp share
+    showCredentialsModal(appData.name, appData.email, randomPassword, appData.phone);
+
     loadOwnerPanelData();
   } catch (e) {
     console.error("Approval failure:", e);
@@ -1225,7 +1332,7 @@ async function loadGroupTrips() {
     const trips = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     
     if (trips.length === 0) {
-      container.innerHTML = `<div class="empty-state">No group trips proposed yet.</div>`;
+      container.innerHTML = `<div class="empty-state">No upcoming trips are scheduled yet. Check back soon!</div>`;
       return;
     }
 
@@ -1249,7 +1356,7 @@ async function loadGroupTrips() {
               </span>
             </div>
             <div class="req-meta" style="margin-top:6px; color:var(--text2)">
-              📅 <strong>${formatDate(t.date)}${t.endDate && t.endDate !== t.date ? ' to ' + formatDate(t.endDate) : ''}</strong> &nbsp;·&nbsp; 👤 Proposed by: <strong>${escHtml(t.createdByName || "Accompany")}</strong>
+              📅 <strong>${formatDate(t.date)}${t.endDate && t.endDate !== t.date ? ' to ' + formatDate(t.endDate) : ''}</strong>
             </div>
             <div class="req-meta" style="margin-top:6px; font-size:14px; color:var(--text2); line-height:1.5;">
               ${escHtml(t.description || "")}
@@ -1428,7 +1535,7 @@ async function loadPublicGroupTrips() {
     if (trips.length === 0) {
       container.innerHTML = `
         <div style="grid-column: 1 / -1; background:var(--white); border:1.5px solid var(--border); border-radius:var(--radius-lg); padding:32px; text-align:center; color:var(--text2);">
-          👵 Currently, no group trips are scheduled. Check back soon for new caregiver-led tours!
+          👵 Currently, no upcoming trips are scheduled. Check back soon — Team Accompany will publish new yatras soon!
         </div>
       `;
       return;
@@ -1438,15 +1545,14 @@ async function loadPublicGroupTrips() {
       <div class="service-card" style="text-align:left; cursor:default; padding:24px; display:flex; flex-direction:column; justify-content:space-between; height:100%; border-color:var(--teal); background:linear-gradient(145deg, #ffffff, #F4FBFB); box-shadow:var(--shadow);">
         <div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <div style="background:var(--teal-light); color:var(--teal-dark); font-weight:700; font-size:12px; padding:4px 12px; border-radius:100px;">🚌 Group Yatra</div>
+            <div style="background:var(--teal-light); color:var(--teal-dark); font-weight:700; font-size:12px; padding:4px 12px; border-radius:100px;">🙏 Accompany Yatra</div>
             <div style="font-size:13px; color:var(--text3); font-weight:600;">📅 ${formatDate(t.date)}${t.endDate && t.endDate !== t.date ? ' - ' + formatDate(t.endDate) : ''}</div>
           </div>
           <h4 style="font-family:var(--font-serif); font-size:18px; color:var(--text); font-weight:600; margin-bottom:8px;">${escHtml(t.title)}</h4>
           <p style="font-size:13px; color:var(--text2); line-height:1.5; margin-bottom:14px; min-height:60px;">${escHtml(t.description)}</p>
         </div>
-        <div style="border-top:1px solid var(--border); padding-top:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-          <div style="font-size:12px; color:var(--text3);">Proposed by:<br><strong style="color:var(--text2)">${escHtml(t.createdByName || "Accompany Caregiver")}</strong></div>
-          <button class="btn btn-teal btn-sm" onclick="openInterestModal('${t.id}', '${t.title.replace(/'/g, "\\'")}')">Register Interest</button>
+          <div style="border-top:1px solid var(--border); padding-top:14px; display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap; gap:8px;">
+          <button class="btn btn-teal btn-sm" onclick="window.open('https://wa.me/917339339323?text=Hello, I am interested in registering for the Upcoming Yatra: ' + encodeURIComponent('${t.title.replace(/'/g, "\\'")}'), '_blank')">Register Interest</button>
         </div>
       </div>
     `).join("");

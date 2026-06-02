@@ -48,6 +48,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   line-height: 1.6;
+  text-align: justify;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -583,9 +584,13 @@ img {
 }
 
 .section-sub {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 600;
+  text-align: center;
   color: var(--text2);
   margin-bottom: 34px;
-  font-size: 16px;
+  margin-top: 16px;
 }
 
 /* ── Service Cards ───────────────────────────────────────── */
@@ -1659,10 +1664,13 @@ select.form-input {
 }
 
 .rich-subtitle {
-  font-size: clamp(16px, 2.5vw, 19px);
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 600;
+  text-align: center;
   color: var(--text2);
   max-width: 680px;
-  margin: 0 auto;
+  margin: 16px auto 0 auto;
   line-height: 1.6;
 }
 
@@ -1701,6 +1709,7 @@ select.form-input {
   color: var(--teal-dark);
   padding: 12px 20px;
   border-radius: var(--radius);
+  border: 1px solid var(--teal);
   font-weight: 700;
   font-size: 18px;
   margin-top: 10px;
@@ -1739,31 +1748,24 @@ select.form-input {
 
 .quote-list {
   list-style: none;
+  padding: 0;
 }
 
 .quote-list li {
-  position: relative;
-  padding-left: 24px;
+  display: flex;
+  align-items: flex-start;
   margin-bottom: 12px;
   font-size: 15px;
   color: var(--text2);
-  font-style: italic;
 }
 
 .quote-list li::before {
-  content: '"';
-  position: absolute;
-  left: 0;
-  top: -2px;
+  content: '*';
   color: var(--orange);
-  font-size: 20px;
-}
-
-.quote-list li::after {
-  content: '"';
-  color: var(--orange);
-  font-size: 20px;
-  margin-left: 4px;
+  font-size: 22px;
+  line-height: 1;
+  margin-right: 12px;
+  margin-top: 4px;
 }
 
 .diff-icon {
@@ -2171,10 +2173,13 @@ select.form-input {
 .vp-pastel-card {
   border-radius: var(--radius-xl);
   border: 1.5px solid;
-  padding: 32px 24px;
+  padding: 24px 0 32px 0;
+  overflow: hidden;
   text-align: center;
   transition: transform 0.2s, box-shadow 0.2s;
   box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
 }
 
 .vp-pastel-card:hover {
@@ -2188,18 +2193,40 @@ select.form-input {
   display: block;
 }
 
+.vp-card-icon-img img {
+  width: 100% !important;
+  height: 220px !important;
+  object-fit: contain !important;
+  border-radius: 0 !important;
+  margin-bottom: 0 !important;
+  display: block;
+}
+
 .vp-card-title {
   font-family: var(--font-serif);
-  font-size: 20px;
+  font-size: clamp(12px, 1.5vw, 16px);
   font-weight: 700;
   color: var(--text);
   margin-bottom: 12px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  white-space: nowrap;
 }
 
 .vp-card-desc {
   font-size: 14px;
   color: var(--text2);
   line-height: 1.7;
+  text-align: justify;
+  padding: 0 24px;
+  word-break: keep-all;
+  hyphens: none;
+}
+
+.dharma-tenet-body p, .action-card p, .ikigai-card p, .diff-card p, .service-desc {
   text-align: justify;
 }
 
@@ -2231,7 +2258,7 @@ select.form-input {
 
 .dharma-tenet-card {
   flex: 0 0 calc(20% - 16px);
-  min-width: 200px;
+  min-width: 260px;
   border-radius: var(--radius-xl);
   border: 1.5px solid;
   padding: 32px 22px;
@@ -2277,7 +2304,7 @@ select.form-input {
   color: #000000;
   line-height: 1.75;
   margin: 0;
-  text-align: left;
+  text-align: justify;
 }
 
 .dharma-tenet-italic {
@@ -2356,4 +2383,109 @@ select.form-input {
     bottom: 20px;
     right: 20px;
   }
+}
+
+/* ── Contact Social Items ────────────────────────────── */
+.contact-socials-menu {
+  display: flex;
+  flex-direction: column;
+}
+
+.contact-social-item {
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+  margin: 6px 16px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1.5px solid transparent;
+  transition: background-color 0.2s;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+  background: var(--white);
+}
+
+.contact-social-item svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.contact-social-whatsapp {
+  border-color: #25D366;
+  color: #25D366 !important;
+}
+.contact-social-whatsapp:hover {
+  background-color: #E9FBEF;
+}
+.contact-social-whatsapp svg {
+  fill: #25D366;
+}
+
+.contact-social-mail {
+  border-color: #D44638;
+  color: #D44638 !important;
+}
+.contact-social-mail:hover {
+  background-color: #FCECEB;
+}
+.contact-social-mail svg {
+  fill: #D44638;
+}
+
+.contact-social-insta {
+  border-color: #E1306C;
+  color: #E1306C !important;
+}
+.contact-social-insta:hover {
+  background-color: #FCE8F0;
+}
+.contact-social-insta svg {
+  fill: #E1306C;
+}
+
+.contact-social-facebook {
+  border-color: #1877F2;
+  color: #1877F2 !important;
+}
+.contact-social-facebook:hover {
+  background-color: #E7F0FD;
+}
+.contact-social-facebook svg {
+  fill: #1877F2;
+}
+
+/* ── Dashboard Navigation (Hamburger style) ── */
+#dash-nav-menu.tabs {
+  display: none;
+  flex-direction: column;
+  background: white;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  margin-top: 4px;
+  overflow: hidden;
+  padding: 0;
+}
+#dash-nav-menu.tabs.open {
+  display: flex !important;
+}
+#dash-nav-menu.tabs .tab {
+  text-align: left;
+  padding: 14px 18px;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  margin: 0;
+  width: 100%;
+  justify-content: flex-start;
+}
+#dash-nav-menu.tabs .tab:last-child {
+  border-bottom: none;
 }
