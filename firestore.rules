@@ -1,77 +1,73 @@
 // ============================================================
 //  SAATHI CARE — Firestore Security Rules
-//  Paste these into Firebase Console → Firestore → Rules
 // ============================================================
 
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── CAREGIVERS ───────────────────────────────────────────
-    // Anyone can read active caregiver profiles (for booking page)
-    // The caregiver themselves OR an owner can write to caregiver docs
-    match /caregivers/{caregiverId} {
-      allow read: if true;
-      allow write: if request.auth != null && (
-        request.auth.uid == caregiverId ||
+    // Helper: is the requesting user an owner?
+    function isOwner() {
+      return request.auth != null && (
+        request.auth.token.email == "accompanysakha@gmail.com" ||
+        request.auth.token.email == "accompanysakhi@gmail.com" ||
         request.auth.token.email == "snehatest29@gmail.com" ||
         request.auth.token.email == "snehstest29@gmail.com" ||
         request.auth.token.email == "owner2@saathicare.in"
       );
     }
 
+    // ── CAREGIVERS ───────────────────────────────────────────
+    match /caregivers/{caregiverId} {
+      allow read: if true;
+      allow write: if request.auth != null &&
+        (request.auth.uid == caregiverId || isOwner());
+    }
+
     // ── BOOKINGS ─────────────────────────────────────────────
-    // Anyone can CREATE a booking (families abroad, elders)
-    // Only the assigned caregiver or owners can read / update their bookings
     match /bookings/{bookingId} {
       allow create: if true;
       allow read: if true;
       allow update: if request.auth != null &&
-        (request.auth.uid == resource.data.caregiverId || 
-         request.auth.token.email == "snehatest29@gmail.com" || 
-         request.auth.token.email == "snehstest29@gmail.com" ||
-         request.auth.token.email == "owner2@saathicare.in");
-      allow delete: if false; // Never delete bookings
+        (request.auth.uid == resource.data.caregiverId || isOwner());
+      allow delete: if false;
     }
 
     // ── MEDIA / GALLERY ──────────────────────────────────────
-    // Anyone can read gallery (public-facing on home page)
-    // Only authenticated caregivers can create; only their own posts to delete
+    // Anyone can read; authenticated users can upload;
+    // owners OR the original uploader can update captions or delete
     match /media/{mediaId} {
       allow read: if true;
       allow create: if request.auth != null;
+      allow update: if request.auth != null &&
+        (isOwner() || request.auth.uid == resource.data.uploadedBy);
       allow delete: if request.auth != null &&
-        (request.auth.uid == resource.data.uploadedBy || 
-         request.auth.uid == resource.data.caregiverId ||
-         request.auth.token.email == "snehatest29@gmail.com" || 
-         request.auth.token.email == "snehstest29@gmail.com" ||
-         request.auth.token.email == "owner2@saathicare.in");
-      allow update: if false;
+        (isOwner() ||
+         request.auth.uid == resource.data.uploadedBy ||
+         request.auth.uid == resource.data.caregiverId);
     }
-    // ── APPLICATIONS ─────────────────────────────
-    // Anyone can create an application, owners can manage them
+
+    // ── APPLICATIONS ─────────────────────────────────────────
     match /applications/{appId} {
       allow create: if true;
-      allow read, update, delete: if request.auth != null && 
-        (request.auth.token.email == "snehatest29@gmail.com" || 
-         request.auth.token.email == "snehstest29@gmail.com" ||
-         request.auth.token.email == "owner2@saathicare.in");
+      allow read, update, delete: if isOwner();
     }
+
     // ── BLOCKED SLOTS ─────────────────────────────────────────
-    // Anyone can read (booking page checks blocked slots)
-    // Only the caregiver who owns the block can write/delete
     match /blocked_slots/{slotId} {
       allow read: if true;
       allow create: if request.auth != null;
       allow delete: if request.auth != null &&
-        request.auth.uid == resource.data.caregiverId;
+        (request.auth.uid == resource.data.caregiverId || isOwner());
       allow update: if false;
     }
+
     // ── GROUP TRIPS ───────────────────────────────────────────
     match /group_trips/{tripId} {
       allow read: if true;
       allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.createdBy;
+      allow update, delete: if request.auth != null &&
+        (request.auth.uid == resource.data.createdBy || isOwner());
     }
 
     // ── TRIP INTERESTS ─────────────────────────────────────────
@@ -85,7 +81,33 @@ service cloud.firestore {
     match /public_feedback/{feedbackId} {
       allow create: if true;
       allow read: if true;
-      allow update, delete: if false;
+      allow update, delete: if isOwner();
+    }
+
+    // ── TRIP REPORTS ────────────────────────────────────────
+    match /trip_reports/{reportId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null;
+      allow update, delete: if isOwner();
+    }
+
+    // ── BLOGS / DIARIES ─────────────────────────────────────
+    match /blogs/{blogId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null &&
+        (request.auth.uid == resource.data.authorId || isOwner());
+    }
+
+    // ── BANNERS ──────────────────────────────────────────────
+    // Public reads so home page carousel works without login;
+    // only owners can upload or delete banners
+    match /banners/{bannerId} {
+      allow read: if true;
+      allow create: if isOwner();
+      allow delete: if isOwner();
+      allow update: if false;
     }
   }
 }
+

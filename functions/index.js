@@ -18,8 +18,8 @@ const transporter = nodemailer.createTransport({
 });
 
 const OWNER_EMAILS = [
-  'snehatest29@gmail.com',
-  'owner2@saathicare.in'
+  'accompanysakha@gmail.com',
+  'accompanysakhi@gmail.com'
 ];
 
 // Trigger: On application approval, create caregiver user and send email

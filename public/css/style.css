@@ -48,8 +48,74 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   line-height: 1.6;
-  text-align: justify;
   -webkit-font-smoothing: antialiased;
+}
+
+
+/* ── Global Text Justification ─────────────────────────────── */
+/* inter-word justify = only space between words expands — no mid-character gaps
+   hyphens: auto requires lang="en" on <html> for clean line breaks
+   overflow-wrap: break-word prevents text from overflowing boxes */
+p,
+li,
+.service-desc,
+.faq-answer,
+.faq-answer p,
+.ikigai-card p,
+.diff-card p,
+.action-card p,
+.teal-bar,
+.ikigai-highlight,
+.info-bar,
+.faq-highlight-box,
+.volunteer-tab-content p,
+.rich-section p,
+.lead-text {
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: none;
+  -webkit-hyphens: none;
+  -ms-hyphens: none;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+/* Drawer sub-items are short nav labels — left-align is cleaner */
+.drawer-sub-item {
+  text-align: left;
+  hyphens: none;
+  -webkit-hyphens: none;
+}
+
+.vp-card-desc {
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: none;
+  -webkit-hyphens: none;
+  -ms-hyphens: none;
+  font-size: 14px;
+}
+
+/* Ensure center-aligned elements are NEVER overridden by justify above */
+h1, h2, h3, h4, h5, h6,
+.hero p,
+.rich-header h2,
+.rich-header p,
+.rich-subtitle,
+.section-title,
+.section-sub,
+.hero-badge,
+.step-number,
+.vp-card-title,
+.btn,
+.tab,
+.home-tab,
+.faq-category-title,
+.footer p,
+.toast {
+  text-align: center;
+  hyphens: none;
+  -webkit-hyphens: none;
 }
 
 a {
@@ -59,6 +125,7 @@ a {
 img {
   max-width: 100%;
 }
+
 
 /* ── Screens ─────────────────────────────────────────────── */
 .screen {
@@ -73,17 +140,67 @@ img {
 
 /* ── Navigation (redesigned — centered logo + hamburger) ─── */
 .nav {
-  background: var(--white);
-  border-bottom: 1px solid var(--border);
-  padding: 10px 20px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 24px 24px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
+  justify-content: flex-start;
   z-index: 200;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
-  min-height: 72px;
+  pointer-events: none;
+}
+
+.nav > * {
+  pointer-events: auto;
+}
+
+.nav.is-giant {
+  background: linear-gradient(135deg, #FDF0E2 0%, #FBE9D9 60%, #E8F5F5 100%);
+  border-bottom: none;
+  padding: 20px 20px 0 20px;
+  justify-content: flex-start;
+  position: relative;
+  width: 100%;
+  z-index: 10;
+  box-shadow: none;
+}
+
+.nav.is-giant > * {
+  pointer-events: auto;
+}
+
+/* ── Mobile nav: logo on top, tagline below ─────────────── */
+@media (max-width: 600px) {
+  .nav.is-giant {
+    padding: 16px 12px 0 12px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav.is-giant .nav-inner-wrap {
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    padding: 0 !important;
+  }
+
+  .nav.is-giant .nav-logo-img {
+    height: 180px !important;
+  }
+
+  .nav.is-giant .nav-tagline-img {
+    height: 140px !important;
+    max-width: 92vw !important;
+    margin-top: -30px;
+  }
+
+  .nav.is-giant .hamburger-btn {
+    position: absolute !important;
+    top: 14px !important;
+    left: 12px !important;
+  }
 }
 
 .logo {
@@ -489,7 +606,7 @@ img {
 /* ── Hero ────────────────────────────────────────────────── */
 .hero {
   background: linear-gradient(135deg, #FDF0E2 0%, #FBE9D9 50%, #E8F5F5 100%);
-  padding: 70px 24px 90px;
+  padding: 10px 24px 90px;
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -782,6 +899,8 @@ img {
 
 .form-input {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 14px 18px;
   border: 2px solid var(--border);
   border-radius: 12px;
@@ -1241,45 +1360,83 @@ select.form-input {
   gap: 12px;
 }
 
-.media-item {
-  background: var(--warm);
-  border-radius: var(--radius);
-  aspect-ratio: 1;
+/* ── Owner Polaroid Gallery Grid ─────────────────────────── */
+.owner-polaroid-item {
+  background: #ffffff;
+  border-radius: 2px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.13), 0 1px 4px rgba(0,0,0,0.07);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.owner-polaroid-item:hover {
+  transform: translateY(-4px) rotate(-0.5deg);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.owner-polaroid-img-wrap {
+  position: relative;
+  width: 100%;
+  padding: 8px 8px 0 8px;
+  box-sizing: border-box;
+}
+
+.owner-polaroid-img-wrap img {
+  width: 100%;
+  height: 165px;
+  object-fit: cover;
+  display: block;
+  border-radius: 1px;
+}
+
+.polaroid-delete-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(192, 57, 43, 0.88);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  font-size: 14px;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 42px;
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-  border: 1.5px solid var(--border);
-  transition: transform 0.2s;
-}
-
-.media-item:hover {
-  transform: scale(1.02);
-}
-
-.media-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(44, 34, 24, 0.65);
+  line-height: 1;
   opacity: 0;
   transition: opacity 0.2s;
-  display: flex;
-  align-items: flex-end;
-  padding: 10px;
 }
 
-.media-item:hover .media-overlay {
+.owner-polaroid-item:hover .polaroid-delete-btn {
   opacity: 1;
 }
 
-.media-caption {
-  color: white;
-  font-size: 12px;
-  font-weight: 600;
+.owner-polaroid-caption {
+  font-family: 'Dancing Script', cursive;
+  font-size: 16px;
+  color: #7a6654;
+  text-align: center;
+  padding: 2px 10px 4px 10px;
+  min-height: 18px;
+  cursor: pointer;
   line-height: 1.4;
+  transition: background 0.15s;
+  border-radius: 0 0 2px 2px;
+}
+
+.owner-polaroid-caption:hover {
+  background: #f9f5f0;
+}
+
+.polaroid-caption-placeholder {
+  color: #c4b09a;
+  font-style: italic;
+  font-size: 14px;
 }
 
 .upload-btn {
@@ -1811,8 +1968,14 @@ select.form-input {
 
 .step-card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 24px;
+}
+
+@media (max-width: 900px) {
+  .step-card-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .step-rich-card {
@@ -1875,7 +2038,8 @@ select.form-input {
   font-size: 14px;
   color: var(--text2);
   margin-bottom: 0;
-  height: 60px;
+  min-height: 48px;
+  line-height: 1.6;
 }
 
 .ethos-row {
@@ -2166,7 +2330,7 @@ select.form-input {
 /* ── Value Proposition Pastel Cards ─────────────────────── */
 .vp-pastel-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 20px;
 }
 
@@ -2204,16 +2368,18 @@ select.form-input {
 
 .vp-card-title {
   font-family: var(--font-serif);
-  font-size: clamp(12px, 1.5vw, 16px);
+  font-size: clamp(13px, 1.5vw, 16px);
   font-weight: 700;
   color: var(--text);
   margin-bottom: 12px;
-  height: 64px;
+  min-height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0 12px;
-  white-space: nowrap;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.4;
 }
 
 .vp-card-desc {
@@ -2221,13 +2387,20 @@ select.form-input {
   color: var(--text2);
   line-height: 1.7;
   text-align: justify;
-  padding: 0 24px;
-  word-break: keep-all;
+  text-justify: inter-word;
+  padding: 0 20px;
   hyphens: none;
+  -webkit-hyphens: none;
+  word-break: normal;
 }
 
 .dharma-tenet-body p, .action-card p, .ikigai-card p, .diff-card p, .service-desc {
   text-align: justify;
+  text-justify: inter-word;
+  hyphens: none;
+  -webkit-hyphens: none;
+  word-break: normal;
+  line-height: 1.7;
 }
 
 /* ── Sakha Sakhi Dharma — Landscape Tall Grid ────────────── */
@@ -2412,6 +2585,7 @@ select.form-input {
   flex-shrink: 0;
 }
 
+
 .contact-social-whatsapp {
   border-color: #25D366;
   color: #25D366 !important;
@@ -2488,4 +2662,99 @@ select.form-input {
 }
 #dash-nav-menu.tabs .tab:last-child {
   border-bottom: none;
+}
+
+/* ── Mobile justify safety — prevent large gaps on narrow screens ── */
+/* On mobile, very short lines with justify + few words look bad.
+   We revert to left-align for small screens on inline text, keeping
+   headings and center-aligned UI elements untouched. */
+@media (max-width: 480px) {
+  p,
+  li,
+  .service-desc,
+  .vp-card-desc,
+  .faq-answer,
+  .faq-answer p,
+  .ikigai-card p,
+  .diff-card p,
+  .action-card p,
+  .teal-bar,
+  .ikigai-highlight,
+  .info-bar,
+  .faq-highlight-box,
+  .volunteer-tab-content p,
+  .rich-section p,
+  .lead-text,
+  .dharma-tenet-body p {
+    /* Keep justify but ensure hyphens are removed */
+    text-align: justify;
+    text-justify: inter-word;
+    hyphens: none;
+    -webkit-hyphens: none;
+    word-break: normal;
+  }
+
+  /* Teal-bar full width on mobile */
+  .teal-bar {
+    padding: 16px;
+    font-size: 14px;
+  }
+
+  /* Step cards: ensure text is readable on small screens */
+  .step-card-grid > div {
+    padding: 20px 16px;
+  }
+
+  /* Value proposition cards: stack to 1 column (already handled above, reinforce) */
+  .vp-card-desc {
+    padding: 0 14px;
+    font-size: 13px;
+  }
+
+  /* FAQ answers on mobile */
+  .faq-category-section {
+    padding: 20px 14px;
+  }
+
+  /* Action cards: remove fixed card min-height constraints on very small screens */
+  .action-card {
+    min-height: auto;
+  }
+}
+
+/* ── Testimonial UI Utilities ── */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-none {
+  -webkit-line-clamp: unset !important;
+}
+
+.testimonial-img-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+.testimonial-img-card {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--cream);
+}
+.testimonial-img-card img {
+  width: 100%;
+  height: 120px;
+  object-fit: contain;
+  display: block;
+}
+.testimonial-img-caption {
+  font-size: 12px;
+  color: var(--text2);
+  text-align: center;
+  padding: 6px;
+  font-style: italic;
 }

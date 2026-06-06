@@ -18,5 +18,17 @@ service firebase.storage {
       allow delete: if request.auth != null
         && request.auth.uid == caregiverId;
     }
+
+    // Testimonial Images
+    match /testimonials/{fileName} {
+      allow read: if true;
+      allow write, delete: if request.auth != null;
+    }
+
+    // Banner Images
+    match /banners/{fileName} {
+      allow read: if true;
+      allow write, delete: if request.auth != null;
+    }
   }
 }

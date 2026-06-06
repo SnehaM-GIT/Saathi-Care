@@ -30,7 +30,9 @@ const COLLECTIONS = {
   GROUP_TRIPS: "group_trips",
   TRIP_INTERESTS: "trip_interests",
   PUBLIC_FEEDBACK: "public_feedback",
-  TRIP_REPORTS: "trip_reports"
+  TRIP_REPORTS: "trip_reports",
+  BLOGS: "blogs",
+  BANNERS: "banners"
 };
 
 // ============================================================
@@ -60,12 +62,13 @@ const State = {
   myBlockedSlots   : [],
   galleryItems     : [],
   calDate          : new Date(),
-  isOwner          : false
+  isOwner          : false,
+  pendingUploadFile: null
 };
 
 const OWNER_EMAILS = [
-  "snehatest29@gmail.com",
-  "owner2@saathicare.in"
+  "accompanysakha@gmail.com",
+  "accompanysakhi@gmail.com"
 ];
 
 function isOwner(email) {
@@ -199,6 +202,7 @@ function authErrorMessage(code) {
   const map = {
     "auth/user-not-found"   : "No account found with that email.",
     "auth/wrong-password"   : "Incorrect password.",
+    "auth/invalid-credential": "Login failed. Please check your email and password.",
     "auth/invalid-email"    : "Invalid email address.",
     "auth/too-many-requests": "Too many attempts. Try again later."
   };
@@ -227,6 +231,27 @@ function injectOwnerTab() {
     feedbackTabBtn.innerHTML  = "📝 Reports & Feedback";
     feedbackTabBtn.onclick    = () => { setDashTab("feedback-reports"); loadOwnerFeedbackData(); const menu = document.getElementById('dash-nav-menu'); if(menu) menu.classList.remove('open'); };
     tabsEl.appendChild(feedbackTabBtn);
+
+    const diariesTabBtn = document.createElement("button");
+    diariesTabBtn.className  = "tab";
+    diariesTabBtn.id         = "tab-diaries-btn";
+    diariesTabBtn.innerHTML  = "📖 Diaries";
+    diariesTabBtn.onclick    = () => { setDashTab("diaries"); loadDiariesList(); const menu = document.getElementById('dash-nav-menu'); if(menu) menu.classList.remove('open'); };
+    tabsEl.appendChild(diariesTabBtn);
+
+    const testimonialsTabBtn = document.createElement("button");
+    testimonialsTabBtn.className  = "tab";
+    testimonialsTabBtn.id         = "tab-testimonials-btn";
+    testimonialsTabBtn.innerHTML  = "💬 Testimonials";
+    testimonialsTabBtn.onclick    = () => { setDashTab("testimonials"); loadOwnerTestimonials(); const menu = document.getElementById('dash-nav-menu'); if(menu) menu.classList.remove('open'); };
+    tabsEl.appendChild(testimonialsTabBtn);
+
+    const bannersTabBtn = document.createElement("button");
+    bannersTabBtn.className  = "tab";
+    bannersTabBtn.id         = "tab-banners-btn";
+    bannersTabBtn.innerHTML  = "🖼️ Banners";
+    bannersTabBtn.onclick    = () => { setDashTab("banners"); loadOwnerBanners(); const menu = document.getElementById('dash-nav-menu'); if(menu) menu.classList.remove('open'); };
+    tabsEl.appendChild(bannersTabBtn);
   }
 
   const dashBody = document.querySelector("#screen-caregiver-dashboard .dash-body");
@@ -257,6 +282,103 @@ function injectOwnerTab() {
       </div>
     `;
     dashBody.appendChild(feedbackPanel);
+
+    const diariesPanel = document.createElement("div");
+    diariesPanel.id = "tab-diaries";
+    diariesPanel.style.display = "none";
+    diariesPanel.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <div style="font-weight:700;font-size:20px;color:var(--text)">📖 Accompany Diaries</div>
+        <button class="btn btn-teal btn-sm" onclick="showDiaryForm()">+ Add New Entry</button>
+      </div>
+
+      <!-- Write form (hidden by default) -->
+      <div id="diary-write-form" style="display:none; background:var(--warm); border:1.5px solid var(--border); border-radius:var(--radius-lg); padding:24px; margin-bottom:24px;">
+        <div style="font-weight:700;font-size:16px;margin-bottom:16px;color:var(--teal-dark)">✍️ New Diary Entry</div>
+        <div class="form-group">
+          <label class="form-label">Title</label>
+          <input type="text" id="blog-title-input" class="form-input" placeholder="e.g. Delivery Boy's Presence | Upastithi | 18-Jun-2026 | WhatsApp ⏩">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Content (HTML allowed)</label>
+          <textarea id="blog-content-input" class="form-input" rows="10" placeholder="Enter the blog content here..."></textarea>
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button class="btn btn-teal" onclick="postDiary()">💾 Save &amp; Publish</button>
+          <button class="btn btn-ghost" onclick="hideDiaryForm()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Published entries list -->
+      <div id="dashboard-diaries-list"><div class="loading-spinner">Loading entries…</div></div>
+    `;
+    dashBody.appendChild(diariesPanel);
+
+    const testimonialsPanel = document.createElement("div");
+    testimonialsPanel.id = "tab-testimonials";
+    testimonialsPanel.style.display = "none";
+    testimonialsPanel.innerHTML = `
+      <div style="margin-bottom:32px; background:var(--warm); border:1.5px solid var(--border); border-radius:var(--radius-lg); padding:24px;">
+        <div style="font-weight:700;font-size:18px;margin-bottom:16px;color:var(--teal-dark)">✍️ Post / Edit a Testimonial</div>
+        <div class="form-group">
+          <label class="form-label">From (Name)</label>
+          <input type="text" id="testimonial-from-input" class="form-input" placeholder="e.g. Kalpana c/o Mali Paati and Bala Paati">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Testimonial Content</label>
+          <textarea id="testimonial-content-input" class="form-input" rows="8" placeholder="Enter the testimonial..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Images (Optional, multiple)</label>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:8px;">📍 Images appear <strong>below the review text</strong> on the public testimonials page, in a photo grid with captions under each image.</div>
+          <input type="file" id="testimonial-images-input" class="form-input" accept="image/*" multiple onchange="renderTestimonialImageCaptions()">
+        </div>
+        <div id="testimonial-image-captions-container" style="margin-bottom: 20px; display: grid; gap: 10px;"></div>
+        <div style="display:flex;gap:10px;">
+          <button id="post-testimonial-btn" class="btn btn-teal" onclick="postTestimonial()">Post Testimonial</button>
+          <button class="btn btn-ghost" onclick="cancelEditTestimonial()" id="cancel-edit-testimonial-btn" style="display:none;">Cancel Edit</button>
+        </div>
+      </div>
+
+      <!-- Existing Testimonials List -->
+      <div style="margin-top:32px;">
+        <div style="font-weight:700;font-size:18px;margin-bottom:16px;color:var(--text)">📋 All Existing Testimonials</div>
+        <div id="owner-testimonials-list"><div class="loading-spinner">Loading testimonials...</div></div>
+      </div>
+    `;
+    dashBody.appendChild(testimonialsPanel);
+
+    const bannersPanel = document.createElement("div");
+    bannersPanel.id = "tab-banners";
+    bannersPanel.style.display = "none";
+    bannersPanel.innerHTML = `
+      <div style="margin-bottom:28px; background:var(--warm); border:1.5px solid var(--border); border-radius:var(--radius-lg); padding:24px;">
+        <div style="font-weight:700;font-size:18px;margin-bottom:6px;color:var(--teal-dark)">🖼️ Upload Banner Image</div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:16px;">Images are automatically fitted to the banner size (wide format, 16:5 ratio). They auto-rotate every 5 seconds on the home page with arrow navigation.</div>
+        <div class="form-group">
+          <label class="form-label">Banner Image</label>
+          <input type="file" id="banner-upload-input" class="form-input" accept="image/*" onchange="previewBannerUpload()">
+        </div>
+        <div id="banner-preview-container" style="display:none; margin-bottom:16px;">
+          <div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:6px;text-transform:uppercase;">Preview (how it will look on home page):</div>
+          <div style="width:100%;aspect-ratio:16/5;border-radius:12px;overflow:hidden;border:1.5px solid var(--border);background:#f0f0f0;">
+            <img id="banner-preview-img" src="" alt="Banner preview" style="width:100%;height:100%;object-fit:cover;display:block;">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Caption / Link Text (Optional)</label>
+          <input type="text" id="banner-caption-input" class="form-input" placeholder="e.g. Pilgrimage Companions for Senior Citizens">
+        </div>
+        <button id="banner-upload-btn" class="btn btn-teal" onclick="uploadBanner()">⬆️ Upload Banner</button>
+      </div>
+
+      <div>
+        <div style="font-weight:700;font-size:18px;margin-bottom:16px;color:var(--text)">📸 Active Banners (shown on home page)</div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:16px;">Banners rotate automatically. Drag to reorder is not supported yet — delete and re-upload to reorder.</div>
+        <div id="owner-banners-list"><div class="loading-spinner">Loading banners...</div></div>
+      </div>
+    `;
+    dashBody.appendChild(bannersPanel);
   }
 }
 
@@ -833,7 +955,7 @@ async function unblockSlot(id) {
 }
 
 async function loadGallery() {
-  const snap = await db.collection(COLLECTIONS.MEDIA).limit(20).get();
+  const snap = await db.collection(COLLECTIONS.MEDIA).orderBy("createdAt", "desc").limit(20).get();
   State.galleryItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   renderGallery();
 }
@@ -842,10 +964,15 @@ function renderGallery() {
   const grid = document.getElementById("gallery-grid");
   if (!grid) return;
   grid.innerHTML = State.galleryItems.map(item => `
-    <div class="media-item" style="position:relative;">
-      <img src="${item.url}" style="width:100%;height:100%;object-fit:cover">
-      ${State.isOwner ? `<button onclick="deleteMedia('${item.id}')" style="position:absolute;top:4px;right:4px;background:red;color:white;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:12px;z-index:10;" title="Delete image">✕</button>` : ''}
-    </div>`).join("") + `<div class="upload-btn" onclick="triggerUpload()">+ Add</div>`;
+    <div class="owner-polaroid-item">
+      <div class="owner-polaroid-img-wrap">
+        <img src="${item.url}" alt="Gallery photo" loading="lazy">
+        ${State.isOwner ? `<button onclick="deleteMedia('${item.id}')" class="polaroid-delete-btn" title="Delete image">&times;</button>` : ''}
+      </div>
+      <div class="owner-polaroid-caption" onclick="editCaption('${item.id}', \`${(item.caption || '').replace(/`/g, "'")}\`)" title="Click to edit caption">
+        ${item.caption ? escHtml(item.caption) : '<span class="polaroid-caption-placeholder">Add caption…</span>'}
+      </div>
+    </div>`).join("") + `<div class="upload-btn" onclick="triggerUpload()">+ Add Photo</div>`;
 }
 
 async function deleteMedia(id) {
@@ -854,6 +981,7 @@ async function deleteMedia(id) {
     await db.collection(COLLECTIONS.MEDIA).doc(id).delete();
     showToast("Image deleted", "success");
     await loadGallery();
+    await loadPublicGallery();
   } catch (e) {
     console.error(e);
     showToast("Failed to delete image", "error");
@@ -871,62 +999,142 @@ async function handleMediaUpload(input) {
     return;
   }
 
-  showToast("Uploading to Firebase Storage...");
+  // Store file and show caption modal with live preview
+  State.pendingUploadFile = file;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const previewImg = document.getElementById('caption-preview-img');
+    if (previewImg) previewImg.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+
+  // Reset caption input and preview text
+  const captionInput = document.getElementById('caption-input');
+  if (captionInput) captionInput.value = '';
+  const previewText = document.getElementById('caption-preview-text');
+  if (previewText) previewText.textContent = 'Caption here…';
+
+  const modal = document.getElementById('caption-modal');
+  if (modal) modal.style.display = 'flex';
+
+  // Reset file input so same file can be re-selected
+  input.value = '';
+}
+
+async function confirmCaptionUpload() {
+  const file = State.pendingUploadFile;
+  if (!file) return;
+
+  const caption = document.getElementById('caption-input')?.value.trim() || '';
+  closeCaptionModal();
+  showToast("Uploading photo...");
 
   try {
     const ext = file.name.split('.').pop() || "jpg";
     const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
     const storageRef = firebase.storage().ref(`gallery/${State.currentUser.uid}/${fileName}`);
-    
+
     await storageRef.put(file);
     const url = await storageRef.getDownloadURL();
 
-    // Save media record in Firestore so gallery reads from the same collection
     await db.collection(COLLECTIONS.MEDIA).add({
       url,
+      caption,
       uploadedBy: State.currentUser.uid,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
-    showToast("Uploaded successfully", "success");
-    // Refresh gallery
+    showToast("Uploaded successfully! ❤️", "success");
     await loadGallery();
+    await loadPublicGallery();
   } catch (e) {
     console.error('Upload error', e);
     showToast("Upload failed", "error");
+  } finally {
+    State.pendingUploadFile = null;
   }
 }
+
+function closeCaptionModal() {
+  const modal = document.getElementById('caption-modal');
+  if (modal) modal.style.display = 'none';
+  State.pendingUploadFile = null;
+}
+
+async function editCaption(id, currentCaption) {
+  const newCaption = prompt("Edit caption:", currentCaption || "");
+  if (newCaption === null) return; // cancelled
+  try {
+    await db.collection(COLLECTIONS.MEDIA).doc(id).update({ caption: newCaption.trim() });
+    showToast("Caption updated! ❤️", "success");
+    await loadGallery();
+    await loadPublicGallery();
+  } catch (e) {
+    console.error('editCaption error', e);
+    showToast("Failed to update caption", "error");
+  }
+}
+
+window.deleteTestimonialImage = async function(testimonialId, imageUrl) {
+  if (!confirm("Are you sure you want to delete this image?")) return;
+  try {
+    const docRef = db.collection(COLLECTIONS.PUBLIC_FEEDBACK).doc(testimonialId);
+    const docSnap = await docRef.get();
+    if (!docSnap.exists) return;
+    
+    const data = docSnap.data();
+    const newImages = (data.images || []).filter(img => img.url !== imageUrl);
+    await docRef.update({ images: newImages });
+    
+    try {
+      await firebase.storage().refFromURL(imageUrl).delete();
+    } catch (e) {
+      console.warn("Could not delete from storage:", e);
+    }
+    
+    showToast("Image deleted", "success");
+    loadOwnerTestimonials();
+  } catch(e) {
+    console.error("Error deleting image:", e);
+    showToast("Failed to delete image", "error");
+  }
+};
 
 async function submitApplication() {
   const name     = document.getElementById("app-name")?.value.trim();
   const age      = document.getElementById("app-age")?.value.trim();
   const phone    = document.getElementById("app-phone")?.value.trim();
-  const email    = document.getElementById("app-email")?.value.trim();
+  const social   = document.getElementById("app-social")?.value.trim();
   const area     = document.getElementById("app-area")?.value.trim();
   const occ      = document.getElementById("app-occ")?.value.trim();
   const time     = document.getElementById("app-avail-time")?.value.trim();
   const freq     = document.getElementById("app-avail-freq")?.value.trim();
   const langs    = document.getElementById("app-langs")?.value.trim();
   const interest = document.getElementById("app-interest")?.value.trim();
-  const skills   = document.getElementById("app-skills")?.value.trim();
   const bio      = document.getElementById("app-bio")?.value.trim();
 
-  if (!name || !email || !phone) { showToast("Name, Email and Phone are required", "error"); return; }
+  if (!name || !phone) { showToast("Name and Phone are required", "error"); return; }
   
   const btn = document.getElementById("app-submit-btn");
   if(btn) { btn.textContent = "Submitting..."; btn.disabled = true; }
 
   try {
     await db.collection("applications").add({
-      name, age, phone, email, area, occ, time, freq, langs, interest, skills, bio,
+      name, age, phone, social, area, occ, time, freq, langs, interest, bio,
       status: "pending",
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+    
+    // WhatsApp Redirect
+    const waText = encodeURIComponent(`Hi! I just submitted an application for the Volunteer Circle (iVolunteer with Accompany).\n\nMy name is ${name} from ${area}.\n\nPlease review my application!`);
+    window.open(`https://wa.me/917339339323?text=${waText}`, '_blank');
+    
     showScreen("screen-apply-success");
   } catch (e) { 
     showToast("Submission failed", "error"); 
   } finally {
-    if(btn) { btn.textContent = "Become a Volunteer Sakha/Sakhi 🙏"; btn.disabled = false; }
+    if(btn) { btn.textContent = "Submit Application"; btn.disabled = false; }
   }
 }
 
@@ -956,6 +1164,91 @@ async function doChangePassword() {
 //  FEEDBACK & REPORTS SYSTEM
 // ─────────────────────────────────────────────
 
+// ── Home page inline reviews (below Moments of Care) ──────────
+let homeReviewsAllData = [];
+let homeReviewsShownCount = 0;
+const HOME_REVIEWS_PER_LOAD = 4;
+
+async function loadHomeReviews() {
+  const list = document.getElementById('home-reviews-list');
+  if (!list) return;
+  try {
+    const snap = await db.collection(COLLECTIONS.PUBLIC_FEEDBACK)
+      .orderBy('createdAt', 'desc').limit(50).get();
+
+    const seen = new Set();
+    homeReviewsAllData = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(r => {
+        const t = r.content || r.text || '';
+        if (seen.has(t)) return false;
+        seen.add(t);
+        const tl = t.toLowerCase();
+        if (tl.includes('we wish all the very best to you and sow')) return false;
+        // Only show: form submissions (homeOnly:true) OR Manasa
+        const nameStr = (r.from || r.name || '').toLowerCase();
+        return r.homeOnly === true || nameStr.includes('manasa');
+      });
+
+    homeReviewsShownCount = 0;
+    renderHomeReviews();
+  } catch (e) {
+    console.error('loadHomeReviews error:', e);
+    if (list) list.innerHTML = `<div style="color:var(--text3);text-align:center;padding:20px;">Could not load reviews.</div>`;
+  }
+}
+
+function renderHomeReviews() {
+  const list = document.getElementById('home-reviews-list');
+  const wrap = document.getElementById('home-reviews-load-more-wrap');
+  if (!list) return;
+
+  const toShow = homeReviewsAllData.slice(0, homeReviewsShownCount + HOME_REVIEWS_PER_LOAD);
+  homeReviewsShownCount = toShow.length;
+
+  if (toShow.length === 0) {
+    list.innerHTML = `<div style="color:var(--text3);text-align:center;padding:20px;">Be the first to share your experience!</div>`;
+    if (wrap) wrap.style.display = 'none';
+    return;
+  }
+
+  list.innerHTML = toShow.map(r => {
+    const nameStr = (r.from || r.name || 'Anonymous').replace(/Smt\.\s*Kalpana/ig, 'Kalpana');
+    const rating = Math.min(parseInt(r.rating) || 5, 5);
+    const stars = Array(rating).fill('&#11088;').join('');
+    let textHtml = escHtml(r.content || r.text || '');
+    textHtml = textHtml.replace(/\\n/g, '<br>');
+    const initial = nameStr.charAt(0).toUpperCase();
+    return `
+      <div class="review-card" style="break-inside:avoid;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;margin-bottom:10px;">
+          <div style="width:40px;height:40px;border-radius:50%;background:var(--teal);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;margin-right:12px;flex-shrink:0;font-size:17px;">${initial}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:600;color:var(--text);font-size:15px;">${escHtml(nameStr)} <span style="color:#4CAF50;font-size:12px;">&#10004;&#65039;</span></div>
+            <div style="font-size:13px;color:var(--orange);">${stars}</div>
+          </div>
+        </div>
+        <div class="testimonial-text-container" style="font-size:14px;color:var(--text2);line-height:1.6;">
+          <div class="testimonial-text line-clamp-3" style="margin-bottom:6px;">${textHtml}</div>
+          <button class="btn-read-more" style="background:none;border:none;color:var(--teal);font-weight:700;cursor:pointer;padding:0;font-size:13px;text-decoration:underline;" onclick="toggleReadMore(this)">Read more</button>
+        </div>
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+          <button
+            style="background:none;border:1.5px solid var(--border);border-radius:100px;padding:4px 14px;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:6px;color:var(--text2);font-weight:600;transition:all 0.2s;"
+            onmouseover="this.style.borderColor='var(--teal)';this.style.color='var(--teal)';"
+            onmouseout="if(!this.dataset.liked){this.style.borderColor='var(--border)';this.style.color='var(--text2)';}"
+            onclick="if(!this.dataset.liked){this.dataset.liked=1;var c=this.querySelector('span');c.textContent=parseInt(c.textContent)+1;this.style.background='var(--teal-light)';this.style.borderColor='var(--teal)';this.style.color='var(--teal)';}">
+            &#128077; <span>0</span>
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+
+  if (wrap) wrap.style.display = homeReviewsShownCount < homeReviewsAllData.length ? 'block' : 'none';
+}
+
+function loadMoreHomeReviews() { renderHomeReviews(); }
+
 function setStarRating(val) {
   document.getElementById("feedback-rating").value = val;
   const stars = document.querySelectorAll("#star-rating span");
@@ -977,6 +1270,7 @@ async function submitPublicFeedback() {
   try {
     await db.collection(COLLECTIONS.PUBLIC_FEEDBACK).add({
       name, rating, text,
+      homeOnly: true,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     showToast("Thank you for your feedback!", "success");
@@ -987,6 +1281,7 @@ async function submitPublicFeedback() {
     document.querySelectorAll("#star-rating span").forEach(s => s.innerHTML = "☆");
     document.getElementById("star-rating-label").innerText = "Click a star to rate";
     loadPublicFeedback();
+    loadHomeReviews();
   } catch (e) {
     showToast("Error submitting feedback.", "error");
   }
@@ -996,25 +1291,137 @@ async function loadPublicFeedback() {
   const list = document.getElementById("public-feedback-list-home");
   if (!list) return;
   try {
-    const snap = await db.collection(COLLECTIONS.PUBLIC_FEEDBACK).orderBy("createdAt", "desc").limit(20).get();
-    const reviews = snap.docs.map(d => d.data());
+    const snap = await db.collection(COLLECTIONS.PUBLIC_FEEDBACK).orderBy("createdAt", "desc").limit(50).get();
+    let reviews = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    
+    const uniqueReviews = [];
+    const seen = new Set();
+    for (const r of reviews) {
+      const text = r.content || r.text || "";
+      if (!seen.has(text)) {
+        seen.add(text);
+        uniqueReviews.push(r);
+      }
+    }
+    let allReviews = uniqueReviews.slice(0, 20).filter(r => {
+      // Exclude form submissions — they appear on the home page instead
+      if (r.homeOnly) return false;
+      // Exclude Manasa — moved to home page
+      const nm = (r.from || r.name || "").toLowerCase();
+      if (nm.includes("manasa")) return false;
+      return true;
+    });
+
+    // 1. Remove Smt. from Kalpana
+    allReviews.forEach(r => {
+      if (r.from) r.from = r.from.replace(/Smt\.\s*Kalpana/ig, 'Kalpana');
+      if (r.name) r.name = r.name.replace(/Smt\.\s*Kalpana/ig, 'Kalpana');
+    });
+
+    // 2. Reorder to start/finish with Kalpana
+    let kalpanaFirst = null;
+    let kalpanaLast = null;
+    let otherReviews = [];
+    let kalpanaAll = [];
+
+    allReviews.forEach(r => {
+      let nameStr = (r.from || r.name || "").toLowerCase();
+      if (nameStr.includes("kalpana")) {
+        kalpanaAll.push(r);
+      } else {
+        otherReviews.push(r);
+      }
+    });
+
+    // Identify the pilgrimage Kalpana (starts with "travelling on a pilgrimage")
+    // and put it first with full name; the other Kalpana goes last as just "Kalpana"
+    kalpanaAll.forEach(r => {
+      const text = (r.content || r.text || "").toLowerCase();
+      if (text.includes("travelling on a pilgrimage") || text.includes("traveling on a pilgrimage")) {
+        // This is the one to go FIRST with full name
+        if (r.from) r.from = "Kalpana c/o Mali Paati and Bala Paati";
+        if (r.name) r.name = "Kalpana c/o Mali Paati and Bala Paati";
+        kalpanaFirst = r;
+      } else {
+        // Other Kalpana goes LAST with simple name
+        if (r.from) r.from = "Kalpana";
+        if (r.name) r.name = "Kalpana";
+        kalpanaLast = r;
+      }
+    });
+
+    // If somehow we didn't find the pilgrimage one, fall back gracefully
+    if (!kalpanaFirst && kalpanaAll.length > 0) {
+      kalpanaFirst = kalpanaAll[0];
+      if (kalpanaFirst.from) kalpanaFirst.from = "Kalpana c/o Mali Paati and Bala Paati";
+      if (kalpanaFirst.name) kalpanaFirst.name = "Kalpana c/o Mali Paati and Bala Paati";
+    }
+
+    reviews = [];
+    if (kalpanaFirst) reviews.push(kalpanaFirst);
+    reviews.push(...otherReviews);
+    if (kalpanaLast) reviews.push(kalpanaLast);
+
     if (reviews.length === 0) {
       list.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text2);">No reviews yet. Be the first to share your experience!</div>`;
       return;
     }
-    list.innerHTML = reviews.map(r => `
-      <div style="background:white; padding:20px; border-radius:8px; border:1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.2s ease;">
-        <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:12px;">
-          <strong style="color:var(--text); font-size:16px;">${escHtml(r.name)}</strong>
-          <span style="font-size:16px; letter-spacing: 2px;">${"⭐".repeat(r.rating || 5)}</span>
+    list.innerHTML = reviews.map(r => {
+      // Name can be either 'from' or 'name' based on legacy vs new schema
+      let nameStr = r.from || r.name || "Anonymous";
+      
+      let textHtml = escHtml(r.content || r.text || "");
+      // Replace newlines with <br> for better formatting
+      textHtml = textHtml.replace(/\\n/g, '<br>');
+      
+      let imagesHtml = "";
+      if (r.images && Array.isArray(r.images) && r.images.length > 0) {
+        const isKalpana = nameStr.toLowerCase().includes("kalpana");
+        imagesHtml = `<div class="testimonial-img-grid">` + 
+          r.images.map(img => `
+            <div class="testimonial-img-card">
+              <img src="${escHtml(img.url)}" alt="Testimonial photo" loading="lazy">
+              ${img.caption ? `<div class="testimonial-img-caption">${escHtml(isKalpana ? "Kalpana" : img.caption)}</div>` : ''}
+            </div>
+          `).join('') + `</div>`;
+      }
+
+      const initial = nameStr.charAt(0).toUpperCase();
+      
+      return `
+      <div class="review-card">
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+          <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--teal); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px;">${initial}</div>
+          <div>
+            <div style="font-weight: 600; color: var(--text);">${escHtml(nameStr)} <span style="color: #4CAF50; font-size: 12px;">✔️</span></div>
+            <div style="font-size: 12px; color: var(--text3);">Just now</div>
+          </div>
         </div>
-        <p style="color:var(--text2); font-size:14px; margin:0; line-height:1.6; font-style: italic;">"${escHtml(r.text)}"</p>
+        <div class="testimonial-text-container" style="font-size: 14px; color: var(--text2); line-height: 1.5; margin-bottom: 12px;">
+          <div class="testimonial-text line-clamp-3" style="margin-bottom:8px;">${textHtml}</div>
+          <button class="btn-read-more" style="background:none; border:none; color:var(--teal); font-weight:700; cursor:pointer; padding:0; font-size:14px; text-decoration:underline;" onclick="toggleReadMore(this)">Read more</button>
+        </div>
+        ${imagesHtml}
       </div>
-    `).join("");
+    `}).join("");
   } catch (e) {
+    console.error("loadPublicFeedback error:", e);
     list.innerHTML = `<div class="error-msg" style="grid-column: 1 / -1; text-align: center; padding: 20px; color: var(--text2);">Could not load reviews.</div>`;
   }
 }
+
+window.toggleReadMore = function(btn) {
+  const textDiv = btn.previousElementSibling;
+  if (textDiv.classList.contains('line-clamp-3')) {
+    textDiv.classList.remove('line-clamp-3');
+    textDiv.classList.add('line-clamp-none');
+    btn.textContent = 'Read less';
+  } else {
+    textDiv.classList.remove('line-clamp-none');
+    textDiv.classList.add('line-clamp-3');
+    btn.textContent = 'Read more';
+  }
+};
 
 function openReportModal(bookingId) {
   document.getElementById("report-booking-id").value = bookingId;
@@ -1068,12 +1475,17 @@ async function loadOwnerFeedbackData() {
   try {
     // Load Public
     const pSnap = await db.collection(COLLECTIONS.PUBLIC_FEEDBACK).orderBy("createdAt", "desc").limit(20).get();
-    const pReviews = pSnap.docs.map(d => d.data());
+    const pReviews = pSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    State.ownerFeedback = pReviews;
     pubList.innerHTML = pReviews.length === 0 ? `<div class="empty-state">No public reviews.</div>` : pReviews.map(r => `
       <div class="request-card" style="margin-bottom:10px;">
         <div class="req-body">
-          <div style="font-weight:700;">${escHtml(r.name)} - ${"⭐".repeat(r.rating || 5)}</div>
-          <div style="font-size:14px; color:var(--text2); margin-top:4px;">"${escHtml(r.text)}"</div>
+          <div style="font-weight:700;">${escHtml(r.from || r.name)} - ${"⭐".repeat(r.rating || 5)}</div>
+          <div style="font-size:14px; color:var(--text2); margin-top:4px;">"${escHtml(r.content || r.text)}"</div>
+          <div class="req-actions" style="margin-top:12px; display:flex; gap:8px;">
+            <button class="btn btn-teal btn-sm" onclick="editTestimonial('${r.id}')">✏️ Edit</button>
+            <button class="btn btn-ghost btn-sm" style="color:var(--red); border-color:rgba(192,57,43,0.3)" onclick="deleteTestimonial('${r.id}')">🗑️ Delete</button>
+          </div>
         </div>
       </div>
     `).join("");
@@ -1277,14 +1689,15 @@ async function approveApplication(id, btn) {
 async function rejectApplication(id) { await db.collection("applications").doc(id).update({ status: "rejected" }); loadOwnerPanelData(); }
 
 function setDashTab(tab) {
-  ["requests","calendar","gallery","owner","settings", "group-trips"].forEach(t => {
+  ["requests","calendar","gallery","owner","settings","group-trips","diaries","testimonials","feedback-reports","banners"].forEach(t => {
     const el = document.getElementById(`tab-${t}`);
     if (el) el.style.display = t === tab ? "block" : "none";
   });
   // Update active tab style
   document.querySelectorAll(".tabs .tab").forEach(btn => {
     btn.classList.remove("active");
-    if (btn.getAttribute("onclick").includes(`'${tab}'`) || btn.getAttribute("onclick").includes(`"${tab}"`)) {
+    const onclickAttr = btn.getAttribute("onclick");
+    if ((onclickAttr && (onclickAttr.includes(`'${tab}'`) || onclickAttr.includes(`"${tab}"`))) || btn.id === `tab-${tab}-btn`) {
       btn.classList.add("active");
     }
   });
@@ -1306,17 +1719,65 @@ function scrollToHow() { document.getElementById("how-it-works")?.scrollIntoView
 async function loadPublicGallery() {
   const container = document.getElementById("home-gallery-preview");
   if (!container) return;
+
   try {
-    const snap = await db.collection(COLLECTIONS.MEDIA).limit(6).get();
-    if (snap.empty) { container.innerHTML = "No moments yet"; return; }
+    const snap = await db.collection(COLLECTIONS.MEDIA).get();
+    if (snap.empty) {
+      container.innerHTML = "<div style='position:absolute; width:100%; top:50%; transform:translateY(-50%); color:var(--text3);'>No moments yet</div>";
+      return;
+    }
+
     container.innerHTML = "";
+    const cards = [];
+
     snap.forEach(doc => {
-      const img = document.createElement("img");
-      img.src = doc.data().url;
-      img.style = "width:100%;height:100%;object-fit:cover;border-radius:12px";
-      container.appendChild(img);
+      const data = doc.data();
+      const card = document.createElement("div");
+      card.className = "polaroid-card";
+      card.innerHTML = `
+        <img src="${data.url}" alt="Moment of care" loading="lazy">
+        <div class="polaroid-caption">${data.caption ? escHtml(data.caption) : ''}</div>
+      `;
+      container.appendChild(card);
+      cards.push(card);
     });
-  } catch (e) { container.innerHTML = "Gallery failed to load"; }
+
+    if (cards.length > 0) {
+      let currentIndex = 0;
+      function updateStack() {
+        cards.forEach((card, idx) => {
+          card.className = 'polaroid-card';
+          const diff = (idx - currentIndex + cards.length) % cards.length;
+
+          if (diff === 0) {
+            card.classList.add('stack-active-0');
+          } else if (diff === 1) {
+            card.classList.add('stack-active-1');
+          } else if (diff === 2 && cards.length > 3) {
+            card.classList.add('stack-active-2');
+          }
+
+          if (cards.length > 2 && diff === cards.length - 1) {
+            card.classList.add('stack-active-prev');
+          }
+        });
+        currentIndex = (currentIndex + 1) % cards.length;
+      }
+
+      setTimeout(() => {
+        updateStack();
+        if (window.galleryInterval) clearInterval(window.galleryInterval);
+        window.galleryInterval = setInterval(() => {
+          if (!container.matches(':hover')) {
+            updateStack();
+          }
+        }, 1800);
+      }, 50);
+    }
+  } catch (e) {
+    console.error('loadPublicGallery error:', e);
+    container.innerHTML = "<div style='position:absolute; width:100%; top:50%; transform:translateY(-50%); color:var(--text3);'>Gallery failed to load</div>";
+  }
 }
 
 // ============================================================
@@ -1344,6 +1805,7 @@ async function loadGroupTrips() {
       };
     }));
 
+    State.groupTrips = tripsWithCounts;
     container.innerHTML = tripsWithCounts.map(t => {
       const isMyTrip = State.currentUser && t.createdBy === State.currentUser.uid;
       return `
@@ -1363,7 +1825,8 @@ async function loadGroupTrips() {
             </div>
             <div class="req-actions" style="margin-top:12px; display:flex; gap:8px;">
               <button class="btn btn-teal btn-sm" onclick="loadTripInterests('${t.id}', '${escHtml(t.title)}')">🔍 View Interest Details</button>
-              ${isMyTrip ? `<button class="btn btn-ghost btn-sm" style="color:var(--red); border-color:rgba(192,57,43,0.3)" onclick="deleteGroupTrip('${t.id}')">🗑️ Delete</button>` : ""}
+              ${isMyTrip || State.isOwner ? `<button class="btn btn-outline btn-sm" style="color:var(--teal); border-color:rgba(42,127,127,0.3)" onclick="editGroupTrip('${t.id}')">✏️ Edit</button>` : ""}
+              ${isMyTrip || State.isOwner ? `<button class="btn btn-ghost btn-sm" style="color:var(--red); border-color:rgba(192,57,43,0.3)" onclick="deleteGroupTrip('${t.id}')">🗑️ Delete</button>` : ""}
             </div>
           </div>
         </div>
@@ -1396,42 +1859,54 @@ async function proposeGroupTrip() {
   btn.disabled = true;
 
   try {
-    const trip = {
-      title,
-      date,
-      endDate,
-      description,
-      createdBy: State.currentUser ? State.currentUser.uid : "auto",
-      createdByName: State.caregiverProfile ? State.caregiverProfile.name : "Companion",
-      status: "active",
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
-
-    const tripRef = await db.collection(COLLECTIONS.GROUP_TRIPS).add(trip);
-
-    // Block the caregiver's schedule for the duration of the trip
-    let currentDate = new Date(date);
-    let stopDate = new Date(endDate);
-    
-    // Safety check against infinite loops
-    if (currentDate <= stopDate) {
-      const batch = db.batch();
-      while (currentDate <= stopDate) {
-        let isoDate = currentDate.toISOString().split('T')[0];
-        const newBlockRef = db.collection(COLLECTIONS.BLOCKED).doc();
-        batch.set(newBlockRef, {
-          caregiverId: State.currentUser.uid,
-          date: isoDate,
-          time: "All Day",
-          reason: `Group Yatra: ${title}`,
-          tripId: tripRef.id,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        currentDate.setDate(currentDate.getDate() + 1);
+    if (State.editingTripId) {
+      await db.collection(COLLECTIONS.GROUP_TRIPS).doc(State.editingTripId).update({
+        title,
+        date,
+        endDate,
+        description,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      showToast("Group Yatra updated! 🎉", "success");
+      State.editingTripId = null;
+    } else {
+      const trip = {
+        title,
+        date,
+        endDate,
+        description,
+        createdBy: State.currentUser ? State.currentUser.uid : "auto",
+        createdByName: State.caregiverProfile ? State.caregiverProfile.name : "Companion",
+        status: "active",
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+  
+      const tripRef = await db.collection(COLLECTIONS.GROUP_TRIPS).add(trip);
+  
+      // Block the caregiver's schedule for the duration of the trip
+      let currentDate = new Date(date);
+      let stopDate = new Date(endDate);
+      
+      // Safety check against infinite loops
+      if (currentDate <= stopDate) {
+        const batch = db.batch();
+        while (currentDate <= stopDate) {
+          let isoDate = currentDate.toISOString().split('T')[0];
+          const newBlockRef = db.collection(COLLECTIONS.BLOCKED).doc();
+          batch.set(newBlockRef, {
+            caregiverId: State.currentUser.uid,
+            date: isoDate,
+            time: "All Day",
+            reason: `Group Yatra: ${title}`,
+            tripId: tripRef.id,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+        await batch.commit();
       }
-      await batch.commit();
+      showToast("Upcoming Group Yatra proposed & schedule blocked! 🎉", "success");
     }
-    showToast("Upcoming Group Yatra proposed & schedule blocked! 🎉", "success");
     
     document.getElementById("trip-title").value = "";
     document.getElementById("trip-date").value = "";
@@ -1442,7 +1917,7 @@ async function proposeGroupTrip() {
     await loadPublicGroupTrips();
   } catch (e) {
     console.error("proposeGroupTrip error:", e);
-    showToast("Failed to propose group trip", "error");
+    showToast("Failed to save group trip", "error");
   } finally {
     btn.textContent = "🛫 Propose Group Yatra";
     btn.disabled = false;
@@ -1541,21 +2016,25 @@ async function loadPublicGroupTrips() {
       return;
     }
 
-    container.innerHTML = trips.map(t => `
+    container.innerHTML = trips.map(t => {
+      let title = t.title || "";
+      let desc = "Senior Citizen Dharshan Seva for Narayanan Mama ❤️";
+      
+      return `
       <div class="service-card" style="text-align:left; cursor:default; padding:24px; display:flex; flex-direction:column; justify-content:space-between; height:100%; border-color:var(--teal); background:linear-gradient(145deg, #ffffff, #F4FBFB); box-shadow:var(--shadow);">
         <div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <div style="background:var(--teal-light); color:var(--teal-dark); font-weight:700; font-size:12px; padding:4px 12px; border-radius:100px;">🙏 Accompany Yatra</div>
+            <div style="background:var(--teal-light); color:var(--teal-dark); font-weight:700; font-size:12px; padding:4px 12px; border-radius:100px;">🙏 1:1 Accompany Yatra</div>
             <div style="font-size:13px; color:var(--text3); font-weight:600;">📅 ${formatDate(t.date)}${t.endDate && t.endDate !== t.date ? ' - ' + formatDate(t.endDate) : ''}</div>
           </div>
-          <h4 style="font-family:var(--font-serif); font-size:18px; color:var(--text); font-weight:600; margin-bottom:8px;">${escHtml(t.title)}</h4>
-          <p style="font-size:13px; color:var(--text2); line-height:1.5; margin-bottom:14px; min-height:60px;">${escHtml(t.description)}</p>
+          <h4 style="font-family:var(--font-serif); font-size:18px; color:var(--text); font-weight:600; margin-bottom:8px;">${escHtml(title)}</h4>
+          <p style="font-size:13px; color:var(--text2); line-height:1.5; margin-bottom:14px; min-height:60px;">${escHtml(desc)}</p>
         </div>
           <div style="border-top:1px solid var(--border); padding-top:14px; display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap; gap:8px;">
-          <button class="btn btn-teal btn-sm" onclick="window.open('https://wa.me/917339339323?text=Hello, I am interested in registering for the Upcoming Yatra: ' + encodeURIComponent('${t.title.replace(/'/g, "\\'")}'), '_blank')">Register Interest</button>
+          <button class="btn btn-teal btn-sm" onclick="window.open('https://wa.me/917339339323?text=Hello, I am interested in registering for the Upcoming Yatra: ' + encodeURIComponent('${title.replace(/'/g, "\\'")}'), '_blank')">Register Interest</button>
         </div>
       </div>
-    `).join("");
+    `}).join("");
   } catch (e) {
     console.error("loadPublicGroupTrips error:", e);
     container.innerHTML = `<div class="error-msg" style="grid-column: 1 / -1;">Upcoming group trips failed to load.</div>`;
@@ -1624,20 +2103,592 @@ async function submitTripInterest() {
   }
 }
 
-// ── EXPOSE TO WINDOW ───────────────────────────
+function showDiaryForm(id = "", title = "", content = "") {
+  const f = document.getElementById("diary-write-form");
+  if (f) { f.style.display = "block"; f.scrollIntoView({ behavior: "smooth", block: "start" }); }
+  State.editingBlogId = id;
+  const ti = document.getElementById("blog-title-input");
+  const ci = document.getElementById("blog-content-input");
+  if (ti) ti.value = title;
+  if (ci) ci.value = content;
+  const btn = document.querySelector("#diary-write-form .btn-teal");
+  if (btn) btn.textContent = id ? "💾 Update Entry" : "💾 Save & Publish";
+  const titleEl = document.querySelector("#diary-write-form > div");
+  if (titleEl) titleEl.innerHTML = id ? "✍️ Edit Diary Entry" : "✍️ New Diary Entry";
+}
+
+function hideDiaryForm() {
+  const f = document.getElementById("diary-write-form");
+  if (f) f.style.display = "none";
+  State.editingBlogId = null;
+  const ti = document.getElementById("blog-title-input");
+  const ci = document.getElementById("blog-content-input");
+  if (ti) ti.value = "";
+  if (ci) ci.value = "";
+  const btn = document.querySelector("#diary-write-form .btn-teal");
+  if (btn) btn.textContent = "💾 Save & Publish";
+  const titleEl = document.querySelector("#diary-write-form > div");
+  if (titleEl) titleEl.innerHTML = "✍️ New Diary Entry";
+}
+
+async function loadDiariesList() {
+  const container = document.getElementById("dashboard-diaries-list");
+  if (!container) return;
+  container.innerHTML = `<div class="loading-spinner">Loading entries…</div>`;
+  try {
+    const snap = await db.collection(COLLECTIONS.BLOGS).orderBy("createdAt", "desc").get();
+    if (snap.empty) {
+      container.innerHTML = `<div class="empty-state">No diary entries yet. Click '+ Add New Entry' to write your first one!</div>`;
+      return;
+    }
+    State.diaries = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+    container.innerHTML = State.diaries.map(b => {
+      const preview = b.content ? b.content.replace(/<[^>]*>/g, "").slice(0, 120) + "..." : "";
+      return `
+        <div style="background:white; border:1.5px solid var(--border); border-radius:var(--radius); padding:20px; margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:8px;">
+            <div style="font-weight:700; font-size:16px; color:var(--teal-dark); line-height:1.4; flex:1;">${escHtml(b.title)}</div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-outline btn-sm" style="color:var(--teal); border-color:rgba(42,127,127,0.3); flex-shrink:0;" onclick="editBlog('${b.id}')">✏️ Edit</button>
+              <button class="btn btn-ghost btn-sm" style="color:var(--red); border-color:rgba(192,57,43,0.3); flex-shrink:0;" onclick="deleteBlog('${b.id}')">🗑️ Delete</button>
+            </div>
+          </div>
+          <div style="font-size:13px; color:var(--text2); line-height:1.6;">${escHtml(preview)}</div>
+        </div>
+      `;
+    }).join("");
+  } catch(e) {
+    console.error(e);
+    container.innerHTML = `<div class="error-msg">Error loading diary entries.</div>`;
+  }
+}
+
+async function deleteBlog(id) {
+  if (!confirm("Delete this diary entry?")) return;
+  try {
+    await db.collection(COLLECTIONS.BLOGS).doc(id).delete();
+    showToast("Diary entry deleted", "success");
+    loadDiariesList();
+    loadPublicBlogs();
+  } catch(e) {
+    showToast("Failed to delete entry", "error");
+  }
+}
+
+async function postDiary() {
+  const title = document.getElementById("blog-title-input").value.trim();
+  const content = document.getElementById("blog-content-input").value.trim();
+  if(!title || !content) { showToast("Enter title and content", "error"); return; }
+  const btn = document.querySelector("#diary-write-form .btn-teal");
+  if (btn) { btn.textContent = "Saving…"; btn.disabled = true; }
+  try {
+    if (State.editingBlogId) {
+      await db.collection(COLLECTIONS.BLOGS).doc(State.editingBlogId).update({
+        title: title,
+        content: content,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      showToast("Diary updated! 📖", "success");
+    } else {
+      await db.collection(COLLECTIONS.BLOGS).add({
+        title: title,
+        content: content,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      showToast("Diary published! 📖", "success");
+    }
+    hideDiaryForm();
+    loadDiariesList();
+    loadPublicBlogs();
+  } catch(e) {
+    showToast("Error posting diary", "error");
+  } finally {
+    if (btn) { btn.textContent = State.editingBlogId ? "💾 Update Entry" : "💾 Save & Publish"; btn.disabled = false; }
+  }
+}
+
+async function loadPublicBlogs() {
+  const container = document.getElementById("public-blogs-container");
+  if(!container) return;
+  try {
+    const snap = await db.collection(COLLECTIONS.BLOGS).orderBy("createdAt", "desc").get();
+    if (snap.empty) {
+      container.innerHTML = `<div class="empty-state">No diaries yet.</div>`;
+      return;
+    }
+    container.innerHTML = snap.docs.map(doc => {
+      const b = doc.data();
+      return `
+        <div class="diary-post" style="padding: 20px 0; border-bottom: 1.5px solid var(--border);">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px;">
+            <h3 style="font-size: 18px; color: var(--teal-dark); line-height: 1.5; margin:0; flex:1;">${escHtml(b.title)}</h3>
+            ${State.isOwner ? `<button class="btn btn-ghost btn-sm" style="color:var(--red); border-color:rgba(192,57,43,0.3); flex-shrink:0;" onclick="deleteBlog('${doc.id}')">🗑️ Delete</button>` : ''}
+          </div>
+          <div style="font-size:15px; line-height:1.7; color:var(--text2); font-family:var(--font-serif);">
+            ${b.content}
+          </div>
+        </div>
+      `;
+    }).join("");
+  } catch(e) {
+    console.error("loadPublicBlogs error", e);
+    container.innerHTML = `<div class="empty-state">No diaries yet.</div>`;
+  }
+}
+
+// ── TESTIMONIAL SUBMISSION LOGIC ───────────────
+window.renderTestimonialImageCaptions = function() {
+  const fileInput = document.getElementById('testimonial-images-input');
+  const container = document.getElementById('testimonial-image-captions-container');
+  container.innerHTML = '';
+  
+  if (fileInput.files && fileInput.files.length > 0) {
+    Array.from(fileInput.files).forEach((file, index) => {
+      const wrapper = document.createElement('div');
+      wrapper.style.display = 'flex';
+      wrapper.style.alignItems = 'center';
+      wrapper.style.gap = '10px';
+      
+      const thumb = document.createElement('img');
+      thumb.src = URL.createObjectURL(file);
+      thumb.style.width = '60px';
+      thumb.style.height = '60px';
+      thumb.style.objectFit = 'cover';
+      thumb.style.borderRadius = '4px';
+      
+      const captionInput = document.createElement('input');
+      captionInput.type = 'text';
+      captionInput.className = 'form-input';
+      captionInput.placeholder = 'Caption for this image...';
+      captionInput.id = `testimonial-caption-${index}`;
+      
+      wrapper.appendChild(thumb);
+      wrapper.appendChild(captionInput);
+      container.appendChild(wrapper);
+    });
+  }
+};
+
+window.postTestimonial = async function() {
+  const from = document.getElementById('testimonial-from-input').value.trim();
+  const content = document.getElementById('testimonial-content-input').value.trim();
+  const fileInput = document.getElementById('testimonial-images-input');
+  
+  if (!from || !content) {
+    showToast("From and Content are required.", "error");
+    return;
+  }
+  
+  const btn = document.getElementById('post-testimonial-btn');
+  btn.textContent = "Uploading...";
+  btn.disabled = true;
+  
+  try {
+    const uploadedImages = [];
+    if (fileInput.files && fileInput.files.length > 0) {
+      const files = Array.from(fileInput.files);
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const caption = document.getElementById(`testimonial-caption-${i}`).value.trim();
+        const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+        const storageRef = firebase.storage().ref(`testimonials/${fileName}`);
+        const uploadTask = await storageRef.put(file);
+        const url = await uploadTask.ref.getDownloadURL();
+        uploadedImages.push({ url, caption });
+      }
+    }
+    
+    if (State.editingTestimonialId) {
+      const updates = {
+        from: from,
+        content: content,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      if (uploadedImages.length > 0) updates.images = uploadedImages;
+      
+      await db.collection(COLLECTIONS.PUBLIC_FEEDBACK).doc(State.editingTestimonialId).update(updates);
+      showToast("Testimonial updated successfully!", "success");
+      State.editingTestimonialId = null;
+      btn.textContent = "Post Testimonial";
+    } else {
+      await db.collection(COLLECTIONS.PUBLIC_FEEDBACK).add({
+        from: from,
+        content: content,
+        images: uploadedImages,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      showToast("Testimonial posted successfully!", "success");
+    }
+    
+    document.getElementById('testimonial-from-input').value = "";
+    document.getElementById('testimonial-content-input').value = "";
+    fileInput.value = "";
+    document.getElementById('testimonial-image-captions-container').innerHTML = "";
+    const cancelBtn = document.getElementById('cancel-edit-testimonial-btn');
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    loadOwnerFeedbackData();
+    loadOwnerTestimonials();
+    loadPublicFeedback();
+  } catch(e) {
+    console.error(e);
+    showToast("Error posting testimonial.", "error");
+  } finally {
+    btn.textContent = State.editingTestimonialId ? "💾 Update Testimonial" : "Post Testimonial";
+    btn.disabled = false;
+  }
+};
+
+window.editTestimonial = function(id) {
+  const r = State.ownerFeedback?.find(x => x.id === id);
+  if (r) {
+    document.getElementById("testimonial-from-input").value = r.from || r.name || "";
+    document.getElementById("testimonial-content-input").value = r.content || r.text || "";
+    State.editingTestimonialId = id;
+    const btn = document.getElementById("post-testimonial-btn");
+    if (btn) btn.innerHTML = "💾 Update Testimonial";
+    const cancelBtn = document.getElementById("cancel-edit-testimonial-btn");
+    if (cancelBtn) cancelBtn.style.display = 'inline-flex';
+    setDashTab("testimonials");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+};
+
+window.deleteTestimonial = async function(id) {
+  if (!confirm("Delete this testimonial?")) return;
+  try {
+    await db.collection(COLLECTIONS.PUBLIC_FEEDBACK).doc(id).delete();
+    showToast("Testimonial deleted", "success");
+    loadOwnerFeedbackData();
+    loadOwnerTestimonials();
+    loadPublicFeedback();
+  } catch(e) {
+    showToast("Failed to delete testimonial", "error");
+  }
+};
+
+// ── LOAD ALL TESTIMONIALS FOR OWNER DASHBOARD ──
+window.loadOwnerTestimonials = async function() {
+  const container = document.getElementById('owner-testimonials-list');
+  if (!container) return;
+  container.innerHTML = '<div class="loading-spinner">Loading testimonials...</div>';
+  try {
+    const snap = await db.collection(COLLECTIONS.PUBLIC_FEEDBACK).orderBy('createdAt', 'desc').get();
+    const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Store for editTestimonial to use
+    State.ownerFeedback = items;
+
+    if (items.length === 0) {
+      container.innerHTML = '<div class="empty-state">No testimonials yet. Post one above!</div>';
+      return;
+    }
+
+    container.innerHTML = items.map(r => {
+      const name = escHtml(r.from || r.name || 'Anonymous');
+      const text = escHtml((r.content || r.text || '').slice(0, 200)) + ((r.content || r.text || '').length > 200 ? '…' : '');
+      const stars = '⭐'.repeat(Math.min(r.rating || 0, 5));
+      const isHomeOnly = r.homeOnly ? '<span style="font-size:11px;background:var(--teal-light);color:var(--teal-dark);padding:2px 8px;border-radius:100px;font-weight:600;">🏠 Home Page</span>' : '<span style="font-size:11px;background:#FFF3E0;color:#E65100;padding:2px 8px;border-radius:100px;font-weight:600;">📜 Testimonials</span>';
+
+      // Show existing images
+      let imagesPreview = '';
+      if (r.images && r.images.length > 0) {
+        imagesPreview = `
+          <div style="margin-top:10px;">
+            <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px;text-transform:uppercase;">Images (${r.images.length}) — shown below review text on public page:</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+              ${r.images.map(img => `
+                <div style="position:relative; display:inline-block;">
+                  <img src="${img.url}" style="width:72px;height:72px;object-fit:contain;border-radius:8px;border:1.5px solid var(--border);" loading="lazy">
+                  <button onclick="deleteTestimonialImage('${r.id}', '${img.url}')" title="Delete Image" style="position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%; background:var(--red); color:white; border:none; cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,0.2);">✕</button>
+                  ${img.caption ? `<div style="font-size:10px;color:var(--text3);text-align:center;max-width:72px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${escHtml(img.caption)}</div>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>`;
+      }
+
+      return `
+        <div style="background:white;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+            <div>
+              <div style="font-weight:700;font-size:15px;color:var(--text);">${name} ${stars}</div>
+              <div style="margin-top:4px;">${isHomeOnly}</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-teal btn-sm" onclick="editTestimonial('${r.id}')">✏️ Edit Text</button>
+              <button class="btn btn-outline btn-sm" style="color:var(--orange);border-color:rgba(232,114,42,0.4);" onclick="showAddImagesForm('${r.id}')">🖼️ Add Images</button>
+              <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deleteTestimonial('${r.id}')">🗑️ Delete</button>
+            </div>
+          </div>
+          <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:8px;">${text}</div>
+          ${imagesPreview}
+          <!-- Inline add-images form (hidden by default) -->
+          <div id="add-images-form-${r.id}" style="display:none;margin-top:12px;background:var(--warm);border:1.5px dashed var(--teal);border-radius:10px;padding:14px;">
+            <div style="font-size:13px;font-weight:700;color:var(--teal-dark);margin-bottom:10px;">🖼️ Add Images to this Testimonial</div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">📍 Images appear <strong>below the review text</strong> on the public page, in a photo grid with a caption under each image.</div>
+            <input type="file" id="add-img-input-${r.id}" accept="image/*" multiple class="form-input" style="margin-bottom:10px;">
+            <div id="add-img-captions-${r.id}" style="display:grid;gap:8px;margin-bottom:10px;"></div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-teal btn-sm" onclick="uploadAndAddImages('${r.id}')">⬆️ Upload &amp; Save</button>
+              <button class="btn btn-ghost btn-sm" onclick="document.getElementById('add-images-form-${r.id}').style.display='none'">Cancel</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Attach file input listeners
+    items.forEach(r => {
+      const inp = document.getElementById(`add-img-input-${r.id}`);
+      if (inp) inp.addEventListener('change', () => previewAddImages(r.id));
+    });
+
+  } catch(e) {
+    console.error('loadOwnerTestimonials error:', e);
+    container.innerHTML = '<div class="error-msg">Error loading testimonials.</div>';
+  }
+};
+
+window.showAddImagesForm = function(id) {
+  // Hide all other open forms first
+  document.querySelectorAll('[id^="add-images-form-"]').forEach(el => el.style.display = 'none');
+  const form = document.getElementById(`add-images-form-${id}`);
+  if (form) { form.style.display = 'block'; form.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+};
+
+window.previewAddImages = function(id) {
+  const inp = document.getElementById(`add-img-input-${id}`);
+  const captionsDiv = document.getElementById(`add-img-captions-${id}`);
+  if (!inp || !captionsDiv) return;
+  captionsDiv.innerHTML = '';
+  Array.from(inp.files).forEach((file, i) => {
+    const url = URL.createObjectURL(file);
+    captionsDiv.innerHTML += `
+      <div style="display:flex;align-items:center;gap:10px;">
+        <img src="${url}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;border:1px solid var(--border);flex-shrink:0;">
+        <input type="text" id="add-img-caption-${id}-${i}" class="form-input" placeholder="Caption for this image (optional)" style="flex:1;">
+      </div>`;
+  });
+};
+
+window.uploadAndAddImages = async function(id) {
+  const inp = document.getElementById(`add-img-input-${id}`);
+  if (!inp || !inp.files || inp.files.length === 0) { showToast('Select at least one image', 'error'); return; }
+  const btn = document.querySelector(`#add-images-form-${id} .btn-teal`);
+  if (btn) { btn.textContent = 'Uploading…'; btn.disabled = true; }
+  try {
+    // Get existing images from Firestore doc
+    const docSnap = await db.collection(COLLECTIONS.PUBLIC_FEEDBACK).doc(id).get();
+    const existingImages = docSnap.data()?.images || [];
+
+    const newImages = [];
+    const files = Array.from(inp.files);
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const caption = document.getElementById(`add-img-caption-${id}-${i}`)?.value.trim() || '';
+      const fileName = `${Date.now()}_${i}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+      const ref = firebase.storage().ref(`testimonials/${fileName}`);
+      const task = await ref.put(file);
+      const url = await task.ref.getDownloadURL();
+      newImages.push({ url, caption });
+    }
+
+    const allImages = [...existingImages, ...newImages];
+    await db.collection(COLLECTIONS.PUBLIC_FEEDBACK).doc(id).update({ images: allImages });
+    showToast(`${newImages.length} image(s) added! ✓`, 'success');
+    document.getElementById(`add-images-form-${id}`).style.display = 'none';
+    loadOwnerTestimonials();
+    loadPublicFeedback();
+  } catch(e) {
+    console.error('uploadAndAddImages error:', e);
+    showToast('Upload failed', 'error');
+  } finally {
+    if (btn) { btn.textContent = '⬆️ Upload & Save'; btn.disabled = false; }
+  }
+};
+
+window.cancelEditTestimonial = function() {
+  State.editingTestimonialId = null;
+  document.getElementById('testimonial-from-input').value = '';
+  document.getElementById('testimonial-content-input').value = '';
+  document.getElementById('testimonial-image-captions-container').innerHTML = '';
+  const btn = document.getElementById('post-testimonial-btn');
+  if (btn) btn.textContent = 'Post Testimonial';
+  const cancelBtn = document.getElementById('cancel-edit-testimonial-btn');
+  if (cancelBtn) cancelBtn.style.display = 'none';
+};
+
+window.editGroupTrip = function(id) {
+  const t = State.groupTrips?.find(x => x.id === id);
+  if (t) {
+    document.getElementById("trip-title").value = t.title;
+    document.getElementById("trip-date").value = t.date;
+    document.getElementById("trip-end-date").value = t.endDate || t.date;
+    document.getElementById("trip-desc").value = t.description || "";
+    State.editingTripId = id;
+    const btn = document.getElementById("propose-trip-btn");
+    if (btn) btn.innerHTML = "💾 Update Group Yatra";
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+};
+
+window.editBlog = function(id) {
+  const b = State.diaries?.find(d => d.id === id);
+  if (b) showDiaryForm(id, b.title, b.content);
+};
+
+
+// ── BANNER CAROUSEL ──────────────────────────────────────────
+window.loadBanners = async function() {
+  const carousel = document.getElementById('home-banner-carousel');
+  if (!carousel) return;
+  try {
+    const snap = await db.collection(COLLECTIONS.BANNERS).orderBy('createdAt', 'asc').get();
+    const banners = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (banners.length === 0) { carousel.style.display = 'none'; return; }
+    carousel.style.display = 'block';
+    const track = document.getElementById('banner-track');
+    const dots = document.getElementById('banner-dots');
+    if (!track || !dots) return;
+    track.innerHTML = banners.map((b, i) => `
+      <div class="banner-slide" style="min-width:100%; position:relative;">
+        <img src="${b.url}" alt="${b.caption || 'Accompany'}" style="width:100%;height:100%;object-fit:cover;display:block;">
+        ${b.caption ? `<div class="banner-caption">${b.caption}</div>` : ''}
+      </div>`).join('');
+    dots.innerHTML = banners.map((_, i) =>
+      `<button class="banner-dot ${i === 0 ? 'active' : ''}" onclick="goToBannerSlide(${i})" aria-label="Slide ${i+1}"></button>`
+    ).join('');
+    window._bannerTotal = banners.length;
+    window._bannerCurrent = 0;
+    clearInterval(window._bannerTimer);
+    if (banners.length > 1) {
+      window._bannerTimer = setInterval(() => goToBannerSlide((window._bannerCurrent + 1) % window._bannerTotal), 5000);
+    }
+    // Show arrows only if multiple banners
+    document.querySelectorAll('.banner-arrow').forEach(el => el.style.display = banners.length > 1 ? 'flex' : 'none');
+  } catch(e) {
+    console.error('loadBanners error:', e);
+    if (carousel) carousel.style.display = 'none';
+  }
+};
+
+window.goToBannerSlide = function(index) {
+  const track = document.getElementById('banner-track');
+  if (!track) return;
+  window._bannerCurrent = index;
+  track.style.transform = `translateX(-${index * 100}%)`;
+  document.querySelectorAll('.banner-dot').forEach((dot, i) => dot.classList.toggle('active', i === index));
+};
+
+window.prevBannerSlide = function() {
+  const total = window._bannerTotal || 1;
+  const prev = (window._bannerCurrent - 1 + total) % total;
+  goToBannerSlide(prev);
+  clearInterval(window._bannerTimer);
+  if (total > 1) window._bannerTimer = setInterval(() => goToBannerSlide((window._bannerCurrent + 1) % total), 5000);
+};
+
+window.nextBannerSlide = function() {
+  const total = window._bannerTotal || 1;
+  goToBannerSlide((window._bannerCurrent + 1) % total);
+  clearInterval(window._bannerTimer);
+  if (total > 1) window._bannerTimer = setInterval(() => goToBannerSlide((window._bannerCurrent + 1) % total), 5000);
+};
+
+window.previewBannerUpload = function() {
+  const input = document.getElementById('banner-upload-input');
+  const preview = document.getElementById('banner-preview-container');
+  const img = document.getElementById('banner-preview-img');
+  if (input && input.files && input.files[0]) {
+    preview.style.display = 'block';
+    img.src = URL.createObjectURL(input.files[0]);
+  }
+};
+
+window.uploadBanner = async function() {
+  const input = document.getElementById('banner-upload-input');
+  const caption = document.getElementById('banner-caption-input').value.trim();
+  if (!input || !input.files || !input.files[0]) { showToast('Please select an image', 'error'); return; }
+  const btn = document.getElementById('banner-upload-btn');
+  btn.textContent = 'Uploading\u2026'; btn.disabled = true;
+  try {
+    const file = input.files[0];
+    const fileName = `banner_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+    const ref = firebase.storage().ref(`banners/${fileName}`);
+    const task = await ref.put(file);
+    const url = await task.ref.getDownloadURL();
+    await db.collection(COLLECTIONS.BANNERS).add({ url, caption, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    showToast('Banner uploaded! \u2713', 'success');
+    input.value = '';
+    document.getElementById('banner-caption-input').value = '';
+    document.getElementById('banner-preview-container').style.display = 'none';
+    loadOwnerBanners();
+    loadBanners();
+  } catch(e) {
+    console.error('uploadBanner error:', e);
+    showToast('Upload failed', 'error');
+  } finally {
+    btn.textContent = '\u2b06\ufe0f Upload Banner'; btn.disabled = false;
+  }
+};
+
+window.loadOwnerBanners = async function() {
+  const container = document.getElementById('owner-banners-list');
+  if (!container) return;
+  container.innerHTML = '<div class="loading-spinner">Loading...</div>';
+  try {
+    const snap = await db.collection(COLLECTIONS.BANNERS).orderBy('createdAt', 'asc').get();
+    const banners = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (banners.length === 0) { container.innerHTML = '<div class="empty-state">No banners uploaded yet.</div>'; return; }
+    container.innerHTML = banners.map((b, i) => `
+      <div style="background:white;border:1.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow);">
+        <div style="width:100%;aspect-ratio:16/5;background:#f0f0f0;overflow:hidden;">
+          <img src="${b.url}" alt="${b.caption || 'Banner'}" style="width:100%;height:100%;object-fit:cover;display:block;">
+        </div>
+        <div style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div>
+            <div style="font-weight:700;font-size:14px;color:var(--text);">Banner ${i + 1}</div>
+            ${b.caption ? `<div style="font-size:13px;color:var(--text3);">${escHtml(b.caption)}</div>` : '<div style="font-size:12px;color:var(--text3);">No caption</div>'}
+          </div>
+          <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deleteBanner('${b.id}')">🗑️ Delete</button>
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    container.innerHTML = '<div class="error-msg">Error loading banners.</div>';
+  }
+};
+
+window.deleteBanner = async function(id) {
+  if (!confirm('Delete this banner from the home page?')) return;
+  try {
+    await db.collection(COLLECTIONS.BANNERS).doc(id).delete();
+    showToast('Banner deleted', 'success');
+    loadOwnerBanners();
+    loadBanners();
+  } catch(e) {
+    showToast('Failed to delete banner', 'error');
+  }
+};
+
+// ── GLOBAL ACTIONS ──────────────────────────────────────────
 const GlobalActions = {
   showScreen, showToast, doLogin, doLogout, sendOTP, verifyOTP, resendOTP, skipOTPAndBook,
   toggleService, selectCaregiver: (id) => loadCaregivers(), selectSlot, onDurationChange,
   setBooker, goStep, confirmBooking, loadCaregivers, updateBookingStatus,
-  triggerUpload, handleMediaUpload, submitApplication, loadOwnerDashboard, approveApplication, rejectApplication,
-  setDashTab, setOwnerTab, scrollToHow, loadPublicGallery, doChangePassword,
+  triggerUpload, handleMediaUpload, confirmCaptionUpload, closeCaptionModal, editCaption,
+  submitApplication, loadOwnerDashboard, approveApplication, rejectApplication,
+  setDashTab, setOwnerTab, scrollToHow, loadPublicGallery, doChangePassword, deleteMedia,
   
   // Group Yatras
   loadGroupTrips, proposeGroupTrip, deleteGroupTrip, loadTripInterests, loadPublicGroupTrips,
   openInterestModal, closeInterestModal, submitTripInterest,
 
   // Hamburger Drawer
-  openDrawer, closeDrawer, toggleDrawerGroup, navigateDrawer
+  openDrawer, closeDrawer, toggleDrawerGroup, navigateDrawer,
+
+  // Blogs / Diaries
+  editTestimonial, deleteTestimonial, deleteTestimonialImage, editGroupTrip, editBlog,
+  postDiary, loadPublicBlogs, showDiaryForm, hideDiaryForm, loadDiariesList, deleteBlog, loadOwnerFeedbackData,
+  loadMoreHomeReviews, loadOwnerTestimonials, showAddImagesForm, previewAddImages, uploadAndAddImages, cancelEditTestimonial,
+  loadBanners, loadOwnerBanners, uploadBanner, deleteBanner, previewBannerUpload
 };
 for (const [k, v] of Object.entries(GlobalActions)) window[k] = v;
 
@@ -1645,5 +2696,8 @@ document.addEventListener("DOMContentLoaded", () => {
   loadPublicGallery();
   loadPublicGroupTrips();
   loadPublicFeedback();
+  loadHomeReviews();
+  loadPublicBlogs();
+  loadBanners();
   console.log("Saathi Unified App v3 Loaded");
 });

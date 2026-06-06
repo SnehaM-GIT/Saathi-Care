@@ -29,8 +29,8 @@ const db   = admin.firestore();
 const caregivers = [
   {
     name       : "Saathi Owner",
-    email      : "snehatest29@gmail.com",
-    password   : "Owner@2025!",   // Default owner password
+    email      : "accompanysakha@gmail.com",
+    password   : "Owner1@",   // Default owner1 password
     phone      : "+91 90000 00000",
     bio        : "Platform Owner & Administrator",
     since      : "2025",
