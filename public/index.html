@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <meta name="description" content="Accompany — Trusted companion care for elderly parents when family is far away.">
   <meta name="theme-color" content="#E8722A">
+  <meta property="og:image" content="/images/logo.webp">
+  <link rel="icon" href="/images/logo.webp" type="image/webp">
+  <link rel="apple-touch-icon" href="/images/logo.webp">
   <title>Accompany</title>
 
   <!-- Fonts -->
@@ -16,7 +19,7 @@
     rel="stylesheet">
 
   <!-- App CSS -->
-  <link rel="stylesheet" href="css/style.css?v=3.7">
+  <link rel="stylesheet" href="css/style.css?v=3.8">
 
   <!-- Firebase SDKs (compat v9 — works without bundler) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -32,6 +35,16 @@
 ═════════════════════════════════════════════════════════ -->
   <div class="toast toast-info" id="toast"></div>
 
+  <!-- Review Success Modal -->
+  <div id="review-success-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:white; border-radius:16px; padding:30px; max-width:400px; text-align:center; box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+      <div style="font-size:48px; margin-bottom:10px;">✅</div>
+      <h3 style="font-family:var(--font-serif); font-size:22px; color:var(--text); margin-bottom:10px;">Thank You!</h3>
+      <p style="color:var(--text2); margin-bottom:20px;">Your review has been submitted successfully.</p>
+      <button class="btn btn-teal" onclick="document.getElementById('review-success-modal').style.display='none'">Close</button>
+    </div>
+  </div>
+
   <!-- Hidden file input for gallery uploads -->
   <input type="file" id="media-upload-input" accept="image/*" style="display:none" onchange="handleMediaUpload(this)">
 
@@ -42,7 +55,7 @@
   <nav class="drawer-nav" id="drawer-nav" aria-label="Site navigation drawer">
     <div class="drawer-header">
       <a href="#" onclick="navigateDrawer('main'); return false;" style="display:inline-flex; align-items:center;">
-        <img src="images/logo.png" alt="Accompany" style="height:48px; width:auto; object-fit:contain; display:block;">
+        <img src="images/logo.webp" alt="Accompany" style="height:48px; width:auto; object-fit:contain; display:block;">
       </a>
       <button class="drawer-close" onclick="closeDrawer()" aria-label="Close menu">&#x2715;</button>
     </div>
@@ -116,7 +129,8 @@
         <a class="drawer-sub-item" style="cursor:pointer;"
           onclick="window.open('https://outlook.live.com/mail/0/deeplink/compose?to=hello.accompany@gmail.com', '_blank')">Outlook</a>
       </div>
-      <a class="drawer-sub-item contact-social-item contact-social-insta" href="#" target="_blank">
+      <a class="drawer-sub-item contact-social-item contact-social-insta"
+        href="https://www.instagram.com/accompanydiaries/" target="_blank">
         <svg viewBox="0 0 24 24">
           <path
             d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
@@ -131,6 +145,7 @@
       onclick="closeDrawer(); showScreen('screen-volunteer'); setVolunteerTab('login');">Volunteer Login</button>
     -->
     <div style="height: 32px;"></div>
+
   </nav>
 
   <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -144,24 +159,26 @@
       </button>
 
       <!-- GIANT NAV (Main Landing View Only) -->
-      <div id="giant-home-nav-content" class="nav-inner-wrap" style="display:flex; align-items:center; justify-content:center; gap:24px; width:100%; padding:10px 70px 10px 70px;">
+      <div id="giant-home-nav-content" class="nav-inner-wrap"
+        style="display:flex; align-items:center; justify-content:center; gap:24px; width:100%; padding:10px 70px 10px 70px;">
         <a href="#" onclick="showScreen('screen-home');return false;" style="display:inline-block; flex-shrink:0;">
-          <img src="images/logo.png" alt="Accompany" class="nav-logo-img"
+          <img src="images/logo.webp" alt="Accompany" class="nav-logo-img"
             style="height: 350px; width: auto; object-fit: contain; display:block; filter: drop-shadow(0 8px 28px rgba(210,125,92,0.28));">
         </a>
         <a href="#"
           onclick="if(typeof adminClick === 'undefined') adminClick = 0; adminClick++; if(adminClick >= 5) { adminClick = 0; showScreen('screen-volunteer'); document.getElementById('admin-login-tab').style.display = 'block'; setVolunteerTab('login'); } else { showScreen('screen-home'); } return false;"
           style="display:inline-flex; align-items:center; text-decoration:none; flex-shrink:0;">
-          <img src="images/ACCOMPANY TEXT W TAGLINE.png" alt="Accompany — Trusted companion care" class="nav-tagline-img"
+          <img src="images/ACCOMPANY TEXT W TAGLINE.webp" alt="Accompany — Trusted companion care"
+            class="nav-tagline-img"
             style="height: 400px; width: auto; max-width: 70vw; object-fit: contain; display: block;">
         </a>
       </div>
 
       <!-- SMALL NAV (For other views like Hearts, FAQs) -->
       <a href="#" id="small-home-nav-content" onclick="showScreen('screen-home'); switchHomeView('main'); return false;"
-        style="display:none; align-items:center; margin-left:60px; text-decoration:none;">
-        <img src="images/ACCOMPANY TEXT W TAGLINE.png" alt="Accompany"
-          style="height: 160px; width: auto; max-width: 80vw; object-fit: contain; display: block;">
+        style="display:none; position:absolute; top:-10px; left:56px; align-items:center; text-decoration:none; z-index:10; height:80px;">
+        <img src="images/ACCOMPANY TEXT W TAGLINE.webp" alt="Accompany" class="nav-tagline-img-small"
+          style="height: 100%; width: auto; max-width: calc(100vw - 80px); object-fit: contain; display: block;">
       </a>
       <div id="small-home-nav-spacer" class="nav-right-spacer" style="display:none;"></div>
     </nav>
@@ -183,8 +200,46 @@
           <!-- ── LOGO moved to fixed nav bar above ── -->
 
           <!-- ── BANNER CAROUSEL ── -->
-          <div id="home-banner-carousel"
-            style="display:none; position:relative; width:100%; border-radius:16px; overflow:hidden; margin-bottom:32px; box-shadow:0 8px 32px rgba(0,0,0,0.15);">
+          <style>
+            .desktop-carousel-container,
+            .mobile-carousel-container {
+              display: none;
+              position: relative;
+              width: 100%;
+              margin-left: auto;
+              margin-right: auto;
+              border-radius: 16px;
+              overflow: hidden;
+              margin-bottom: 32px;
+              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            }
+
+            .desktop-carousel-container {
+              max-width: calc(70vh * 1.5);
+            }
+
+            .mobile-carousel-container {
+              max-width: 400px;
+            }
+
+            @media (max-width: 600px) {
+              .desktop-carousel-container {
+                display: none !important;
+              }
+
+              .mobile-carousel-container {
+                margin-top: -38px;
+              }
+            }
+
+            @media (min-width: 601px) {
+              .mobile-carousel-container {
+                display: none !important;
+              }
+            }
+          </style>
+
+          <div id="home-banner-carousel" class="desktop-carousel-container">
             <style>
               .banner-track-wrapper {
                 overflow: hidden;
@@ -194,12 +249,12 @@
               #banner-track {
                 display: flex;
                 transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
-                aspect-ratio: 16 / 5;
+                aspect-ratio: 3 / 2;
               }
 
               @media (max-width: 600px) {
                 #banner-track {
-                  aspect-ratio: 16 / 7;
+                  aspect-ratio: 3 / 2;
                 }
               }
 
@@ -279,7 +334,8 @@
                 }
               }
 
-              #banner-dots {
+              #banner-dots,
+              #banner-dots-mobile {
                 position: absolute;
                 bottom: 10px;
                 left: 50%;
@@ -309,23 +365,29 @@
             <div class="banner-track-wrapper">
               <div id="banner-track"></div>
             </div>
-            <button class="banner-arrow banner-arrow-left" onclick="prevBannerSlide()" aria-label="Previous banner"
-              style="display:none;">&#8249;</button>
-            <button class="banner-arrow banner-arrow-right" onclick="nextBannerSlide()" aria-label="Next banner"
-              style="display:none;">&#8250;</button>
+
             <div id="banner-dots"></div>
           </div>
 
-          <div class="hero-badge">Trusted Companion Care &middot; Chennai</div>
+          <!-- Mobile Carousel -->
+          <div id="home-banner-carousel-mobile" class="mobile-carousel-container">
+            <style>
+              #banner-track-mobile {
+                display: flex;
+                transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+                aspect-ratio: 2 / 3;
+              }
+            </style>
+            <div class="banner-track-wrapper">
+              <div id="banner-track-mobile"></div>
+            </div>
+
+            <div id="banner-dots-mobile"></div>
+          </div>
+
           <h1>A <span>helping hand</span><br>when family is far away</h1>
-          <p>We connect caring volunteers with elderly parents so no wish goes unfulfilled &mdash; temple visits,
-            hospital check-ups, breakfast outings &amp; more.</p>
-          <div class="hero-btns">
-            <!-- HIDDEN: startBooking() previously opened screen-book — restore when self-booking is re-enabled
-            <button class="btn btn-primary btn-lg" onclick="startBooking()">Book a Visit</button>
-            -->
-            <button class="btn btn-primary btn-lg" onclick="startBooking()">&#128222; Book via WhatsApp</button>
-            <button class="btn btn-outline btn-lg" onclick="scrollToHow()">How It Works &darr;</button>
+          <h2 style="font-family: var(--font-serif); font-size: clamp(24px, 5vw, 36px); font-weight: 600; color: var(--text); margin-top: 24px; line-height: 1.3;"><span>Accompany is Namma Chennai's</span> dedicated Companion Service for Sr. Citizens.</h2>
+          <div class="hero-btns" style="display:none;">
           </div>
         </div>
       </div>
@@ -335,8 +397,8 @@
         <div
           style="font-family:var(--font-serif);font-size:30px;color:var(--teal-dark);font-weight:600;margin-bottom:12px">
           Moments of Care</div>
-        <div style="color:var(--text2);margin-bottom:32px;font-size:16px">Real visits. Real smiles. Real
-          connections.</div>
+        <div style="color:var(--text2);margin-bottom:32px;font-size:16px">Real Visits. Real Smiles. Real
+          Sambandh.</div>
 
         <style>
           /* ── Polaroid Gallery Stack ── */
@@ -373,6 +435,10 @@
             object-fit: cover;
             display: block;
             border-radius: 1px;
+            pointer-events: none;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
           }
 
           .polaroid-caption {
@@ -383,9 +449,7 @@
             padding: 6px 6px 0 6px;
             line-height: 1.35;
             min-height: 22px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            white-space: normal;
           }
 
           .polaroid-card.stack-active-0 {
@@ -562,12 +626,12 @@
             }
 
             .hearts-img-caption {
-              font-family: var(--font-serif);
-              font-size: 17px;
+              font-family: 'Dancing Script', cursive;
+              font-size: 34px;
               color: var(--teal-dark);
-              font-weight: 600;
+              font-weight: 700;
               text-align: center;
-              line-height: 1.4;
+              line-height: 1.2;
             }
 
             .hearts-img-subcaption {
@@ -649,9 +713,9 @@
 
             <!-- Left: Image + name -->
             <div class="hearts-img-col">
-              <img src="images/suhasini_maami.jpeg" alt="Suhasini — Co-founder of Accompany">
+              <img src="images/suhasini_maami.webp" alt="Suhasini — Co-founder of Accompany">
               <div class="hearts-img-caption">Suhasini</div>
-              <div class="hearts-img-subcaption">Co-founder · Accompany</div>
+              <div class="hearts-img-subcaption" style="font-size: 16px;"><strong>Co-founder, Pratam Sakhi, Accompany</strong></div>
             </div>
 
             <!-- Right: Bio text -->
@@ -668,7 +732,7 @@
               </p>
 
               <div class="hearts-highlight-box">
-                🌿 Suhasini is a certified nutritionist, a beauty consultant, and trained in creative arts including
+                Suhasini is a certified nutritionist, a beauty consultant, and trained in creative arts including
                 dress making, embroidery, and aary work. This unique blend of skills &mdash; wellness expertise and
                 artistic attention to detail &mdash; ensures every Accompany experience is safe, healthy, and
                 thoughtfully curated.
@@ -683,10 +747,8 @@
 
               <div class="hearts-vision">
                 Her vision is simple: No senior should miss out on a temple visit, family wedding, or holiday just
-                because they&rsquo;re alone.
-              </div>
-              <div class="hearts-closing">
-                Travel shouldn&rsquo;t stop at 60. With the right company, it just gets better. ❤️
+                because they&rsquo;re alone. Travel shouldn&rsquo;t stop at 60. With the right company, it just gets
+                better. ❤️
               </div>
             </div>
           </div>
@@ -700,9 +762,9 @@
 
             <!-- Left: Image + name -->
             <div class="hearts-img-col">
-              <img src="images/venky_placeholder.jpg" alt="Venky — Co-founder of Accompany">
+              <img src="images/venky.webp" alt="Venky — Co-founder of Accompany">
               <div class="hearts-img-caption">Venky</div>
-              <div class="hearts-img-subcaption">Co-founder · Accompany</div>
+              <div class="hearts-img-subcaption" style="font-size: 16px;"><strong>Co-founder, Pratam Sakha, Accompany</strong></div>
             </div>
 
             <!-- Right: Bio text -->
@@ -716,15 +778,16 @@
                 His energy is infectious. Always cheerful, always encouraging, he has a way of making people laugh, open
                 up, and feel alive again. Around him, seniors don&rsquo;t just feel safe. They feel younger. For the
                 last five years, Venky has walked beside elders through their daily troubles and small victories. From
-                fulfilling their small wishes to managing bills and medicines to sitting through long dialysis sessions
-                for his mother, he&rsquo;s become the steady, kind presence families rely on. He understands what
+                fulfilling their small wishes to patiently waiting through long dialysis sessions for his mother, he’s
+                become one strong reliable presence, families can count on. He understands what
                 seniors rarely say: the need for dignity, for company, and for someone who shows up &mdash; thrice a
                 week or thrice a day &mdash; without checking the clock.
               </p>
 
               <div class="hearts-highlight-box">
-                🌿 Venky is a Cost Accountant by qualification and worked as a Senior Banker with ABN AMRO Bank and
-                Royal Bank of Scotland for 2+ decades. He has led Operations, Quality, Strategy and Transformation
+                Venky is a Cost Accountant by qualification and worked as a Senior Banker with ABN AMRO Bank and
+                Royal Bank of Scotland for 2+ decades. He has managed and led Operations, Quality, Strategy and
+                Transformation
                 &mdash; skills he now brings to Accompany. Every visit is meticulously planned like a process: safe,
                 timely, reliable. Every family gets updates like a dashboard: clear, honest, complete.
               </div>
@@ -820,8 +883,13 @@
             sunrise by the beach missed, a music kutcheri or a movie or a dance drama skipped because there's no support
             system - literally, no one to go with!</p>
 
-          <div class="ikigai-highlight" style="display:block; margin-top:28px;">That's
+          <div class="ikigai-highlight" style="display:block; margin-top:28px; margin-bottom:28px;">That's
             Accompany - a company in need; indeed ❤️.</div>
+          <p>Accompany provides safe, dignified travel companions for senior citizens in Chennai. Whether it’s a
+            pilgrimage trip, domestic holiday, international tour, planned hospital visit, or just a local temple visit,
+            beach walk, or dinner date — our trained companions handle it all. We manage tickets, wheelchair support,
+            medicine reminders, hotel check-ins, customized itinerary, and every aspect of care and comfort — so elders
+            travel worry-free and families stay relaxed. Serving families across Chennai since 2021.</p>
         </div>
 
         <div style="margin-top:40px;">
@@ -876,7 +944,7 @@
         <div class="vp-pastel-grid" style="margin-top:30px;">
           <div class="vp-pastel-card" style="background:#FFF8F0; border-color:#F5C9A0;">
             <div class="vp-card-icon vp-card-icon-img">
-              <img src="images/hybiscus.png" alt="Sakhas and Sakhis"
+              <img src="images/hybiscus.webp" alt="Sakhas and Sakhis"
                 style="width:100%; height:220px; object-fit:contain; border-radius:12px; margin-bottom: 8px;">
             </div>
             <div class="vp-card-title">Sakhas &amp; Sakhis</div>
@@ -886,7 +954,7 @@
           </div>
           <div class="vp-pastel-card" style="background:#F0F8FF; border-color:#A0C8F5;">
             <div class="vp-card-icon vp-card-icon-img">
-              <img src="images/lock.png" alt="Verified and Trusted"
+              <img src="images/lock.webp" alt="Verified and Trusted"
                 style="width:100%; height:220px; object-fit:contain; border-radius:12px; margin-bottom: 8px;">
             </div>
             <div class="vp-card-title">Verified &amp; Trusted</div>
@@ -896,7 +964,7 @@
           </div>
           <div class="vp-pastel-card" style="background:#F5FFF0; border-color:#A0D8A0;">
             <div class="vp-card-icon vp-card-icon-img">
-              <img src="images/lotus.png" alt="Flexible and Personal"
+              <img src="images/lotus.webp" alt="Flexible and Personal"
                 style="width:100%; height:220px; object-fit:contain; border-radius:12px; margin-bottom: 8px;">
             </div>
             <div class="vp-card-title">Flexible &amp; Personal</div>
@@ -906,7 +974,7 @@
           </div>
           <div class="vp-pastel-card" style="background:#FFF5F0; border-color:#F5B0A0;">
             <div class="vp-card-icon vp-card-icon-img">
-              <img src="images/care.png" alt="Beyond Pick & Drop"
+              <img src="images/care.webp" alt="Beyond Pick & Drop"
                 style="width:100%; height:220px; object-fit:contain; border-radius:12px; margin-bottom: 8px;">
             </div>
             <div class="vp-card-title">Beyond Pick & Drop</div>
@@ -943,7 +1011,7 @@
             if someone could benefit from the services of Accompany.</p>
 
           <div class="ikigai-highlight"
-            style="display:block; margin-top:28px; text-align:left; font-size:14px; font-weight:500;">
+            style="display:block; margin-top:28px; text-align:justify; font-size:14px; font-weight:500;">
             In
             the last 5 years, we have
             travelled alongside and accompanied many of them to not just
@@ -972,7 +1040,8 @@
               <p style="color:var(--text2); font-size:14px; margin-bottom:12px; text-align:justify;">Designed
                 specifically
                 for senior citizens, to support families who want 1:1 care for parents or grandparents on their tirth
-                yatras or vacay to any other destinations. Curated for senior citizens, who love to travel on their
+                yatras or vacay to any other destinations. With custom itineraries, curated for senior citizens, who
+                love to travel on their
                 dates, at their pace, with undivided attention.</p>
               <ul class="custom-list" style="text-align:justify; padding: 0;">
                 <li style="margin-bottom: 8px;"><strong>1. Totally Customized :</strong> You choose the place, dates,
@@ -985,6 +1054,10 @@
                 <li><strong>3. Comfort First :</strong> Senior-friendly hotels, ground floor rooms, healthy diet, and
                   extra rest days. Your comfort and health guides the itinerary.</li>
               </ul>
+              <div class="ikigai-highlight"
+                style="font-size:14px; margin-top:16px; display:inline-block; padding: 8px 12px;">Worried about sending
+                parents alone? Call Accompany 73393 39323 for a free consultation. Let's plan their next trip, with them
+                ❤️.</div>
             </div>
             <div
               style="background:rgba(232, 114, 42, 0.05); padding:20px; border-radius:8px; border:1px solid rgba(232, 114, 42, 0.2); text-align:justify;">
@@ -1719,7 +1792,8 @@
     <!-- Home View: GOOGLE REVIEW -->
     <div id="home-view-googlereview" class="home-view-section" style="display:none">
       <div class="rich-header">
-        <h2>Customer Reviews</h2>
+        <h2>Atithi Anubhuti</h2>
+        <p class="rich-subtitle" style="font-size: 0.9em;">We'd love to hear your experience!</p>
       </div>
       <div class="rich-section" style="max-width:800px; margin:0 auto; text-align:center;">
         <div class="ikigai-card highlight-card" style="text-align:left; margin-bottom:32px;">
@@ -1874,15 +1948,10 @@
 
 
     </script>
-    <div style="background:var(--teal-dark); color:white; padding:40px 24px; text-align:center;">
-      <div style="font-family:var(--font-serif); font-size:20px; font-weight:600; margin-bottom:16px;">Follow Us</div>
-      <div style="font-size:15px; line-height:1.8; opacity:0.9;">
-        Travel Company for Sr. Citizens 👴👵<br>
-        Accompanied Yatra with Companions ✈️<br>
-        Local | Domestic | International 🌍<br>
-        (Travel, Doctor Visits, Temple Visits, Sabha Kutcherys, Art Exhibitions, Nature Walks, Beaches, Lunch Date,
-        Shopping, Coffee Conversations, Board Games and more)
-      </div>
+    <div style="background:var(--teal-dark); color:white; padding:40px 24px; text-align:center; display:flex; flex-direction:column; align-items:center;">
+      <div style="font-weight: 600; font-size: 17px; color: white; margin: 0 0 8px 0; text-align: center; max-width: 900px;">Accompany | Namma Chennai's dedicated Companion Service for Sr. Citizens</div>
+      <div style="font-style: italic; color: #FFF; opacity: 0.9; font-size: 16px; margin: 0 0 20px 0; text-align: center;">A company in need, indeed</div>
+      <div style="font-size: 14px; color: white; opacity: 0.8; line-height: 1.8; max-width: 800px; text-align: center; margin: 0;">1:1 Domestic / Int'l Trips with Customized Itineraries | Hospital Visits | Beach | Shopping | Sabha Kutcherys | Dance | Drama | Movie | Lunch or Dinner Date | Board Games | Coffee Conversations and more</div>
     </div>
 
     <script>
@@ -1962,6 +2031,19 @@
 
     <div class="footer">
       <p>© 2025 Accompany · Made with love for our elders · Chennai, India</p>
+      <p style="margin-top: 6px; font-size: 13px; color: var(--text2);">
+        Designed &amp; Developed by
+        <a href="https://www.linkedin.com/in/sneham11/" target="_blank"
+          style="color: #E8722A; font-weight: 700; letter-spacing: 0.3px; text-decoration: none;">
+          Sneha Manikandan
+          <svg style="width:12px; height:12px; margin-left: 2px; vertical-align: text-top;" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+        </a>
+      </p>
     </div>
   </div>
 
@@ -2028,17 +2110,17 @@
      SCREEN 4: VOLUNTEER
 ═════════════════════════════════════════════════════════ -->
   <div class="screen" id="screen-volunteer">
-    <nav class="nav">
-      <button class="hamburger-btn" onclick="openDrawer()" aria-label="Open navigation menu">
+    <nav class="nav" style="position:relative; height:60px;">
+      <button class="hamburger-btn" onclick="openDrawer()" aria-label="Open navigation menu" style="position:absolute; top:16px; left:16px; z-index:10;">
         <span></span><span></span><span></span>
       </button>
       <a href="#"
         onclick="if(typeof adminClick === 'undefined') adminClick = 0; adminClick++; if(adminClick >= 5) { adminClick = 0; showScreen('screen-volunteer'); document.getElementById('admin-login-tab').style.display = 'block'; setVolunteerTab('login'); } else { showScreen('screen-home'); } return false;"
-        style="display:inline-flex; align-items:center; margin-left:10px; text-decoration:none;">
-        <img src="images/ACCOMPANY TEXT W TAGLINE.png" alt="Accompany — Trusted companion care"
-          style="height: 160px; width: auto; max-width: 80vw; object-fit: contain; display: block;">
+        style="position:absolute; top:-10px; left:56px; display:flex; align-items:center; text-decoration:none; z-index:10; height:80px;">
+        <img src="images/ACCOMPANY TEXT W TAGLINE.webp" alt="Accompany — Trusted companion care"
+          style="height: 100%; width: auto; max-width: calc(100vw - 80px); object-fit: contain; display: block;">
       </a>
-      <div class="nav-right-spacer"></div>
+      <div class="nav-right-spacer" style="display:none;"></div>
     </nav>
 
     <div class="dash-body" style="padding-top: 0;">
@@ -2171,7 +2253,7 @@
           <!-- Watermark Logo -->
           <div
             style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.04; pointer-events: none; width: 80%; display: flex; justify-content: center;">
-            <img src="images/logo.png" alt="Accompany Logo Watermark"
+            <img src="images/logo.webp" alt="Accompany Logo Watermark"
               style="width: 100%; max-width: 500px; filter: grayscale(100%);">
           </div>
 
@@ -2223,7 +2305,7 @@
               <p style="color:var(--text2); font-size:14px; margin-bottom:8px;"><strong>3.2</strong> Financial
                 boundaries are absolute. Never ask for, borrow, or accept money, gifts, gold, or valuables from senior
                 citizens / families. No UPI, no “loan for emergency.” If offered, politely refuse and report to
-                Accompany. Even ₹10 tea is a violation.</p>
+                Accompany.</p>
               <p style="color:var(--text2); font-size:14px; margin-bottom:8px;"><strong>3.3</strong> Respect privacy. No
                 photos or videos of senior citizens without family consent. Never discuss their medical, financial, or
                 family matters with others. What happens on yatra, stays on yatra.</p>
@@ -2848,6 +2930,15 @@
           if (typeof loadOwnerDashboard === "function") loadOwnerDashboard();
         }, 300);
       }
+
+      // 🤝 iVolunteer deep-link: ?page=ivolunteer
+      if (params.get("page") === "ivolunteer") {
+        setTimeout(() => {
+          showScreen("screen-volunteer");
+          if (typeof setVolunteerTab === "function") setVolunteerTab("main");
+          window.scrollTo(0, 0);
+        }, 300);
+      }
     });
 
     // startBooking: redirects to WhatsApp for booking
@@ -2908,6 +2999,7 @@
       </div>
     </div>
   </div>
+
 
 </body>
 

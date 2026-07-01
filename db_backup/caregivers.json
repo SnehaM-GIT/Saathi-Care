@@ -1,0 +1,110 @@
+[
+  {
+    "id": "1qt2S6Sd8jXrq6VujPrXv7FLsks1",
+    "name": "Priya Nair",
+    "email": "priya@saathicare.in",
+    "phone": "+91 98765 00001",
+    "bio": "I love spending time with elders. I speak Kannada, Tamil, and Hindi.",
+    "since": "2023",
+    "rating": "4.9",
+    "avatarBg": "#FBE9D9",
+    "avatarColor": "#E8722A",
+    "active": true,
+    "uid": "1qt2S6Sd8jXrq6VujPrXv7FLsks1",
+    "createdAt": {
+      "_seconds": 1777712128,
+      "_nanoseconds": 91000000
+    }
+  },
+  {
+    "id": "PpXSLlzZR3gVdDan1aVSnmr27hn2",
+    "area": "Chennai",
+    "rating": 5,
+    "active": true,
+    "bio": "Service minded",
+    "occ": "Retired",
+    "skills": "Photography",
+    "interest": "Nature trails",
+    "phone": "9884521209",
+    "name": "Venkataraghavan Ramaswamy",
+    "langs": "Tamil, Telugu, English and Hindi",
+    "age": "49",
+    "email": "venkataraghavan.ramaswamy@gmail.com",
+    "since": 2026,
+    "updatedAt": {
+      "_seconds": 1780583694,
+      "_nanoseconds": 169000000
+    }
+  },
+  {
+    "id": "Qqgoj5qaxahr8LAcXYRUWD2LeJ12",
+    "area": "chennai",
+    "rating": 5,
+    "active": true,
+    "bio": "Companion",
+    "occ": "Student",
+    "skills": "",
+    "interest": "",
+    "phone": "9035757914",
+    "name": "xyz",
+    "langs": "",
+    "age": "20",
+    "email": "snehaphotos29@gmail.com",
+    "since": 2026,
+    "updatedAt": {
+      "_seconds": 1780405625,
+      "_nanoseconds": 450000000
+    }
+  },
+  {
+    "id": "YekrY4VqvKZ7QIsqsPmYbqaTPzx1",
+    "name": "Meera Krishnan",
+    "email": "meera@saathicare.in",
+    "phone": "+91 98765 00003",
+    "bio": "Retired teacher with a warm heart. Loves conversations, bhajans, and temple visits.",
+    "since": "2023",
+    "rating": "5.0",
+    "avatarBg": "#F3E5F5",
+    "avatarColor": "#8E44AD",
+    "active": true,
+    "uid": "YekrY4VqvKZ7QIsqsPmYbqaTPzx1",
+    "createdAt": {
+      "_seconds": 1777712130,
+      "_nanoseconds": 159000000
+    }
+  },
+  {
+    "id": "emhzj4xNTvhVHLxuVKlL30sXmWf1",
+    "name": "Arjun Sharma",
+    "email": "arjun@saathicare.in",
+    "phone": "+91 98765 00002",
+    "bio": "Patient, caring, and always on time. Happy to help with hospital visits and errands.",
+    "since": "2024",
+    "rating": "4.8",
+    "avatarBg": "#E0F0F0",
+    "avatarColor": "#2A7F7F",
+    "active": true,
+    "uid": "emhzj4xNTvhVHLxuVKlL30sXmWf1",
+    "createdAt": {
+      "_seconds": 1777712129,
+      "_nanoseconds": 163000000
+    }
+  },
+  {
+    "id": "oCirfXwoIEVHOo8PdOcNXvgULeH2",
+    "name": "Saathi Owner",
+    "email": "snehatest29@gmail.com",
+    "phone": "+91 90000 00000",
+    "bio": "Platform Owner & Administrator",
+    "since": "2025",
+    "rating": "5.0",
+    "avatarBg": "#FFF3E0",
+    "avatarColor": "#E8722A",
+    "active": true,
+    "uid": "oCirfXwoIEVHOo8PdOcNXvgULeH2",
+    "createdAt": {
+      "_seconds": 1777712126,
+      "_nanoseconds": 823000000
+    }
+  }
+]

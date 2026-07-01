@@ -206,7 +206,7 @@ function authErrorMessage(code) {
     "auth/invalid-email"    : "Invalid email address.",
     "auth/too-many-requests": "Too many attempts. Try again later."
   };
-  return map[code] || "Login failed. Please try again.";
+  return map[code] || `Login failed. Please try again. (${code})`;
 }
 
 function injectOwnerTab() {
@@ -300,6 +300,10 @@ function injectOwnerTab() {
           <input type="text" id="blog-title-input" class="form-input" placeholder="e.g. Delivery Boy's Presence | Upastithi | 18-Jun-2026 | WhatsApp ⏩">
         </div>
         <div class="form-group">
+          <label class="form-label">Diary Image (Optional)</label>
+          <input type="file" id="diary-image-upload" class="form-input" accept="image/*">
+        </div>
+        <div class="form-group">
           <label class="form-label">Content (HTML allowed)</label>
           <textarea id="blog-content-input" class="form-input" rows="10" placeholder="Enter the blog content here..."></textarea>
         </div>
@@ -359,9 +363,16 @@ function injectOwnerTab() {
           <label class="form-label">Banner Image</label>
           <input type="file" id="banner-upload-input" class="form-input" accept="image/*" onchange="previewBannerUpload()">
         </div>
+        <div class="form-group">
+          <label class="form-label">Banner Type</label>
+          <select id="banner-type-input" class="form-input" onchange="document.getElementById('banner-preview-box').style.aspectRatio = this.value === 'mobile' ? '1/1' : '16/5'; document.getElementById('banner-preview-box').style.maxWidth = this.value === 'mobile' ? '300px' : '100%';">
+            <option value="desktop">Desktop Banner (Landscape)</option>
+            <option value="mobile">Mobile Banner (Portrait/Square)</option>
+          </select>
+        </div>
         <div id="banner-preview-container" style="display:none; margin-bottom:16px;">
           <div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:6px;text-transform:uppercase;">Preview (how it will look on home page):</div>
-          <div style="width:100%;aspect-ratio:16/5;border-radius:12px;overflow:hidden;border:1.5px solid var(--border);background:#f0f0f0;">
+          <div id="banner-preview-box" style="width:100%;aspect-ratio:16/5;border-radius:12px;overflow:hidden;border:1.5px solid var(--border);background:#f0f0f0;">
             <img id="banner-preview-img" src="" alt="Banner preview" style="width:100%;height:100%;object-fit:cover;display:block;">
           </div>
         </div>
@@ -382,33 +393,117 @@ function injectOwnerTab() {
   }
 }
 
+async function downloadAppsAsCSV(status) {
+  const apps = window.currentVolunteerApps ? window.currentVolunteerApps[status] : [];
+  if (!apps || apps.length === 0) return alert("No applications to download in this category.");
+
+  let csv = "Name,Email,Phone,Age,Area,Occupation,Time,Frequency,Languages,Interests,Social,Bio,Status,Applied At\n";
+  apps.forEach(a => {
+    let dateStr = "";
+    if (a.createdAt && a.createdAt.toDate) dateStr = a.createdAt.toDate().toLocaleString();
+    let row = [
+      a.name, a.email, a.phone, a.age, a.area, a.occ, a.time, a.freq, a.langs, a.interest, a.social, a.bio, a.status || 'pending', dateStr
+    ].map(v => '"' + (v || '').toString().replace(/"/g, '""') + '"');
+    csv += row.join(",") + "\n";
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `applications_${status}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 async function loadOwnerPanelData() {
   const appList  = document.getElementById("owner-applications-list2");
   if (!appList) return;
   try {
-    const appSnap = await db.collection("applications").orderBy("createdAt", "desc").limit(50).get();
+    const appSnap = await db.collection("applications").orderBy("createdAt", "desc").limit(100).get();
     const apps    = appSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-    appList.innerHTML = apps.length === 0
-      ? `<div class="empty-state">No applications yet.</div>`
-      : apps.map(a => `
+
+    if (apps.length === 0) {
+      appList.innerHTML = `<div class="empty-state">No applications yet.</div>`;
+      return;
+    }
+
+    const pendingApps = apps.filter(a => a.status === "pending" || !a.status);
+    const approvedApps = apps.filter(a => a.status === "approved");
+    const rejectedApps = apps.filter(a => a.status === "rejected");
+
+    const renderCard = (a) => `
         <div class="request-card" style="margin-bottom:14px">
           <div class="req-icon">👤</div>
           <div class="req-body">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-              <div class="req-title">${escHtml(a.name)}</div>
+              <div class="req-title">${escHtml(a.name || "Unknown")}</div>
               <span class="status-badge ${a.status==="approved"?"status-confirmed":a.status==="rejected"?"status-cancelled":"status-new"}">
                 ${a.status || "pending"}
               </span>
             </div>
-            <div class="req-meta">📧 ${a.email ? escHtml(a.email) : '<span style="color:red">Missing</span>'} · 📞 ${a.phone ? escHtml(a.phone) : '<span style="color:red">Missing</span>'}</div>
+            <div class="req-meta" style="margin-bottom:8px;">📧 ${a.email ? escHtml(a.email) : '<span style="color:red">Missing</span>'} · 📞 ${a.phone ? escHtml(a.phone) : '<span style="color:red">Missing</span>'}</div>
+            
+            <details style="margin-bottom:12px; background:var(--bg); padding:8px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+              <summary style="cursor:pointer; font-size:14px; font-weight:600; color:var(--teal);">View Full Details</summary>
+              <div style="font-size:13px; color:var(--text2); margin-top:8px; display:grid; gap:4px;">
+                ${a.age ? `<div><strong>Age:</strong> ${escHtml(a.age)}</div>` : ''}
+                ${a.area ? `<div><strong>Area:</strong> ${escHtml(a.area)}</div>` : ''}
+                ${a.occ ? `<div><strong>Occupation:</strong> ${escHtml(a.occ)}</div>` : ''}
+                ${a.time ? `<div><strong>Availability (Time):</strong> ${escHtml(a.time)}</div>` : ''}
+                ${a.freq ? `<div><strong>Availability (Freq):</strong> ${escHtml(a.freq)}</div>` : ''}
+                ${a.langs ? `<div><strong>Languages:</strong> ${escHtml(a.langs)}</div>` : ''}
+                ${a.interest ? `<div><strong>Interests/Skills:</strong> ${escHtml(a.interest)}</div>` : ''}
+                ${a.social ? `<div><strong>Social Media:</strong> <a href="${escHtml(a.social)}" target="_blank" style="color:var(--teal);">${escHtml(a.social)}</a></div>` : ''}
+                ${a.bio ? `<div><strong>Bio:</strong> ${escHtml(a.bio)}</div>` : ''}
+              </div>
+            </details>
+
             <div class="req-actions">
               ${a.status !== "approved" ? `<button class="btn btn-teal btn-sm" onclick="approveApplication('${a.id}', this)">✓ Approve</button>` : ""}
               ${a.status !== "rejected" ? `<button class="btn btn-ghost btn-sm" onclick="rejectApplication('${a.id}', this)">✗ Reject</button>`  : ""}
             </div>
           </div>
-        </div>`).join("");
+        </div>`;
+
+    window.currentVolunteerApps = { pending: pendingApps, approved: approvedApps, rejected: rejectedApps };
+
+    let html = '';
+    
+    // Top section: New Applications
+    html += `<div style="margin-bottom: 24px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="margin:0; color:var(--text); font-size: 16px;">New Applications</h3>
+        <button class="btn btn-ghost btn-sm" onclick="downloadAppsAsCSV('pending')">📥 Download Excel</button>
+      </div>
+      ${pendingApps.length > 0 ? pendingApps.map(renderCard).join('') : '<div class="empty-state">No new applications.</div>'}
+    </div>`;
+
+    // Bottom section: 2 columns
+    html += `
+    <div style="display:flex; gap:20px; flex-wrap:wrap;">
+      <div style="flex:1; min-width:280px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <h3 style="margin:0; color:var(--teal); font-size: 16px;">Accepted Applications</h3>
+          <button class="btn btn-ghost btn-sm" onclick="downloadAppsAsCSV('approved')">📥 Download Excel</button>
+        </div>
+        ${approvedApps.length > 0 ? approvedApps.map(renderCard).join('') : '<div class="empty-state">No accepted applications.</div>'}
+      </div>
+      <div style="flex:1; min-width:280px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <h3 style="margin:0; color:var(--red); font-size: 16px;">Rejected Applications</h3>
+          <button class="btn btn-ghost btn-sm" onclick="downloadAppsAsCSV('rejected')">📥 Download Excel</button>
+        </div>
+        ${rejectedApps.length > 0 ? rejectedApps.map(renderCard).join('') : '<div class="empty-state">No rejected applications.</div>'}
+      </div>
+    </div>`;
+
+    appList.innerHTML = html;
   } catch (e) {
     appList.innerHTML = `<div class="error-msg">Error loading applications.</div>`;
+    console.error(e);
   }
 }
 
@@ -999,6 +1094,12 @@ async function handleMediaUpload(input) {
     return;
   }
 
+  if (file.size > 15 * 1024 * 1024) {
+    showToast("File is too large. Max size is 15MB.", "error");
+    input.value = '';
+    return;
+  }
+
   // Store file and show caption modal with live preview
   State.pendingUploadFile = file;
 
@@ -1185,9 +1286,7 @@ async function loadHomeReviews() {
         seen.add(t);
         const tl = t.toLowerCase();
         if (tl.includes('we wish all the very best to you and sow')) return false;
-        // Only show: form submissions (homeOnly:true) OR Manasa
-        const nameStr = (r.from || r.name || '').toLowerCase();
-        return r.homeOnly === true || nameStr.includes('manasa');
+        return r.homeOnly === true;
       });
 
     homeReviewsShownCount = 0;
@@ -1267,15 +1366,17 @@ async function submitPublicFeedback() {
   if (!name || !text) { showToast("Name and Review are required.", "error"); return; }
   if (rating === 0 || isNaN(rating)) { showToast("Please select a star rating.", "error"); return; }
   
-  try {
-    await db.collection(COLLECTIONS.PUBLIC_FEEDBACK).add({
-      name, rating, text,
-      homeOnly: true,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    showToast("Thank you for your feedback!", "success");
-    // Reset form
-    document.getElementById("feedback-name").value = "";
+    try {
+      await db.collection(COLLECTIONS.PUBLIC_FEEDBACK).add({
+        name, rating, text,
+        homeOnly: true,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      const modal = document.getElementById("review-success-modal");
+      if (modal) modal.style.display = "flex";
+      else showToast("Thank you for your feedback!", "success");
+      // Reset form
+      document.getElementById("feedback-name").value = "";
     document.getElementById("feedback-text").value = "";
     document.getElementById("feedback-rating").value = "0";
     document.querySelectorAll("#star-rating span").forEach(s => s.innerHTML = "☆");
@@ -1376,12 +1477,11 @@ async function loadPublicFeedback() {
       
       let imagesHtml = "";
       if (r.images && Array.isArray(r.images) && r.images.length > 0) {
-        const isKalpana = nameStr.toLowerCase().includes("kalpana");
         imagesHtml = `<div class="testimonial-img-grid">` + 
           r.images.map(img => `
             <div class="testimonial-img-card">
               <img src="${escHtml(img.url)}" alt="Testimonial photo" loading="lazy">
-              ${img.caption ? `<div class="testimonial-img-caption">${escHtml(isKalpana ? "Kalpana" : img.caption)}</div>` : ''}
+              ${img.caption ? `<div class="testimonial-img-caption">${escHtml(img.caption)}</div>` : ''}
             </div>
           `).join('') + `</div>`;
       }
@@ -1475,15 +1575,16 @@ async function loadOwnerFeedbackData() {
   try {
     // Load Public
     const pSnap = await db.collection(COLLECTIONS.PUBLIC_FEEDBACK).orderBy("createdAt", "desc").limit(20).get();
-    const pReviews = pSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-    State.ownerFeedback = pReviews;
-    pubList.innerHTML = pReviews.length === 0 ? `<div class="empty-state">No public reviews.</div>` : pReviews.map(r => `
+    const pReviews = pSnap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(r => r.homeOnly === true);
+    State.ownerFeedback = pSnap.docs.map(d => ({ id: d.id, ...d.data() })); // keep full list for edit
+    pubList.innerHTML = pReviews.length === 0 ? `<div class="empty-state">No public reviews yet.</div>` : pReviews.map(r => `
       <div class="request-card" style="margin-bottom:10px;">
         <div class="req-body">
           <div style="font-weight:700;">${escHtml(r.from || r.name)} - ${"⭐".repeat(r.rating || 5)}</div>
           <div style="font-size:14px; color:var(--text2); margin-top:4px;">"${escHtml(r.content || r.text)}"</div>
           <div class="req-actions" style="margin-top:12px; display:flex; gap:8px;">
-            <button class="btn btn-teal btn-sm" onclick="editTestimonial('${r.id}')">✏️ Edit</button>
             <button class="btn btn-ghost btn-sm" style="color:var(--red); border-color:rgba(192,57,43,0.3)" onclick="deleteTestimonial('${r.id}')">🗑️ Delete</button>
           </div>
         </div>
@@ -1521,7 +1622,7 @@ function showCredentialsModal(name, email, password, phone) {
   const fullMsg =
     `🙏 Hi ${name},\n\nYour Saathi Care Companion account has been approved!\n\n` +
     `📧 Email: ${email}\n🔑 Password: ${password}\n\n` +
-    `Please log in at https://saathi-care-a8525.web.app and change your password in Settings after your first login.\n\nWelcome to the Saathi family! 💚`;
+    `Please log in at https://accompanyservices.in and change your password in Settings after your first login.\n\nWelcome to the Saathi family! 💚`;
   const waUrl = waPhone
     ? `https://wa.me/91${waPhone}?text=${encodeURIComponent(fullMsg)}`
     : `https://wa.me/?text=${encodeURIComponent(fullMsg)}`;
@@ -1735,7 +1836,7 @@ async function loadPublicGallery() {
       const card = document.createElement("div");
       card.className = "polaroid-card";
       card.innerHTML = `
-        <img src="${data.url}" alt="Moment of care" loading="lazy">
+        <img src="${data.url}" alt="Moment of care" loading="lazy" oncontextmenu="return false;">
         <div class="polaroid-caption">${data.caption ? escHtml(data.caption) : ''}</div>
       `;
       container.appendChild(card);
@@ -2178,26 +2279,38 @@ async function deleteBlog(id) {
 async function postDiary() {
   const title = document.getElementById("blog-title-input").value.trim();
   const content = document.getElementById("blog-content-input").value.trim();
+  const imageInput = document.getElementById("diary-image-upload");
   if(!title || !content) { showToast("Enter title and content", "error"); return; }
   const btn = document.querySelector("#diary-write-form .btn-teal");
   if (btn) { btn.textContent = "Saving…"; btn.disabled = true; }
   try {
+    let finalContent = content;
+    if (imageInput && imageInput.files && imageInput.files[0]) {
+      const file = imageInput.files[0];
+      const fileName = `diary_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+      const ref = firebase.storage().ref(`diaries/${fileName}`);
+      const task = await ref.put(file);
+      const url = await task.ref.getDownloadURL();
+      finalContent += `<br><br><img src="${url}" alt="Diary Image" style="max-width:100%; border-radius:8px; margin-top:10px; pointer-events:none; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;" oncontextmenu="return false;">`;
+    }
+
     if (State.editingBlogId) {
       await db.collection(COLLECTIONS.BLOGS).doc(State.editingBlogId).update({
         title: title,
-        content: content,
+        content: finalContent,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
       showToast("Diary updated! 📖", "success");
     } else {
       await db.collection(COLLECTIONS.BLOGS).add({
         title: title,
-        content: content,
+        content: finalContent,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
       showToast("Diary published! 📖", "success");
     }
     hideDiaryForm();
+    if (imageInput) imageInput.value = "";
     loadDiariesList();
     loadPublicBlogs();
   } catch(e) {
@@ -2539,58 +2652,196 @@ window.editBlog = function(id) {
 // ── BANNER CAROUSEL ──────────────────────────────────────────
 window.loadBanners = async function() {
   const carousel = document.getElementById('home-banner-carousel');
-  if (!carousel) return;
+  const carouselMobile = document.getElementById('home-banner-carousel-mobile');
+  if (!carousel && !carouselMobile) return;
   try {
     const snap = await db.collection(COLLECTIONS.BANNERS).orderBy('createdAt', 'asc').get();
-    const banners = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    if (banners.length === 0) { carousel.style.display = 'none'; return; }
-    carousel.style.display = 'block';
-    const track = document.getElementById('banner-track');
-    const dots = document.getElementById('banner-dots');
-    if (!track || !dots) return;
-    track.innerHTML = banners.map((b, i) => `
-      <div class="banner-slide" style="min-width:100%; position:relative;">
-        <img src="${b.url}" alt="${b.caption || 'Accompany'}" style="width:100%;height:100%;object-fit:cover;display:block;">
-        ${b.caption ? `<div class="banner-caption">${b.caption}</div>` : ''}
-      </div>`).join('');
-    dots.innerHTML = banners.map((_, i) =>
-      `<button class="banner-dot ${i === 0 ? 'active' : ''}" onclick="goToBannerSlide(${i})" aria-label="Slide ${i+1}"></button>`
-    ).join('');
-    window._bannerTotal = banners.length;
-    window._bannerCurrent = 0;
-    clearInterval(window._bannerTimer);
-    if (banners.length > 1) {
-      window._bannerTimer = setInterval(() => goToBannerSlide((window._bannerCurrent + 1) % window._bannerTotal), 5000);
+    const allBanners = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    
+    const desktopBanners = allBanners.filter(b => b.type !== 'mobile');
+    const mobileBanners = allBanners.filter(b => b.type === 'mobile');
+
+    if (carousel) {
+      if (desktopBanners.length === 0) { carousel.style.display = 'none'; }
+      else {
+        carousel.style.display = 'block';
+        const track = document.getElementById('banner-track');
+        const dots = document.getElementById('banner-dots');
+        if (track && dots) {
+          track.innerHTML = desktopBanners.map((b, i) => `
+            <div class="banner-slide" style="min-width:100%; position:relative;">
+              <div style="display:block; width:100%; height:100%;">
+                <img src="${b.url}" alt="${b.caption || 'Accompany'}" style="width:100%;height:100%;object-fit:cover;display:block;">
+                ${b.caption ? `<div class="banner-caption">${b.caption}</div>` : ''}
+              </div>
+            </div>`).join('');
+          dots.innerHTML = desktopBanners.map((_, i) =>
+            `<button class="banner-dot ${i === 0 ? 'active' : ''}" onclick="goToBannerSlide(${i}, 'desktop')" aria-label="Slide ${i+1}"></button>`
+          ).join('');
+          window._bannerTotalDesktop = desktopBanners.length;
+          window._bannerCurrentDesktop = 0;
+          window._bannerPausedDesktop = false;
+          clearInterval(window._bannerTimerDesktop);
+
+          const startDesktopTimer = () => {
+            clearInterval(window._bannerTimerDesktop);
+            window._bannerPausedDesktop = false;
+            if (desktopBanners.length > 1) {
+              window._bannerTimerDesktop = setInterval(() => goToBannerSlide((window._bannerCurrentDesktop + 1) % window._bannerTotalDesktop, 'desktop'), 5000);
+            }
+          };
+          startDesktopTimer();
+
+          carousel.onmouseenter = () => { clearInterval(window._bannerTimerDesktop); };
+          carousel.onmouseleave = () => { if (!window._bannerPausedDesktop) startDesktopTimer(); };
+
+          // Inject arrow buttons if not already present
+          if (!carousel.querySelector('.banner-arrow-left')) {
+            const leftBtn = document.createElement('button');
+            leftBtn.className = 'banner-arrow banner-arrow-left';
+            leftBtn.style.display = 'flex';
+            leftBtn.innerHTML = '&#8249;';
+            leftBtn.setAttribute('aria-label', 'Previous banner');
+            leftBtn.onclick = () => window.prevBannerSlide('desktop');
+            carousel.appendChild(leftBtn);
+
+            const rightBtn = document.createElement('button');
+            rightBtn.className = 'banner-arrow banner-arrow-right';
+            rightBtn.style.display = 'flex';
+            rightBtn.innerHTML = '&#8250;';
+            rightBtn.setAttribute('aria-label', 'Next banner');
+            rightBtn.onclick = () => window.nextBannerSlide('desktop');
+            carousel.appendChild(rightBtn);
+          } else {
+            carousel.querySelectorAll('.banner-arrow').forEach(el => el.style.display = 'flex');
+          }
+        }
+      }
     }
-    // Show arrows only if multiple banners
-    document.querySelectorAll('.banner-arrow').forEach(el => el.style.display = banners.length > 1 ? 'flex' : 'none');
+
+    if (carouselMobile) {
+      if (mobileBanners.length === 0) { carouselMobile.style.display = 'none'; }
+      else {
+        carouselMobile.style.display = 'block';
+        const trackMobile = document.getElementById('banner-track-mobile');
+        const dotsMobile = document.getElementById('banner-dots-mobile');
+        if (trackMobile && dotsMobile) {
+          trackMobile.innerHTML = mobileBanners.map((b, i) => `
+            <div class="banner-slide" style="min-width:100%; position:relative;">
+              <div style="display:block; width:100%; height:100%;">
+                <img src="${b.url}" alt="${b.caption || 'Accompany'}" style="width:100%;height:100%;object-fit:contain;display:block;">
+                ${b.caption ? `<div class="banner-caption">${b.caption}</div>` : ''}
+              </div>
+            </div>`).join('');
+          dotsMobile.innerHTML = mobileBanners.map((_, i) =>
+            `<button class="banner-dot ${i === 0 ? 'active' : ''}" onclick="goToBannerSlide(${i}, 'mobile')" aria-label="Slide ${i+1}"></button>`
+          ).join('');
+          window._bannerTotalMobile = mobileBanners.length;
+          window._bannerCurrentMobile = 0;
+          window._bannerPausedMobile = false;
+          clearInterval(window._bannerTimerMobile);
+
+          const startMobileTimer = () => {
+            clearInterval(window._bannerTimerMobile);
+            window._bannerPausedMobile = false;
+            if (mobileBanners.length > 1) {
+              window._bannerTimerMobile = setInterval(() => goToBannerSlide((window._bannerCurrentMobile + 1) % window._bannerTotalMobile, 'mobile'), 5000);
+            }
+          };
+          startMobileTimer();
+
+          carouselMobile.onmouseenter = () => { clearInterval(window._bannerTimerMobile); };
+          carouselMobile.onmouseleave = () => { if (!window._bannerPausedMobile) startMobileTimer(); };
+
+          // Inject arrow buttons if not already present
+          if (!carouselMobile.querySelector('.banner-arrow-left')) {
+            const leftBtnM = document.createElement('button');
+            leftBtnM.className = 'banner-arrow banner-arrow-left';
+            leftBtnM.style.display = 'flex';
+            leftBtnM.innerHTML = '&#8249;';
+            leftBtnM.setAttribute('aria-label', 'Previous banner');
+            leftBtnM.onclick = () => window.prevBannerSlide('mobile');
+            carouselMobile.appendChild(leftBtnM);
+
+            const rightBtnM = document.createElement('button');
+            rightBtnM.className = 'banner-arrow banner-arrow-right';
+            rightBtnM.style.display = 'flex';
+            rightBtnM.innerHTML = '&#8250;';
+            rightBtnM.setAttribute('aria-label', 'Next banner');
+            rightBtnM.onclick = () => window.nextBannerSlide('mobile');
+            carouselMobile.appendChild(rightBtnM);
+          } else {
+            carouselMobile.querySelectorAll('.banner-arrow').forEach(el => el.style.display = 'flex');
+          }
+        }
+      }
+    }
   } catch(e) {
     console.error('loadBanners error:', e);
     if (carousel) carousel.style.display = 'none';
+    if (carouselMobile) carouselMobile.style.display = 'none';
   }
 };
 
-window.goToBannerSlide = function(index) {
-  const track = document.getElementById('banner-track');
+window.goToBannerSlide = function(index, type = 'desktop') {
+  const trackId = type === 'mobile' ? 'banner-track-mobile' : 'banner-track';
+  const dotsSelector = type === 'mobile' ? '#banner-dots-mobile .banner-dot' : '#banner-dots .banner-dot';
+  const track = document.getElementById(trackId);
   if (!track) return;
-  window._bannerCurrent = index;
+  if (type === 'mobile') window._bannerCurrentMobile = index;
+  else window._bannerCurrentDesktop = index;
   track.style.transform = `translateX(-${index * 100}%)`;
-  document.querySelectorAll('.banner-dot').forEach((dot, i) => dot.classList.toggle('active', i === index));
+  document.querySelectorAll(dotsSelector).forEach((dot, i) => dot.classList.toggle('active', i === index));
 };
 
-window.prevBannerSlide = function() {
-  const total = window._bannerTotal || 1;
-  const prev = (window._bannerCurrent - 1 + total) % total;
-  goToBannerSlide(prev);
-  clearInterval(window._bannerTimer);
-  if (total > 1) window._bannerTimer = setInterval(() => goToBannerSlide((window._bannerCurrent + 1) % total), 5000);
+window.prevBannerSlide = function(type = 'desktop') {
+  const total = type === 'mobile' ? (window._bannerTotalMobile || 1) : (window._bannerTotalDesktop || 1);
+  const current = type === 'mobile' ? window._bannerCurrentMobile : window._bannerCurrentDesktop;
+  const prev = (current - 1 + total) % total;
+  goToBannerSlide(prev, type);
+  // Pause auto-rotation; restart it after 5s from the new slide
+  if (type === 'mobile') {
+    clearInterval(window._bannerTimerMobile);
+    window._bannerPausedMobile = true;
+    clearTimeout(window._bannerResumeTimerMobile);
+    window._bannerResumeTimerMobile = setTimeout(() => {
+      window._bannerPausedMobile = false;
+      if (total > 1) window._bannerTimerMobile = setInterval(() => goToBannerSlide((window._bannerCurrentMobile + 1) % total, 'mobile'), 5000);
+    }, 5000);
+  } else {
+    clearInterval(window._bannerTimerDesktop);
+    window._bannerPausedDesktop = true;
+    clearTimeout(window._bannerResumeTimerDesktop);
+    window._bannerResumeTimerDesktop = setTimeout(() => {
+      window._bannerPausedDesktop = false;
+      if (total > 1) window._bannerTimerDesktop = setInterval(() => goToBannerSlide((window._bannerCurrentDesktop + 1) % total, 'desktop'), 5000);
+    }, 5000);
+  }
 };
 
-window.nextBannerSlide = function() {
-  const total = window._bannerTotal || 1;
-  goToBannerSlide((window._bannerCurrent + 1) % total);
-  clearInterval(window._bannerTimer);
-  if (total > 1) window._bannerTimer = setInterval(() => goToBannerSlide((window._bannerCurrent + 1) % total), 5000);
+window.nextBannerSlide = function(type = 'desktop') {
+  const total = type === 'mobile' ? (window._bannerTotalMobile || 1) : (window._bannerTotalDesktop || 1);
+  const current = type === 'mobile' ? window._bannerCurrentMobile : window._bannerCurrentDesktop;
+  const next = (current + 1) % total;
+  goToBannerSlide(next, type);
+  // Pause auto-rotation; restart it after 5s from the new slide
+  if (type === 'mobile') {
+    clearInterval(window._bannerTimerMobile);
+    window._bannerPausedMobile = true;
+    clearTimeout(window._bannerResumeTimerMobile);
+    window._bannerResumeTimerMobile = setTimeout(() => {
+      window._bannerPausedMobile = false;
+      if (total > 1) window._bannerTimerMobile = setInterval(() => goToBannerSlide((window._bannerCurrentMobile + 1) % total, 'mobile'), 5000);
+    }, 5000);
+  } else {
+    clearInterval(window._bannerTimerDesktop);
+    window._bannerPausedDesktop = true;
+    clearTimeout(window._bannerResumeTimerDesktop);
+    window._bannerResumeTimerDesktop = setTimeout(() => {
+      window._bannerPausedDesktop = false;
+      if (total > 1) window._bannerTimerDesktop = setInterval(() => goToBannerSlide((window._bannerCurrentDesktop + 1) % total, 'desktop'), 5000);
+    }, 5000);
+  }
 };
 
 window.previewBannerUpload = function() {
@@ -2606,6 +2857,7 @@ window.previewBannerUpload = function() {
 window.uploadBanner = async function() {
   const input = document.getElementById('banner-upload-input');
   const caption = document.getElementById('banner-caption-input').value.trim();
+  const type = document.getElementById('banner-type-input') ? document.getElementById('banner-type-input').value : 'desktop';
   if (!input || !input.files || !input.files[0]) { showToast('Please select an image', 'error'); return; }
   const btn = document.getElementById('banner-upload-btn');
   btn.textContent = 'Uploading\u2026'; btn.disabled = true;
@@ -2615,7 +2867,7 @@ window.uploadBanner = async function() {
     const ref = firebase.storage().ref(`banners/${fileName}`);
     const task = await ref.put(file);
     const url = await task.ref.getDownloadURL();
-    await db.collection(COLLECTIONS.BANNERS).add({ url, caption, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    await db.collection(COLLECTIONS.BANNERS).add({ url, caption, type, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
     showToast('Banner uploaded! \u2713', 'success');
     input.value = '';
     document.getElementById('banner-caption-input').value = '';
@@ -2640,12 +2892,12 @@ window.loadOwnerBanners = async function() {
     if (banners.length === 0) { container.innerHTML = '<div class="empty-state">No banners uploaded yet.</div>'; return; }
     container.innerHTML = banners.map((b, i) => `
       <div style="background:white;border:1.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow);">
-        <div style="width:100%;aspect-ratio:16/5;background:#f0f0f0;overflow:hidden;">
+        <div style="width:100%;aspect-ratio:${b.type === 'mobile' ? '2/3' : '16/5'};max-width:${b.type === 'mobile' ? '300px' : '100%'};background:#f0f0f0;overflow:hidden;">
           <img src="${b.url}" alt="${b.caption || 'Banner'}" style="width:100%;height:100%;object-fit:cover;display:block;">
         </div>
         <div style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
           <div>
-            <div style="font-weight:700;font-size:14px;color:var(--text);">Banner ${i + 1}</div>
+            <div style="font-weight:700;font-size:14px;color:var(--text);">Banner ${i + 1} <span style="font-size:11px;background:var(--teal-light);padding:2px 6px;border-radius:4px;margin-left:6px">${b.type === 'mobile' ? 'Mobile' : 'Desktop'}</span></div>
             ${b.caption ? `<div style="font-size:13px;color:var(--text3);">${escHtml(b.caption)}</div>` : '<div style="font-size:12px;color:var(--text3);">No caption</div>'}
           </div>
           <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deleteBanner('${b.id}')">🗑️ Delete</button>
