@@ -1204,25 +1204,30 @@ window.deleteTestimonialImage = async function(testimonialId, imageUrl) {
 
 async function submitApplication() {
   const name     = document.getElementById("app-name")?.value.trim();
+  const email    = document.getElementById("app-email")?.value.trim();
   const age      = document.getElementById("app-age")?.value.trim();
   const phone    = document.getElementById("app-phone")?.value.trim();
+  const emergency= document.getElementById("app-emergency")?.value.trim();
   const social   = document.getElementById("app-social")?.value.trim();
   const area     = document.getElementById("app-area")?.value.trim();
   const occ      = document.getElementById("app-occ")?.value.trim();
+  const genderPref = document.getElementById("app-gender-pref")?.value.trim();
   const time     = document.getElementById("app-avail-time")?.value.trim();
   const freq     = document.getElementById("app-avail-freq")?.value.trim();
   const langs    = document.getElementById("app-langs")?.value.trim();
   const interest = document.getElementById("app-interest")?.value.trim();
+  const experience = document.getElementById("app-experience")?.value.trim();
   const bio      = document.getElementById("app-bio")?.value.trim();
+  const physical = document.getElementById("app-physical")?.value.trim();
 
-  if (!name || !phone) { showToast("Name and Phone are required", "error"); return; }
+  if (!name || !phone || !email) { showToast("Name, Email and Phone are required", "error"); return; }
   
   const btn = document.getElementById("app-submit-btn");
   if(btn) { btn.textContent = "Submitting..."; btn.disabled = true; }
 
   try {
     await db.collection("applications").add({
-      name, age, phone, social, area, occ, time, freq, langs, interest, bio,
+      name, email, age, phone, emergency, social, area, occ, genderPref, time, freq, langs, interest, experience, bio, physical,
       status: "pending",
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -1269,6 +1274,21 @@ async function doChangePassword() {
 let homeReviewsAllData = [];
 let homeReviewsShownCount = 0;
 const HOME_REVIEWS_PER_LOAD = 4;
+
+window.likedHomeReviews = window.likedHomeReviews || new Set(JSON.parse(localStorage.getItem('likedHomeReviews') || '[]'));
+
+window.likeHomeReview = function(btn, id) {
+  if (!btn.dataset.liked) {
+    btn.dataset.liked = 1;
+    let c = btn.querySelector('span');
+    c.textContent = parseInt(c.textContent) + 1;
+    btn.style.background = 'var(--teal-light)';
+    btn.style.borderColor = 'var(--teal)';
+    btn.style.color = 'var(--teal)';
+    window.likedHomeReviews.add(id);
+    localStorage.setItem('likedHomeReviews', JSON.stringify([...window.likedHomeReviews]));
+  }
+};
 
 async function loadHomeReviews() {
   const list = document.getElementById('home-reviews-list');
@@ -1318,6 +1338,7 @@ function renderHomeReviews() {
     let textHtml = escHtml(r.content || r.text || '');
     textHtml = textHtml.replace(/\\n/g, '<br>');
     const initial = nameStr.charAt(0).toUpperCase();
+    const isLiked = window.likedHomeReviews.has(r.id);
     return `
       <div class="review-card" style="break-inside:avoid;margin-bottom:16px;">
         <div style="display:flex;align-items:center;margin-bottom:10px;">
@@ -1333,11 +1354,12 @@ function renderHomeReviews() {
         </div>
         <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
           <button
-            style="background:none;border:1.5px solid var(--border);border-radius:100px;padding:4px 14px;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:6px;color:var(--text2);font-weight:600;transition:all 0.2s;"
+            style="background:${isLiked ? 'var(--teal-light)' : 'none'};border:1.5px solid ${isLiked ? 'var(--teal)' : 'var(--border)'};border-radius:100px;padding:4px 14px;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:6px;color:${isLiked ? 'var(--teal)' : 'var(--text2)'};font-weight:600;transition:all 0.2s;"
+            data-liked="${isLiked ? '1' : ''}"
             onmouseover="this.style.borderColor='var(--teal)';this.style.color='var(--teal)';"
             onmouseout="if(!this.dataset.liked){this.style.borderColor='var(--border)';this.style.color='var(--text2)';}"
-            onclick="if(!this.dataset.liked){this.dataset.liked=1;var c=this.querySelector('span');c.textContent=parseInt(c.textContent)+1;this.style.background='var(--teal-light)';this.style.borderColor='var(--teal)';this.style.color='var(--teal)';}">
-            &#128077; <span>0</span>
+            onclick="window.likeHomeReview(this, '${r.id}')">
+            &#128077; <span>${isLiked ? 1 : 0}</span>
           </button>
         </div>
       </div>`;

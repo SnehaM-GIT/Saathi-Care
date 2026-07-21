@@ -7,6 +7,7 @@
   <meta name="description" content="Accompany — Trusted companion care for elderly parents when family is far away.">
   <meta name="theme-color" content="#E8722A">
   <meta property="og:image" content="/images/logo.webp">
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
   <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png">
   <link rel="shortcut icon" href="/favicon.png">
   <link rel="apple-touch-icon" href="/favicon.png">
@@ -2409,6 +2410,10 @@
                 <input class="form-input" id="app-name" placeholder="Your full name" autocomplete="name">
               </div>
               <div class="form-group">
+                <label class="form-label" for="app-email">Email Address *</label>
+                <input class="form-input" id="app-email" type="email" placeholder="For scheduling and official communication" autocomplete="email">
+              </div>
+              <div class="form-group">
                 <label class="form-label" for="app-age">Age *</label>
                 <input class="form-input" id="app-age" type="number" placeholder="e.g. 25">
               </div>
@@ -2417,12 +2422,16 @@
                 <input class="form-input" id="app-phone" type="tel" placeholder="+91...">
               </div>
               <div class="form-group">
+                <label class="form-label" for="app-emergency">Emergency Contact Details *</label>
+                <input class="form-input" id="app-emergency" placeholder="Name and Phone Number">
+              </div>
+              <div class="form-group">
                 <label class="form-label" for="app-social">Social Media Handles</label>
                 <input class="form-input" id="app-social" placeholder="e.g. Instagram/LinkedIn links">
               </div>
               <div class="form-group">
-                <label class="form-label" for="app-area">City *</label>
-                <input class="form-input" id="app-area" placeholder="e.g. Chennai">
+                <label class="form-label" for="app-area">Exact locality or pincode within Chennai *</label>
+                <input class="form-input" id="app-area" placeholder="e.g. Adyar, 600020 (to reduce travel time)">
               </div>
               <div class="form-group">
                 <label class="form-label" for="app-occ">Current Occupation *</label>
@@ -2436,7 +2445,15 @@
               </div>
 
               <div style="font-weight:700; margin-bottom:10px; margin-top:24px; color:var(--teal-dark)">Section 2: Your
-                Availability</div>
+                Availability & Preferences</div>
+              <div class="form-group">
+                <label class="form-label" for="app-gender-pref">Who are you comfortable accompanying?</label>
+                <select class="form-input" id="app-gender-pref">
+                  <option value="Both">Both (Male & Female)</option>
+                  <option value="Male">Male only</option>
+                  <option value="Female">Female only</option>
+                </select>
+              </div>
               <div class="form-group">
                 <label class="form-label">When can you volunteer?</label>
                 <input class="form-input" id="app-avail-time" placeholder="e.g. Sat Morning, Weekdays">
@@ -2455,22 +2472,31 @@
               <div style="font-weight:700; margin-bottom:10px; margin-top:24px; color:var(--teal-dark)">Section 3:
                 Language Skills</div>
               <div class="form-group">
-                <input class="form-input" id="app-langs" placeholder="e.g. Tamil, English, Hindi, Telugu, Kannada...">
+                <label class="form-label" for="app-langs">Languages with proficiency levels (basic/conversational/fluent) *</label>
+                <input class="form-input" id="app-langs" placeholder="e.g. Tamil (fluent), English (conversational)">
               </div>
 
               <div style="font-weight:700; margin-bottom:10px; margin-top:24px; color:var(--teal-dark)">Section 4: Areas
-                of Interest</div>
+                of Interest & Experience</div>
               <div class="form-group">
                 <label class="form-label">What services would you love to accompany a senior citizen? (e.g. Temple
                   Visits, Sabha Kutcherys)</label>
                 <input class="form-input" id="app-interest" placeholder="Your interests...">
               </div>
+              <div class="form-group">
+                <label class="form-label" for="app-experience">Prior volunteering or caregiving experience</label>
+                <textarea class="form-input" id="app-experience" rows="2" placeholder="Tell us about your experience..."></textarea>
+              </div>
 
               <div style="font-weight:700; margin-bottom:10px; margin-top:24px; color:var(--teal-dark)">Section 5:
-                Big WHY?</div>
+                Big WHY & Limitations</div>
               <div class="form-group">
                 <label class="form-label">Why do you want to volunteer as a Sakha or a Sakhi?</label>
                 <textarea class="form-input" id="app-bio" rows="2" placeholder="Share your reason..."></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="app-physical">Physical limitations (if any) that may affect accompanying seniors</label>
+                <textarea class="form-input" id="app-physical" rows="2" placeholder="e.g. Unable to push a wheelchair, difficulty walking long distances..."></textarea>
               </div>
 
               <div style="font-weight:700; margin-bottom:10px; margin-top:24px; color:var(--teal-dark)">Section 6:
@@ -2484,8 +2510,7 @@
                   Dharma.</label>
                 <label style="display:flex; gap:8px; margin-bottom:6px;"><input type="checkbox" checked> I shall
                   complete the Orientation Program recommended by Team Accompany, before my first field visit.</label>
-                <label style="display:flex; gap:8px; margin-bottom:6px;"><input type="checkbox" checked> I consent to
-                  furnish relevant information to conduct my background checks and identity verification.</label>
+                <label style="display:flex; gap:8px; margin-bottom:6px;"><input type="checkbox" checked> I declare my willingness to undergo identity and background verification checks.</label>
               </div>
             </div>
 
@@ -2937,6 +2962,15 @@
         setTimeout(() => {
           showScreen("screen-volunteer");
           if (typeof setVolunteerTab === "function") setVolunteerTab("main");
+          window.scrollTo(0, 0);
+        }, 300);
+      }
+
+      // ✍️ Review deep-link: ?page=review
+      if (params.get("page") === "review") {
+        setTimeout(() => {
+          showScreen("screen-home");
+          if (typeof switchHomeView === "function") switchHomeView("googlereview");
           window.scrollTo(0, 0);
         }, 300);
       }
